@@ -60,6 +60,65 @@ The baseline is the standard rule: *whatever tier the event has two days out is 
 
 ---
 
+## The math, statistics and ML, in one page
+
+### 1. Collision probability (physics)
+The two objects' position uncertainties (3×3 covariances in the RTN frame) are combined, with the chaser's rotated into the target's frame, and projected onto the **encounter plane**, the plane perpendicular to the relative velocity. Pc is the probability mass of that 2-D Gaussian that falls inside the **hard-body circle**:
+
+$$P_c=\iint_{\lVert \mathbf{x}\rVert\le R_{HB}} \frac{1}{2\pi\sqrt{|\Sigma|}}\exp\!\left(-\tfrac12(\mathbf{x}-\boldsymbol{\mu})^{\top}\Sigma^{-1}(\mathbf{x}-\boldsymbol{\mu})\right)d\mathbf{x}$$
+
+- μ is the miss vector and Σ the projected 2×2 covariance.
+- R_HB = (t_span + c_span)/2, taken from the CDM with no fitting.
+- We integrate with 24 × 48 Gauss–Legendre points in log space, so log₁₀ Pc stays exact down to −300.
+- **Validation against ESA's own `risk` column:** median error 0.059 dex, 98.97 % tier agreement, and Pc ≥ 1e-4 caught with recall 0.918 and precision 0.945.
+- **Refusal:** when a covariance is the 10-Earth-radii placeholder (3.2 % of rows), Pc is refused rather than guessed.
+
+### 2. Tiers (rules, not ML)
+- **CRITICAL:** Pc ≥ 10⁻⁴ **or** miss < 1 km.
+- **ELEVATED:** Pc ≥ 10⁻⁶ **or** miss ≤ 5 km.
+- **SAFE:** otherwise.
+
+The final tier is the worse of the two sub-tiers. Our labels match the organizer's on **13,154 / 13,154** events. Fun fact: 549 of 551 criticals are critical by **distance**, not probability.
+
+### 3. The forecasting target
+At the latest CDM ≥ 2 days before closest approach, the model predicts **P(final tier = CRITICAL)**.
+- **Features:** 84 from the 13 brief columns (latest values, deltas, min/max/std, slopes against time-to-TCA, log-miss, |r|/σ), or 233 using every column.
+- **Excluded on purpose:** any message < 2 d out, and `mission_id`, so the model can't memorise missions.
+- **Leakage audit:** we replaced every < 2 d message with random noise and the features came out **bit-identical**.
+
+### 4. Choosing the alert threshold by cost, not by accuracy
+Let R be the cost of a missed critical in units of one false alarm. The alert threshold t\* minimises the expected cost
+
+$$t^{*}=\arg\min_{t}\;\big(R\cdot \text{FN}(t)+\text{FP}(t)\big)\quad\text{subject to recall}\ge 0.90$$
+
+and is picked on **inner training folds only**. For perfectly calibrated probabilities, Bayes gives the same answer in closed form, t = 1/(1+R) ≈ 0.09 at R = 10. Our chosen cut-off (0.063 on all data, 0.050–0.103 per fold) sits right there, and the **cost-vs-threshold curve** in the stats tab shows the minimum. R = 10 comes from a Monte Carlo over ESA/CARA cost evidence (central 6.0, P90 10.3), fixed before scoring ([docs/COST_RATIO.md](docs/COST_RATIO.md)).
+
+### 5. How we measured it, and why you can trust the error bars
+| | Protocol |
+|---|---|
+| Splits | The organizer's **80/20 split by event** (5 seeds), and **GroupKFold(5) by mission**, so whole missions are unseen |
+| Thresholds | Nested: each outer fold's cut-off is chosen on its own inner out-of-fold predictions |
+| Uncertainty | Event bootstrap (B = 500–1,000), plus a **mission-level bootstrap** for the by-mission numbers. Paired bootstrap for model-vs-baseline differences |
+| Calibration | Isotonic, cross-fitted. Brier **0.0157**, ECE **0.0028**, AP 0.902 (served model, out-of-fold) |
+| Honesty checks | A pre-registered bake-off rule; shuffled labels give chance-level AUC; training events only ever show out-of-fold forecasts |
+
+Example of the error bars: expected cost per 1,000 events on the 80/20 split is **80.1 [68–93]** for us against **110.8 [93–127]** for the baseline.
+
+### 6. The models we tried
+| Model | Idea | Result (unseen missions, same false-alarm budget) |
+|---|---|---|
+| **LightGBM** (all features) | Gradient-boosted trees, Optuna-tuned | **Winner**: 84.2 % recall, AUC 0.985 |
+| TabPFN v2 | A pretrained transformer for small tables | 83.8 %, a close second |
+| GRU | Reads the CDM sequence directly | 83.1 % |
+| **Risk futures** | A mixture-density network learns how each CDM evolves into the next; we then simulate **10,000 Monte Carlo futures** per event | 83.1 %, AUC 0.982. It also powers the fan charts |
+| EBM | A glass-box additive model | 83.1 % |
+| **Conformal alerts** | A split-conformal threshold calibrated on *other missions* | At a 95 % target: **94.9 %** realised [92.5–96.7] |
+| **Optimal policy** | Backward induction over 588 states using the simulated futures | Loss per event 0.86 vs 3.90 for the brief's rule |
+
+Full derivations, tables and the file behind every number are in **[ML.md](ML.md)** and [docs/REPORT.md §4–6](docs/REPORT.md#4-physics-pc-from-the-covariance).
+
+---
+
 ## What happens when a warning turns critical
 
 | | |
