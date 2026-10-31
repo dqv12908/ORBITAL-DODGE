@@ -1,4 +1,4 @@
-"""Decision provider chain (design §4.3): openai-decisions (5 s) -> jev (5 s, unverified stub) -> mock. 12 s budget.
+"""Decision provider chain (design §4.3): typesafe-jev (official) -> openai-decisions -> jev-router (OpenRouter) -> mock.
 
 - Only the rule-ALLOWED actions are offered, as opaque choice values o1..oN.
 - The expected-cost baseline's choice is withheld from the request.
@@ -125,17 +125,22 @@ def finish(raw: dict, mapping: dict) -> dict:
 class DecisionService:
     def __init__(self, settings, providers: list | None = None):
         self.s = settings
+        self.sem = asyncio.Semaphore(2)  # bounded concurrency for outbound decision calls
         self.cache_dir: Path = settings.cache_root / "decisions"
         if providers is None:
             from decisions.jev import JevProvider
             from decisions.openai_decisions import OpenAIDecisions
+            from decisions.typesafe import TypeSafeJev
             providers = []
+            if settings.typesafe_api_key:  # Jev itself, official API: real per-action probabilities
+                providers.append(TypeSafeJev(settings))
             if settings.openai_api_key:
                 providers.append(OpenAIDecisions(settings))
             if settings.jev_key:
                 providers.append(JevProvider(settings))
         self.providers = providers
-        self.health = {"openai": "ok" if settings.openai_api_key else "unconfigured",
+        self.health = {"typesafe": "ok" if settings.typesafe_api_key else "unconfigured",
+                       "openai": "ok" if settings.openai_api_key else "unconfigured",
                        "jev": "ok" if settings.jev_key else "unconfigured"}
         self.stats = {"calls": 0, "fallbacks": 0, "refusals": 0, "cache_hits": 0, "latencies_ms": []}
 
@@ -200,8 +205,9 @@ class DecisionService:
                     if raw is None:
                         if self.mode == "replay":
                             raise ProviderError("cache_miss", "replay mode: no cached response")
-                        raw = await asyncio.wait_for(p.decide(dict(preq, _mapping=mapping), min(self.s.decisions_timeout_s, remaining)),
-                                                     timeout=min(self.s.decisions_timeout_s, remaining) + 0.5)
+                        async with self.sem:
+                            raw = await asyncio.wait_for(p.decide(dict(preq, _mapping=mapping), min(self.s.decisions_timeout_s, remaining)),
+                                                         timeout=min(self.s.decisions_timeout_s, remaining) + 0.5)
                         if raw.get("refused"):
                             raise ProviderError("refusal", "provider refused")
                         self._cache_put(h, raw)
@@ -245,7 +251,8 @@ class DecisionService:
                 "request_hash": prepared["request_hash"], "cached": False, "attempts": attempts, "degraded": degraded}
 
     def _health(self, name: str, status: str) -> None:
-        key = "openai" if name.startswith("openai") else name
+        key = ("openai" if name.startswith("openai") else "typesafe" if name.startswith("typesafe")
+               else "jev" if name.startswith("jev") else name)
         self.health[key] = status
 
 

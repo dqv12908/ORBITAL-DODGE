@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     openai_api_key: SecretStr | None = Field(default=None, validation_alias=AliasChoices("C1_OPENAI_API_KEY", "OPENAI_API_KEY"))
     jev_api_key: SecretStr | None = Field(default=None, validation_alias=AliasChoices("C1_JEV_API_KEY", "JEV_API_KEY"))
     openrouter_api_key: SecretStr | None = Field(default=None, validation_alias=AliasChoices("C1_OPENROUTER_API_KEY", "OPENROUTER_API_KEY"))
+    typesafe_api_key: SecretStr | None = Field(default=None, validation_alias=AliasChoices("C1_TYPESAFE_API_KEY", "TYPESAFE_API_KEY"))
+    typesafe_url: str = "https://api.typesafe.ai/v1/systemone"
+    typesafe_model: str = "jev-latest"
     anthropic_api_key: SecretStr | None = Field(default=None, validation_alias=AliasChoices("C1_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY"))
     openai_decisions_url: str = "https://api.openai.com/v1/decisions"
     openai_decisions_model: str = "gpt-6-luna"
@@ -80,7 +83,7 @@ class Settings(BaseSettings):
     def decisions_mode(self) -> str:
         if self.replay:
             return "replay"
-        if self.mock_ai or not (self.openai_api_key or self.jev_key):
+        if self.mock_ai or not (self.typesafe_api_key or self.openai_api_key or self.jev_key):
             return "mock"
         return "live"
 
