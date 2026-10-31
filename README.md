@@ -1,210 +1,181 @@
 # ORBITAL DODGE 🛰️
 
-### Two days before closest approach, ORBITAL DODGE catches **94.8 %** of the encounters that end critical. The standard baseline catches **86.6 %**.
+**Satellite collision-avoidance triage, from the CDM flood to a signed-off decision.**
 
-*Measured on the organizer's official labels, on missions the model never saw in training.*
+ORBITAL DODGE reads every conjunction warning (CDM) a satellite operator receives. Physics recomputes the collision probability, rules set the tier, ML forecasts which events will still be critical at the encounter, and **TypeSafe Jev** suggests an action. **Claude** explains it in plain English. The analyst signs off on a card that shows exactly why, and every step lands in a hash-chained ledger. All of it runs in a live 3D Earth simulator.
+
+[![TypeSafe Jev: decision model](https://img.shields.io/badge/TypeSafe_Jev-jev--1.14.0-0F766E?style=flat-square)](server/decisions/typesafe.py)
+[![Claude: advisor](https://img.shields.io/badge/Claude-advisor_note-7C3AED?style=flat-square)](server/llm/explain.py)
+[![LightGBM: forecaster](https://img.shields.io/badge/LightGBM-forecaster-2563EB?style=flat-square)](ML.md)
+[![GPU server: Triologay](https://img.shields.io/badge/Triologay-4_GPUs-475569?style=flat-square)](ML.md)
+[![Three.js: 3D Earth](https://img.shields.io/badge/Three.js-3D_Earth-475569?style=flat-square)](game/)
+[![Tests: 168 passing](https://img.shields.io/badge/tests-168_passing-16A34A?style=flat-square)](server/tests/)
+
+> **We beat the baseline.** Two days before closest approach, ORBITAL DODGE catches **94.8 %** of the encounters that end critical. The standard baseline catches **86.6 %**. Expected cost is **30 % lower**. Measured on the organizer's official labels, on missions the model never saw.
+>
+> Airbus track · Challenge 1 · Autonomous SG 2026 · built in one day, 31 Oct 2026
+
+[Results](#we-beat-the-baseline) · [What the analyst sees](#what-happens-when-a-warning-turns-critical) · [Who decides](#who-decides-in-one-table) · [ML deep dive](ML.md) · [Full report](docs/REPORT.md) · [Judge guide](JUDGING.md)
 
 ![ORBITAL DODGE during a simulated duty shift](docs/screenshots/readme/hero.png)
 
-**In 10 seconds:**
-- 🛰️ **The problem:** a satellite analyst gets hundreds of collision warnings a week. Almost all are noise, and the real decision has to be made about a day before the encounter.
-- ⚡ **What we built:** physics, rules, ML and an AI decision model turn that flood into a short, ranked to-do list, with a recommendation and the evidence. All of it runs in a live 3D Earth simulator.
-- 🧑‍🚀 **Who decides:** always the human. Every step lands in a tamper-evident ledger.
-- 📈 **The result:** we beat the baseline on every headline number that matters to the operator.
+---
 
-Airbus track · Challenge 1 ("AI-driven satellite collision avoidance") · Autonomous SG 2026 · built in one day, 31 Oct 2026.
+## Project highlights
+
+| Claim | Where to verify |
+|---|---|
+| **Beats the baseline on the official labels.** Critical events caught 2 days ahead: **93.7 % vs 85.1 %** (organizer 80/20 split, 5 seeds) and **94.8 % vs 86.6 %** (unseen missions). Expected cost −28 % / −30 %. AUC 0.988 vs 0.969 | `server/.venv/bin/python research/organizer/recompute_table.py` rebuilds the table in one command; [docs/REPORT.md §6](docs/REPORT.md#6-results-with-confidence-intervals) |
+| **Physics you can check.** Our 2D collision probability, computed from the covariance, reproduces ESA's own values to a **median 0.06 on the log scale, with 98.97 % tier agreement**. It refuses to guess on broken data | [`server/riskengine/pc.py`](server/riskengine/pc.py), golden tests in [`server/tests/`](server/tests/) |
+| **A model search that earned its winner.** **About 540 configurations** on our own 4-GPU server: a pre-registered bake-off of 8 models, 120 Optuna trials, a 403-config nested sweep, and 13 false-alarm experiments | [ML.md](ML.md), [docs/BAKEOFF.md](docs/BAKEOFF.md) |
+| **A decision model that earns its place.** TypeSafe Jev returns a probability for each action, but only for actions the rules allow. Next to it, a cost rule gives a second opinion. After we fixed the policy, it handles **12 of 18** live decisions on its own, and the 6 it escalates are the right ones | [`server/decisions/`](server/decisions/), [docs/REPORT.md §6.6](docs/REPORT.md#66-fewer-hand-offs-to-the-analyst-live-typesafe-jev-ops-day-scenario) |
+| **An LLM that only advises.** Claude writes a 2–3 sentence note. Every number in it is checked against the facts, and a fixed template is shown if the check fails | [`server/llm/verify.py`](server/llm/verify.py) |
+| **Honest by construction.** Training events only ever show out-of-fold forecasts. Critical events are never automatic. Decision-model numbers are never shown as collision probabilities. Ties and losses are reported | [`server/tests/test_perf_honesty.py`](server/tests/test_perf_honesty.py), [docs/REPORT.md §7–8](docs/REPORT.md#7-trust-and-traceability) |
+| **Today's real sky, screened by us.** 28,686 catalogued objects over 72 h on our GPU in about 2.5 min. Given the same orbit data, it finds 97 % of CelesTrak SOCRATES's events | [research/livesky/REPORT.md](research/livesky/REPORT.md) |
+| **Full audit trail.** Every signal, decision and click is in a hash-chained ledger that you can verify from the UI | `GET /api/ledger/verify`, [`server/ledger/`](server/ledger/) |
 
 ---
 
-## 📈 We beat the baseline
+## The problem
 
-The baseline is the standard rule: *whatever tier the event has two days out is its final tier.* It's harder to beat than it sounds: in ESA's Kelvins competition, only 12 of 97 teams beat its close cousin, the "latest risk" baseline. We scored both on the **organizer's official labels**, 11,942 events:
+A satellite analyst gets **hundreds of collision warnings a week**, with an update every ~8 hours. Almost all are harmless and a few are real. For each one they must decide whether to **ignore it, get more tracking, or plan a dodge**, and the real decision has to be made about **one day before** the encounter. Today that's done by hand, with spreadsheets and threshold checks.
 
-| | Baseline | **ORBITAL DODGE** |
+**Our goal:** turn the flood into a short, ranked to-do list, with a suggested action and its evidence, while the human still makes the call.
+
+---
+
+## We beat the baseline
+
+The baseline is the standard rule: *whatever tier the event has two days out is its final tier.* It's harder to beat than it sounds; in ESA's Kelvins competition, only 12 of 97 teams beat its close cousin, the "latest risk" baseline.
+
+| Organizer's official labels (11,942 events) | Baseline | **ORBITAL DODGE** |
 |---|---|---|
-| Critical events caught 2 days ahead (organizer's 80/20 split, 5 seeds) | 85.1 % | **93.7 %** |
-| Critical events caught 2 days ahead (missions never seen in training) | 86.6 % | **94.8 %** |
-| Criticals still missed, unseen missions (out of 834) | 112 | **43** |
-| Expected cost per 1,000 events, unseen missions (one miss = 10 false alarms) | 104.3 | **72.8** (−30 %) |
+| Critical caught 2 d ahead, organizer 80/20 split (5 seeds) | 85.1 % | **93.7 %** |
+| Critical caught 2 d ahead, unseen missions | 86.6 % | **94.8 %** |
+| Criticals still missed, unseen missions (of 834) | 112 | **43** |
+| Expected cost per 1,000 events, unseen missions | 104.3 | **72.8** (−30 %) |
 | AUC, unseen missions | 0.969 | **0.988** |
 
-The honest trade-off: **we raise more false alarms, on purpose.** Missing a real collision risk is far worse than an extra analyst review. We set that ratio (R = 10) from ESA and CARA cost evidence *before* looking at any model scores ([docs/COST_RATIO.md](docs/COST_RATIO.md)).
-
-> 🔁 **Don't trust us, check it:** `server/.venv/bin/python research/organizer/recompute_table.py` rebuilds that table from the committed predictions in one command, with no data or training needed.
+**The price:** more false alarms, on purpose. Precision drops from 85 % to 64 %. We decided a missed critical costs as much as **10 false alarms** (R = 10), derived from ESA and CARA cost evidence *before* we looked at scores ([docs/COST_RATIO.md](docs/COST_RATIO.md)).
 
 ---
 
-## 👀 What the analyst actually sees
+## What happens when a warning turns critical
 
-### The inspector: the moment `train:2563` turns critical
-![Inspector](docs/screenshots/readme/inspector.png)
-Event `train:2563` looked safe two days out. Then, **10.5 hours before closest approach**, a new warning puts the debris **136 m** away. The inspector shows it all:
-- **Encounter plane.** The debris's uncertainty cloud (1σ / 2σ / 3σ) against our satellite's 3.55 m hard body, zoomed ×135 so you can actually see it.
-- **Risk evolution.** Our physics Pc for every warning, plus a fan of **10,000 simulated futures** from our risk-futures model.
-
-### The decision card: only when a human has to decide
-![Decision card](docs/screenshots/readme/approval.png)
-- One headline and three evidence tiles.
-- **One recommendation**, and how sure the AI is.
-- The two strongest reasons it's asking you.
-- A short note from the **AI advisor** in plain English.
-- Buttons.
-
-The full audit trail is folded under *Details*. In a live replay, the system handles **12 of 18** flagged decisions on its own. The 6 it brings to you are the 2 critical events and one genuinely ambiguous event.
-
-### Statistics, out-of-fold only
-![Statistics](docs/screenshots/readme/stats.png)
-ROC (AUC 0.988), precision–recall, reliability, and the chart that drives everything: **expected cost against alert threshold at R = 10**, with our chosen cut-off and the baseline marked.
-
-### Live sky: today's real catalogue, screened by us
-![Live sky](docs/screenshots/readme/livesky.png)
-We propagated **28,686 real objects** over the next 72 hours and screened every pair on our own GPU in about **2.5 minutes**. Given the same orbit data, we find **97 %** of the events in CelesTrak's SOCRATES reports.
-
-<details>
-<summary><b>More screens:</b> RTN chart, ops dashboard, ledger, analyst desk, scenario picker</summary>
-
-![RTN](docs/screenshots/readme/inspector-rtn.png)
-*Relative position split into radial, along-track and cross-track, with ±1σ bands. At T−2.4 d the along-track uncertainty was ±22.7 km, which is why "6.3 km apart" meant nothing yet.*
-
-![Dashboard](docs/screenshots/readme/dashboard.png)
-*The 24 h ops dashboard: events within 1 km and 5 km, the tiers, the verdicts and auto-generated insights.*
-
-![Ledger](docs/screenshots/readme/ledger.png)
-*The hash-chained ledger: every signal, decision and click, verified end to end (`CHAIN ✓`).*
-
-![Desk](docs/screenshots/readme/desk.png)
-*The analyst desk: the operator's policy in plain language, with the tier-mode switch and the live operating curve.*
-
-![Scenarios](docs/screenshots/readme/scenarios.png)
-*Nine scenarios, each teaching one thing, including one called "Where we fail".*
-</details>
+| | |
+|---|---|
+| ![Inspector](docs/screenshots/readme/inspector.png) | **1. The warning lands.** `train:2563` looked safe two days out. Then, 10.5 h before closest approach, a new CDM puts the debris **136 m** away. Physics recomputes the Pc and the rules flag CRITICAL on miss distance. The inspector shows the **encounter plane** (the debris uncertainty cloud against our 3.55 m hard body) and the **risk evolution**, with a fan of 10,000 simulated futures. |
+| ![Decision card](docs/screenshots/readme/approval.png) | **2. The system stops and asks.** Critical events always go to a human. The card shows one headline, three evidence tiles, **one recommendation** with how sure Jev is, the two strongest reasons, and Claude's short advisor note. The full audit trail is folded under *Details*. |
+| ![RTN](docs/screenshots/readme/inspector-rtn.png) | **3. The analyst checks the geometry.** Relative position split into radial, along-track and cross-track, with ±1σ bands. Two days out the along-track uncertainty was ±22.7 km; now it's ±0.7 km. The warning has become trustworthy. |
+| ![Ledger](docs/screenshots/readme/ledger.png) | **4. The decision is recorded.** The analyst clicks, and the action, its reasons and every input are hash-chained into the ledger. `CHAIN ✓` verifies end to end. |
+| ![Statistics](docs/screenshots/readme/stats.png) | **5. Anyone can audit the model.** ROC, precision–recall, reliability and expected cost against threshold, all computed out-of-fold, with the baseline marked. |
+| ![Live sky](docs/screenshots/readme/livesky.png) | **6. And it works on today's sky.** Real close approaches from our own screening of the current catalogue, validated against CelesTrak SOCRATES. |
 
 ---
 
-## ⚙️ How it works: one warning, ten steps
+## Who decides, in one table
 
-1. **Clean.** Catch broken data, such as the fake "unknown uncertainty" placeholder in about 3 % of rows.
-2. **Physics computes Pc** from both objects' uncertainty clouds. It reproduces ESA's own values to a **median 0.06 on the log scale, with 98.97 % tier agreement**. On broken data it refuses instead of guessing.
-3. **Rules assign the tier** with the brief's thresholds: the worse of the Pc rule and the miss-distance rule.
-4. **ML forecast:** the chance this event ends CRITICAL. It can only *add* attention, never dismiss an alert.
-5. **Gate.** Code decides which actions are even allowed. Safe and boring events are logged automatically.
-6. **Two advisors.** A cost rule (expected loss) and **TypeSafe Jev**, a decision model that returns a probability for each action. Jev only ever sees the allowed actions.
-7. **Verdict.**
-   - **Automatic** only if the event isn't critical, Jev is at least 70 % sure, and both advisors agree.
-   - **Escalate** to the analyst otherwise.
-   - **Block** on broken data.
-8. **Claude writes a 2–3 sentence advisor note.** Every number is checked against the facts. If one is wrong, a fixed template is shown instead.
-9. **The analyst decides.**
-10. **Ledger.** Every step is hash-chained, so tampering shows.
-
-Physics computes, rules decide what's allowed, ML forecasts, AI advises, and a human signs off. No layer does another layer's job.
-
-**Want the deep dive on the models?** Every experiment, number and lesson is in **[ML.md](ML.md)**.
+| Who | Can do | Enforced where |
+|---|---|---|
+| **Physics** | Compute the collision probability, or refuse on broken covariance | [`riskengine/pc.py`](server/riskengine/pc.py) |
+| **Rules** | Set the tier (worse of Pc and miss distance) and the allowed actions. A critical event can never be "keep monitoring" | [`riskengine/rules.py`](server/riskengine/rules.py), [`decisions/policy.py` `gate()`](server/decisions/policy.py) |
+| **ML forecaster** | Add attention: rank the queue and raise a WATCH flag. It **never** lowers a tier or dismisses an alert | [`decisions/policy.py`](server/decisions/policy.py), [`test_perf_honesty.py`](server/tests/test_perf_honesty.py) |
+| **TypeSafe Jev** (decision model) | Recommend one of the *allowed* actions, with a probability | [`decisions/typesafe.py`](server/decisions/typesafe.py) |
+| **The system (code)** | Act alone only if the event isn't critical, Jev is **≥ 70 % sure**, and the cost rule agrees. Otherwise escalate, and block on broken data | [`decisions/policy.py` `verdict()`](server/decisions/policy.py), with reason strings shown to the analyst |
+| **Claude** (LLM) | Explain in 2–3 plain sentences; every number is verified | [`llm/verify.py`](server/llm/verify.py) |
+| **Analyst** | Approve or reject anything escalated; change the tier mode, threshold and confidence bar live on the Analyst desk | Approval card; `PUT /api/policy`, written to the ledger |
 
 ---
 
-## 🔥 The ML grind
+## Integrations
+
+| System | Status | Proof |
+|---|---|---|
+| **TypeSafe Jev** (official API, `jev-1.14.0`) | **Live**: per-action probabilities in about 0.3 s | `train:2563`: *Prepare manoeuvre* at 0.92; ambiguous `train:2115`: split 44–53 %, so it escalates |
+| **Claude** (`claude-sonnet-5-5`) | **Live**: advisor notes, checked for numbers and style | "The two objects are expected to pass 136 m apart in 11 hours… I'd have flight dynamics prepare manoeuvre options… It's your call." |
+| **CelesTrak** (GP catalogue + SOCRATES) | **Live data**: 28,686 objects screened; ~19.5k shown on the globe | [research/livesky/REPORT.md](research/livesky/REPORT.md) |
+| **Triologay** (our GPU server, over Tailscale) | **Used for**: the model search, risk futures, conformal calibration and sky screening | [ML.md](ML.md) |
+| ESA Kelvins CDMs + organizer labels | The dataset; our labels match theirs on **13,154 / 13,154** events | [docs/REPORT.md §2](docs/REPORT.md#2-data-and-the-organizers-labels) |
+| OpenRouter `jev-router` | Fallback decision provider (throttled, with vote shares) | [`decisions/jev.py`](server/decisions/jev.py) |
+
+---
+
+## Scenarios (each demonstrates one idea)
+
+| Scenario | What you'll see |
+|---|---|
+| **Ops day, mission 15** | A 24 h duty shift with ~33 live conjunctions: the ranked queue, the 24 h danger window and approvals |
+| **The late CDM** | Safe at the 2-day decision point, critical by miss distance 10.6 h before TCA. Nothing at T−2 d foresaw it |
+| **Steady climb** | Pc climbs from 1e-9 to 2e-3 while the miss shrinks to 40 m: the full pipeline end to end |
+| **Scary, then nothing** | The highest Pc in the training set collapses to nothing. Commit early, or wait? |
+| **Rules disagree** | Critical by miss distance but safe by probability, next to the reverse case. Flip the tier mode and watch every marker recolour |
+| **Covariance unknown** | Broken covariance: Pc refused, automation blocked |
+| **Where we fail** | ESA's Pc we can't reproduce, and a critical event the forecaster missed |
+| **Blind test** | Five unseen test events, truth hidden: forecasts only |
+| **Free play** | A random cast, plus your own CDMs via `POST /api/assess` |
+
+![Scenario picker](docs/screenshots/readme/scenarios.png)
+
+---
+
+## How we chose the model
 
 ![Triologay, our GPU server](docs/images/triologay-server.webp)
-*Meet Triologay, the box that did the heavy lifting: 56 cores, 2× V100 16 GB, a 32 GB PG503 and an RTX 2060, reached over Tailscale.*
+*Triologay did the heavy lifting: 56 cores, 2× V100 16 GB, a 32 GB PG503 and an RTX 2060.*
 
-We didn't just train one model and hope. We ran **about 540 configurations**:
-
-| Stage | What | Configs |
-|---|---|---|
-| Pre-registered bake-off | LightGBM, TabPFN, GRU, risk futures (10,000 Monte Carlo paths per event), EBM, HGB | 8 |
-| Hyper-parameter tuning | LightGBM with Optuna | 120 |
-| Nested cost sweep | Gradient boosters, CatBoost, GRU/LSTM/transformer, TabPFN, EBM, forests | 403 |
-| False-alarm push | Physics features, ensembles, smarter thresholds | 13 |
-
-**The bake-off.** Every model got the same false-alarm budget, and the missions were held out:
-
-| Model | Critical events caught |
+| Model (bake-off, same false-alarm budget, unseen missions) | Critical caught |
 |---|---|
 | 🥇 **LightGBM, all features** | **84.2 %** |
 | 🥈 TabPFN | 83.8 % |
-| GRU · risk futures · EBM | 83.1 % |
+| GRU · risk futures (10k Monte Carlo paths) · EBM | 83.1 % |
 | Baseline | 82.0 % |
 
-*These are before cost-threshold optimisation.*
-
-**Winner:** LightGBM on all features. We retrained it on the organizer's 11,942 events and set the alert threshold by cost, which gives the headline numbers above.
-
-**Bonus results** from the same server:
-- **Conformal alerts:** at a 95 % recall target, 94.9 % on unseen missions.
-- **An optimal decision policy** by backward induction.
-- **Our own screening of the live catalogue.**
-
-**What compute couldn't buy:** fewer false alarms. Extra physics features, ensembles and per-tier thresholds all came out as a statistical tie, and we report it that way. The data's ceiling is the alert threshold, not the model.
+*These are before cost-threshold optimisation.* We retrained the winner on the organizer's 11,942 events and set its alert threshold by cost, which gives the headline numbers. Extra features, ensembles and smarter thresholds could not cut false alarms beyond noise, and we report that as a tie. **The whole story is in [ML.md](ML.md).**
 
 ---
 
-## 🧠 Things that surprised us
+## Architecture
 
-- **ESA's risk numbers are reproducible from first principles.** Our 2D Pc, from the covariance alone, lands within 0.06 on the log scale of ESA's own value.
-- **"Critical" is mostly about distance, not probability.** 549 of 551 critical events are critical because the miss distance is under 1 km, often with a tiny Pc. The card shows both sub-tiers so the analyst sees the disagreement.
-- **Our AI handed *everything* back at first.** Jev escalated 18 of 18 decisions. The cause was the policy, not Jev: our cost rule kept recommending tracking hours before the encounter, when tracking can no longer help. Fixing that brought it to **12 of 18 handled automatically**, with the right 6 still going to the human.
-- **The organizer released official labels mid-day.** We re-scored everything against them, and our labels matched on **13,154 of 13,154** events.
+```mermaid
+flowchart LR
+  CDM[CDM arrives] --> CLEAN[Clean · flag broken data]
+  CLEAN --> PC[Physics · 2D Pc]
+  PC --> RULES[Rules · tier]
+  RULES --> FC[ML forecast · chance it ends critical]
+  FC --> GATE[Gate · allowed actions]
+  GATE -- safe & low risk --> AUTO[Auto-log]
+  GATE -- flagged --> ADV[Cost rule + TypeSafe Jev]
+  ADV --> VERDICT{Verdict}
+  VERDICT -- AUTO --> LEDGER
+  VERDICT -- ESCALATE --> CARD[Decision card + Claude advisor]
+  VERDICT -- BLOCK --> CARD
+  CARD --> HUMAN[Analyst decides] --> LEDGER[(Hash-chained ledger)]
+  AUTO --> LEDGER
+  LEDGER -. SSE .-> UI[3D Earth + console]
+```
 
----
-
-## 🛡️ Trust, and where it fails
-
-**Built-in honesty**
-- Every tier names the rule that fired.
-- Pc is refused on broken covariance.
-- Training events only ever show **out-of-fold** forecasts. The in-sample value for `train:2563` would be 0.88; we show the honest 0.011.
-- Decision-model numbers are never shown as collision probabilities.
-- Critical events always go to a human, and "prepare manoeuvre" is never automatic.
-
-**Where it fails, and how the analyst knows**
-- **Late escalations still happen.** 43 of 834 criticals are missed 2 days ahead (the baseline misses 112). `train:2563` is one: it's safe at T−2 d and critical at 136 m. Physics catches it on the late warning, and the card shows the low forecast, so the miss is visible.
-- **About 1 alert in 3 is false.** Precision is 64 %, against 85 % for the baseline. That's the price of catching more.
-- **Broken covariance (`train:2299`):** Pc is refused and the event is blocked. **Physics vs ESA disagreement (`train:4200`):** it's flagged on the card.
-- **Not yet proven:** that it beats an expert analyst. Jev hasn't been validated offline.
+FastAPI backend (SSE + REST), three.js frontend, and SQLite for the ledger. Details are in [docs/REPORT.md §3](docs/REPORT.md#3-architecture-and-division-of-labour).
 
 ---
 
-## 🧪 How we tested it
-
-- **168 backend tests**, all passing. They cover:
-  - physics property tests
-  - golden tests against the dataset's risk
-  - policy rules (critical is never automatic)
-  - the LLM number and style checker
-  - ledger tamper detection
-  - replay determinism
-- **Leakage audits.** We replaced every warning from the last 2 days with random noise and got bit-identical features. Shuffled labels gave chance-level AUC.
-- **End-to-end runs** in headless Chrome against a real backend: 1,805 events streamed, 0 HTTP errors, ledger verified.
-- **Live calls** to TypeSafe Jev (`jev-1.14.0`, about 0.3 s per decision) and Claude, with labelled mock mode when no keys are set.
-
-Details are in [docs/REPORT.md §11](docs/REPORT.md#11-how-we-tested-it-locally).
-
----
-
-## ✅ Rubric → evidence
-
-| Criterion | Evidence |
-|---|---|
-| Problem realism (20) | Named user and workflow; cited status quo (ESA, CARA); cost ratio derived from evidence. [Report §1](docs/REPORT.md#1-the-user-and-the-problem) |
-| Technical soundness (25) | Each layer does one job; Pc validated against ESA's values; **168/168 tests**; end-to-end runs with 0 HTTP errors. [Report §3–4](docs/REPORT.md#3-architecture-and-division-of-labour), [§11](docs/REPORT.md#11-how-we-tested-it-locally) |
-| Honest evaluation (20) | Official labels, two splits, bootstrap CIs, pre-registered bake-off, leakage audits; ties and losses reported. [Report §5–6](docs/REPORT.md#5-machine-learning-the-full-process), [docs/BAKEOFF.md](docs/BAKEOFF.md) |
-| Trust & traceability (20) | Refusals, out-of-fold forecasts, number-checked LLM, hash-chained ledger, human approval. [Report §7–8](docs/REPORT.md#7-trust-and-traceability) |
-| Impact (10) | 791 vs 722 of 834 criticals caught on unseen missions; cost −30 %. [Report §12](docs/REPORT.md#12-impact-before-and-after-for-the-analyst) |
-
-A 5-minute hands-on path for judges is in [JUDGING.md](JUDGING.md).
-
----
-
-## 🚀 Run it
+## Quick start
 
 ```bash
 make setup        # Python venv + npm install
 make precompute   # needs the organizer's CSVs in data/raw/ (not redistributed)
 make test         # 168 backend tests
-make dev          # backend :8000 + app :5173 — pick "The late CDM" and hit 8×
+make dev          # backend :8000 + app http://localhost:5173
 ```
 
-API keys go in a gitignored `.env` (see `.env.example`). Without keys, everything runs in a clearly labelled mock mode.
+Pick **The late CDM** and hit **8×**. Keys go in a gitignored `.env` (`C1_TYPESAFE_API_KEY`, `C1_ANTHROPIC_API_KEY`; see `.env.example`). With no keys, everything runs in a clearly labelled mock mode.
 
-**Want every number with its source file?** The full technical report is **[docs/REPORT.md](docs/REPORT.md)**: data, physics, the full ML process, all audits, the repo map, limits and next steps.
+---
+
+## Where it fails, and how the analyst knows
+
+- **Late escalations still happen.** 43 of 834 criticals are missed 2 days ahead (the baseline misses 112). `train:2563` is one: physics catches it on the late warning, and the card shows the low forecast.
+- **About 1 alert in 3 is false.** Precision is 64 % vs 85 % for the baseline. That's the price of catching more.
+- **ESA's Pc can't always be reproduced** (`train:4200`). The disagreement is flagged on the card, and the higher value wins.
+- **Not yet proven:** that it beats an expert analyst. Jev hasn't been validated offline.
+
+**More:** [ML.md](ML.md) (the model story) · [docs/REPORT.md](docs/REPORT.md) (every number with its source) · [JUDGING.md](JUDGING.md) (5-minute judge path)
