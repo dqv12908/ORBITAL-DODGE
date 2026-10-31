@@ -1,0 +1,99 @@
+elevation vs -asin(vr/|v|): MAE 0.001
+
+(1) LATE ESCALATION: early (>=2d) all risk<=-8 and tier safe/elevated, final risk>=-5
+   candidates: 0 Empty DataFrame
+Columns: [mission, otype, early_max_risk, final_risk, final_miss, jump]
+Index: []
+
+   late escalation by MISS (early tier safe, final miss<1 km):
+   candidates: 10
+event 2563 | mission 15 | DEBRIS | n=3 | final tier critical
+    (ttca, risk, miss): (2.43d,-6.32,8.05km) (1.41d,-6.31,1.63km) (0.44d,-4.19,0.14km)
+event 12885 | mission 15 | DEBRIS | n=5 | final tier critical
+    (ttca, risk, miss): (4.68d,-19.65,16.56km) (3.69d,-16.81,10.26km) (2.72d,-10.37,5.92km) (1.71d,-12.09,3.52km) (0.61d,-30.00,0.33km)
+
+(2) SCARY EARLY -> -30: early max risk>=-5, final risk -30
+   candidates: 388           mission    otype  early_max_risk  final_risk  final_miss
+event_id                                                          
+2427           18   DEBRIS           -1.44       -30.0       407.0
+7465           14  PAYLOAD           -1.83       -30.0       186.0
+10378           7  PAYLOAD           -2.00       -30.0       674.0
+6694            1   DEBRIS           -2.17       -30.0       531.0
+7248            7   DEBRIS           -2.80       -30.0       653.0
+4838            7  PAYLOAD           -2.81       -30.0       323.0
+6448            7  PAYLOAD           -2.92       -30.0      3108.0
+11669           1   DEBRIS           -2.94       -30.0      1731.0
+event 2427 | mission 18 | DEBRIS | n=21 | final tier critical
+    (ttca, risk, miss): (6.85d,-4.01,0.29km) (6.50d,-3.60,0.30km) (6.16d,-3.52,0.29km) (5.81d,-3.70,0.30km) (5.44d,-3.77,0.31km) (5.18d,-1.44,0.04km) (4.86d,-1.49,0.04km) (4.39d,-15.35,0.14km) (4.16d,-18.48,0.15km) (3.86d,-14.83,0.15km) (3.41d,-17.61,0.17km) (3.05d,-29.07,0.25km) (2.76d,-30.00,0.25km) (2.49d,-30.00,0.27km) (2.17d,-30.00,0.32km) (1.88d,-30.00,0.34km) (1.54d,-30.00,0.36km) (1.20d,-30.00,0.35km) (0.93d,-30.00,0.38km) (0.56d,-30.00,0.41km) (0.24d,-30.00,0.41km)
+event 7465 | mission 14 | PAYLOAD | n=21 | final tier critical
+    (ttca, risk, miss): (6.83d,-4.48,0.40km) (6.51d,-4.44,0.37km) (6.16d,-4.42,0.36km) (5.85d,-4.45,0.38km) (5.35d,-4.61,0.29km) (5.03d,-4.16,0.21km) (4.69d,-4.76,0.15km) (4.43d,-4.66,0.17km) (4.09d,-3.05,0.10km) (3.89d,-3.44,0.10km) (3.48d,-3.22,0.07km) (3.16d,-3.37,0.06km) (2.78d,-3.39,0.08km) (2.40d,-2.16,0.08km) (2.17d,-1.83,0.07km) (1.85d,-10.83,0.12km) (1.45d,-19.97,0.16km) (1.12d,-23.58,0.16km) (0.70d,-30.00,0.17km) (0.50d,-30.00,0.19km) (0.07d,-30.00,0.19km)
+event 10378 | mission 7 | PAYLOAD | n=20 | final tier critical
+    (ttca, risk, miss): (6.76d,-2.93,0.16km) (6.29d,-2.00,0.05km) (5.74d,-2.86,0.45km) (5.29d,-3.99,0.53km) (5.09d,-20.59,1.88km) (4.77d,-2.75,1.05km) (4.44d,-2.77,0.96km) (4.00d,-14.92,0.97km) (3.80d,-2.80,0.86km) (3.34d,-3.15,0.80km) (3.06d,-28.68,0.93km) (2.80d,-4.13,0.64km) (2.44d,-5.22,0.65km) (2.12d,-6.17,0.67km) (1.79d,-7.40,0.62km) (1.40d,-12.01,0.58km) (1.06d,-30.00,0.64km) (0.75d,-30.00,0.67km) (0.43d,-30.00,0.67km) (0.04d,-30.00,0.67km)
+
+(3) MISS<1km BUT TINY Pc at final (risk<=-10): tier rule says critical, probability says negligible
+   count: 571  of all final miss<1km: 905  final miss<1km & risk<-6: 806  & risk=-30: 331
+event 8756 | mission 4 | DEBRIS | n=21 | final tier critical
+    (ttca, risk, miss): (6.59d,-2.77,0.10km) (6.37d,-2.81,0.12km) (6.03d,-2.78,0.09km) (5.53d,-2.73,0.08km) (5.36d,-2.70,0.08km) (5.01d,-2.62,0.06km) (4.54d,-2.63,0.04km) (4.30d,-2.46,0.03km) (4.04d,-2.66,0.02km) (3.46d,-5.19,0.07km) (3.25d,-5.86,0.07km) (3.02d,-5.85,0.07km) (2.63d,-6.95,0.09km) (2.27d,-7.96,0.08km) (1.92d,-7.91,0.09km) (1.68d,-7.83,0.09km) (1.36d,-8.52,0.08km) (0.98d,-12.76,0.08km) (0.58d,-12.44,0.08km) (0.22d,-19.33,0.08km) (0.01d,-18.27,0.08km)
+event 2142 | mission 5 | PAYLOAD | n=3 | final tier critical
+    (ttca, risk, miss): (2.01d,-8.59,0.21km) (1.43d,-11.60,0.16km) (0.44d,-15.42,0.08km)
+event 4797 | mission 2 | DEBRIS | n=21 | final tier critical
+    (ttca, risk, miss): (6.86d,-5.46,1.88km) (6.54d,-5.32,2.00km) (6.19d,-4.38,1.13km) (5.81d,-5.48,1.55km) (5.51d,-5.72,1.60km) (5.22d,-5.38,1.02km) (4.83d,-5.81,0.73km) (4.53d,-5.82,0.67km) (4.19d,-5.50,0.59km) (3.87d,-13.42,0.33km) (3.52d,-15.41,0.19km) (3.14d,-19.46,0.12km) (2.81d,-19.31,0.17km) (2.53d,-18.33,0.22km) (2.13d,-18.45,0.24km) (1.81d,-16.39,0.21km) (1.44d,-16.39,0.19km) (1.03d,-13.70,0.07km) (0.85d,-14.19,0.07km) (0.41d,-14.74,0.07km) (0.02d,-16.29,0.08km)
+
+   converse: Pc>=1e-4 at final (risk>=-4) list:           mission    otype  final_risk  final_miss  final_ttca
+event_id                                                      
+1148           14  PAYLOAD      -1.685       119.0       4.773
+8767           15   DEBRIS      -2.688        38.0       0.634
+8863            5  UNKNOWN      -3.347        48.0       0.281
+12555           1  UNKNOWN      -3.471       546.0       4.134
+9383            2  UNKNOWN      -3.502        21.0      -0.006
+3555            1   DEBRIS      -3.552       237.0       0.365
+9051            1  UNKNOWN      -3.754      1023.0       0.180
+5185           20   DEBRIS      -3.872       352.0       5.294
+6341           15  UNKNOWN      -3.889       262.0       0.181
+11180           1   DEBRIS      -3.902       642.0       0.948
+5773           18   DEBRIS      -3.914      1102.0       0.190
+9361           18  UNKNOWN      -3.934      3926.0       4.219
+12506          18   DEBRIS      -3.989       473.0       3.621
+
+(4) SENTINEL / HUGE COVARIANCE
+   events with some (not all) sentinel rows: 1054 ; all rows sentinel: 259
+event 2759 | mission 7 | DEBRIS | n=18 | final tier safe
+    (ttca, risk, miss): (6.48d,-30.00,30.90km) (6.24d,-14.40,30.00km) (5.90d,-14.40,30.26km) (5.53d,-14.40,30.26km) (5.23d,-14.40,31.42km) (4.11d,-14.40,29.90km) (3.84d,-14.40,29.81km) (3.42d,-14.40,30.00km) (3.19d,-14.40,30.25km) (2.88d,-14.40,29.99km) (2.49d,-14.40,29.96km) (2.21d,-14.40,30.08km) (1.92d,-14.40,29.59km) (1.42d,-14.40,29.67km) (1.20d,-14.40,29.52km) (0.85d,-14.40,29.46km) (0.45d,-14.40,29.52km) (0.12d,-14.40,29.52km)
+    sigma_r t/c: [(6.0, 464.6), (6.3, 'SENT'), (6.0, 'SENT'), (5.8, 'SENT'), (4.5, 'SENT'), (4.3, 'SENT'), (4.7, 'SENT'), (4.2, 'SENT'), (3.4, 'SENT'), (3.4, 'SENT'), (3.2, 'SENT'), (3.5, 'SENT'), (3.8, 'SENT'), (3.9, 'SENT'), (3.9, 'SENT'), (4.3, 'SENT'), (3.8, 'SENT'), (3.6, 'SENT')]
+event 2299 | mission 7 | PAYLOAD | n=18 | final tier safe
+    (ttca, risk, miss): (5.92d,-14.29,1.87km) (5.58d,-14.29,8.26km) (5.28d,-14.29,15.51km) (4.86d,-14.29,18.64km) (4.61d,-14.29,25.77km) (4.29d,-14.29,28.11km) (3.85d,-14.29,27.67km) (3.44d,-14.29,31.60km) (3.26d,-14.29,30.40km) (2.82d,-14.29,31.04km) (2.58d,-14.29,32.58km) (2.20d,-14.29,33.28km) (1.86d,-14.29,32.22km) (1.58d,-30.00,35.94km) (1.21d,-14.29,33.31km) (0.71d,-30.00,33.56km) (0.47d,-30.00,34.10km) (0.26d,-30.00,34.19km)
+    sigma_r t/c: [(10.5, 'SENT'), (10.7, 'SENT'), (11.1, 'SENT'), (10.3, 'SENT'), (10.2, 'SENT'), (10.7, 'SENT'), (10.3, 'SENT'), (9.6, 'SENT'), (9.6, 'SENT'), (8.8, 'SENT'), (8.0, 'SENT'), (7.4, 'SENT'), (7.3, 'SENT'), (7.1, 29.1), (6.6, 'SENT'), (6.5, 15.0), (6.6, 12.6), (6.0, 7.3)]
+   largest non-sentinel c_sigma_t events:           max_c_sigma_t  final_risk  final_miss    otype
+event_id                                                
+5393          9738822.8        -8.3      3896.0  UNKNOWN
+11079         9587335.9       -16.9     53112.0   DEBRIS
+652           9528186.6       -10.3     24286.0   DEBRIS
+
+(5) HIGH SPACE WEATHER
+   AP quantiles (rows): {0.5: 6.0, 0.9: 18.0, 0.99: 44.0, 1.0: 108.0}  F10: {0.5: 72.0, 0.9: 97.0, 0.99: 135.0, 1.0: 246.0}
+   events with AP>=60: 199           mission   otype  max_AP  max_F10  final_risk  final_miss
+event_id                                                          
+6623            1  DEBRIS   108.0    117.0       -4.75     11221.0
+3280            3  DEBRIS    70.0     88.0       -5.36     13480.0
+8293            1  DEBRIS   108.0    117.0       -5.49      7398.0
+6081            6  DEBRIS    70.0     88.0       -5.81     37011.0
+11979           6  DEBRIS    67.0     71.0       -5.99      2757.0
+5687            5  DEBRIS    67.0     72.0       -6.02     14508.0
+event 6623 | mission 1 | DEBRIS | n=3 | final tier elevated
+    (ttca, risk, miss): (5.66d,-4.90,17.93km) (4.66d,-5.78,10.43km) (3.23d,-4.75,11.22km)
+    AP: [12.0, 108.0, 47.0]  F10: [117.0, 114.0, 114.0]
+event 3280 | mission 3 | DEBRIS | n=4 | final tier elevated
+    (ttca, risk, miss): (6.69d,-7.06,5.33km) (6.20d,-6.44,13.26km) (5.52d,-5.63,14.14km) (4.78d,-5.36,13.48km)
+    AP: [70.0, 70.0, 30.0, 13.0]  F10: [84.0, 84.0, 88.0, 88.0]
+   events with F10>=200: 6           mission  max_F10  max_AP  final_risk  final_miss
+event_id                                                  
+8696            6    246.0    72.0       -7.60      1824.0
+6461           15    246.0    72.0      -13.51     12740.0
+690             7    246.0    72.0      -18.31     27852.0
+   corr(max_AP, |final-early risk| clipped -10): 0.001 ; median |change| AP>=30: 0.0 vs AP<30: 0.0
+
+(6) PHYSICS DISAGREEMENT example (mission 6, risk ~-5 but 2D-Pc ~-480): event 4200
+event 4200 | mission 6 | DEBRIS | n=3 | final tier safe
+    (ttca, risk, miss): (6.89d,-4.99,56.88km) (6.54d,-5.29,34.44km) (6.27d,-30.00,56.87km)
+
+(7) post-TCA final CDM (ttca<0) count: 391

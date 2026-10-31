@@ -1,0 +1,18 @@
+CDMs/event quantiles: {0.0: 1.0, 0.1: 2.0, 0.25: 5.0, 0.5: 13.0, 0.75: 20.0, 0.9: 21.0, 1.0: 23.0}  events with 1 CDM: 225
+first CDM ttca quantiles (d): {0.05: 1.14, 0.25: 4.63, 0.5: 6.6, 0.75: 6.78, 0.95: 6.92}
+last CDM ttca quantiles (d): {0.05: 0.01, 0.25: 0.11, 0.5: 0.24, 0.75: 1.63, 0.95: 5.58}
+events whose last CDM < 1 d: 9463  last CDM < 0 (post-TCA): 391
+CDM spacing (h) quantiles: {0.05: 5.3, 0.1: 5.98, 0.25: 7.03, 0.5: 8.07, 0.75: 9.22, 0.9: 10.77, 0.95: 15.01, 0.99: 30.27}  mean 9.06
+  share of gaps < 1h: 0.001  6-10 h: 0.744  10-14h: 0.1  >24h: 0.021
+  histogram: {'0-1h': 161, '1-2h': 39, '2-4h': 1440, '4-6h': 13568, '6-8h': 56690, '8-10h': 54460, '10-12h': 13346, '12-16h': 3057, '16-20h': 1394, '20-24h': 2158, '24-48h': 2360, '48-200h': 807}
+  spacing by ttca band (median h): {'<1d': 8.07, '1-2d': 8.09, '2-4d': 8.08, '4-7d': 8.05}
+events per mission: {1: 2322, 5: 2253, 15: 1769, 7: 1765, 2: 1497, 6: 1108, 19: 671, 3: 486, 9: 410, 4: 265, 10: 163, 18: 120, 16: 115, 20: 70, 22: 43, 24: 40, 23: 38, 14: 11, 13: 8}
+CDMs per mission: {5: 28649, 15: 24746, 1: 24072, 2: 23730, 7: 20785, 19: 10429, 6: 7816, 3: 7103, 9: 5644, 4: 4245, 18: 1770, 16: 1149, 10: 996, 20: 419, 22: 355, 24: 317, 23: 258, 14: 101, 13: 50}
+CDMs with 0<=ttca<1: 25623  events: 9445
+events with final CDM inside the last 24 h, by final tier: {'safe': 6999, 'elev': 1841, 'crit': 623}
+  of these miss<1km: 621  miss<5km: 2440
+distinct (F10,F3M,SSN,AP) tuples: 1496  distinct (F10,F3M,SSN): 1220  distinct F3M: 90
+distinct SW tuples per event quantiles: {0.1: 2.0, 0.5: 5.0, 0.9: 8.0}  vs span of event (d) median 5.0
+tuple changes per event-day (median): 0.962
+events per SW-tuple (='day'): {0.5: 37.0, 0.9: 71.0, 0.99: 191.24999999999977}  max 307 ; missions per tuple median 8.0
+F10 range 66.0 246.0 AP range 0.0 108.0  SSN range 0.0 172.0

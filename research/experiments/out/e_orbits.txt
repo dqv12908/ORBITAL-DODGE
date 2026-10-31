@@ -1,0 +1,20 @@
+final CDMs: 13154
+t: |h_apo - a(1+e)+Re| median 0.000 km p99 0.000; |h_per-..| median 0.000 km
+c: |h_apo - a(1+e)+Re| median 0.000 km p99 0.000; |h_per-..| median 0.000 km
+chaser sma>8000 km (non-LEO): 393  chaser ecc>0.1: 447  chaser ecc quantiles {0.5: 0.0044, 0.9: 0.0208, 0.99: 0.567}
+altitude-band overlap >= -5 km (physically consistent): 1.0  overlap < -5 km: 0
+|lat| <= target inc limit (+0.5deg): 1.0 ; <= chaser inc limit: 1.0
+  atan2(vn,-vt)    corr w/ azimuth +1.000 MAE 0.00 | corr w/ elevation -0.071 MAE 40.86
+  atan2(vn,vt)     corr w/ azimuth +0.732 MAE 98.64 | corr w/ elevation -0.025 MAE 139.39
+  asin(vr/|v|)     corr w/ azimuth +0.071 MAE 40.61 | corr w/ elevation -1.000 MAE 1.88
+  asin(rr/|r|)     corr w/ azimuth +nan MAE 42.03 | corr w/ elevation +nan MAE 5.67
+  atan2(rn,rt)     corr w/ azimuth -0.452 MAE 107.72 | corr w/ elevation +0.031 MAE 90.12
+  atan2(rt,rn)     corr w/ azimuth -0.271 MAE 90.64 | corr w/ elevation +0.149 MAE 89.47
+target inc reproduced (|d|<0.01deg): 0.994
+best-branch chaser inc error: median 0.041 deg, p90 0.121, share <1deg 0.999, <0.5deg 0.993
+best-branch chaser sma error: median 12.10 km, p90 64.81, share <25km 0.650, <50 km 0.812
+chaser ecc error median 0.0011
+branch ambiguity (both branches within 1 deg on inc): 0.058; branch split asc/desc: 0.497/0.503
+worst-branch chaser inc error median 18.81 deg (shows branch choice matters)
+errors by chaser sma>8000: {'inc_err': 0.04, 'sma_err': 28.28}
+low relative speed (<1 km/s) events: 534 inc err median 0.011

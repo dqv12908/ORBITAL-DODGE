@@ -1,0 +1,13 @@
+# Dataset (ESA Kelvins via hackathon organisers): not redistributed. Put the CSVs in data/raw/ locally.
+data/
+# Organiser brief: kept local
+docs/brief.pdf
+docs/brief.txt
+research/experiments/cache/
+__pycache__/
+*.pyc
+.venv/
+venv/
+node_modules/
+.env
+.DS_Store

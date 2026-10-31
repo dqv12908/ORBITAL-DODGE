@@ -1,0 +1,69 @@
+A13 features: 84
+A13+risk features: 91
+ALL features: 233
+
+================ GROUPED BY EVENT ================
+[1] risk persistence   Kelvins F2=0.411 MSE_HR=0.330 L=MSE/F2=0.804
+[2] tier persistence   rec_safe=0.959 rec_elev=0.850 rec_crit=0.820 prec_safe=0.974 prec_elev=0.808 prec_crit=0.800 macroF1=0.868 crit_alerts=565 false_alarms=113 missed_crit=99
+    P(crit) persistence-empirical Brier=0.0225 ECE=0.0051 AUC=0.958
+    climatology Brier=0.0620
+
+[3] HGB A13: Kelvins F2=0.107 MSE_HR=1.224 L=11.465
+    tier argmax unweighted rec_safe=0.975 rec_elev=0.834 rec_crit=0.777 prec_safe=0.965 prec_elev=0.842 prec_crit=0.849 macroF1=0.873 crit_alerts=504 false_alarms=76 missed_crit=123
+    tier argmax balanced   rec_safe=0.972 rec_elev=0.839 rec_crit=0.791 prec_safe=0.969 prec_elev=0.840 prec_crit=0.823 macroF1=0.872 crit_alerts=530 false_alarms=94 missed_crit=115
+    P(crit) Brier=0.0216 ECE=0.0196 AUC=0.980 AP=0.867
+       [0.00,0.02) n=7658 pred=0.000 obs=0.011
+       [0.02,0.05) n=45 pred=0.032 obs=0.222
+       [0.05,0.10) n=20 pred=0.075 obs=0.250
+       [0.10,0.20) n=19 pred=0.143 obs=0.526
+       [0.20,0.40) n=33 pred=0.298 obs=0.273
+       [0.40,0.60) n=23 pred=0.484 obs=0.435
+       [0.60,0.80) n=25 pred=0.712 obs=0.440
+       [0.80,1.00) n=470 pred=0.986 obs=0.879
+    alert if P(crit)>=0.05: alerts=590 crit_recall=0.831 precision=0.776 false_alarms=132
+    alert if P(crit)>=0.10: alerts=570 crit_recall=0.822 precision=0.795 false_alarms=117
+    alert if P(crit)>=0.20: alerts=551 crit_recall=0.804 precision=0.804 false_alarms=108
+    alert if P(crit)>=0.30: alerts=536 crit_recall=0.797 precision=0.819 false_alarms=97
+    alert if P(crit)>=0.50: alerts=504 crit_recall=0.777 precision=0.849 false_alarms=76
+
+[3] HGB A13+risk: Kelvins F2=0.189 MSE_HR=1.125 L=5.953
+    tier argmax unweighted rec_safe=0.975 rec_elev=0.833 rec_crit=0.780 prec_safe=0.965 prec_elev=0.841 prec_crit=0.845 macroF1=0.873 crit_alerts=509 false_alarms=79 missed_crit=121
+    tier argmax balanced   rec_safe=0.972 rec_elev=0.837 rec_crit=0.782 prec_safe=0.968 prec_elev=0.836 prec_crit=0.823 macroF1=0.870 crit_alerts=524 false_alarms=93 missed_crit=120
+    P(crit) Brier=0.0219 ECE=0.0198 AUC=0.981 AP=0.869
+       [0.00,0.02) n=7664 pred=0.000 obs=0.011
+       [0.02,0.05) n=40 pred=0.032 obs=0.275
+       [0.05,0.10) n=16 pred=0.076 obs=0.375
+       [0.10,0.20) n=23 pred=0.134 obs=0.174
+       [0.20,0.40) n=34 pred=0.291 obs=0.382
+       [0.40,0.60) n=23 pred=0.518 obs=0.435
+       [0.60,0.80) n=19 pred=0.703 obs=0.526
+       [0.80,1.00) n=474 pred=0.988 obs=0.869
+    alert if P(crit)>=0.05: alerts=589 crit_recall=0.826 precision=0.772 false_alarms=134
+    alert if P(crit)>=0.10: alerts=573 crit_recall=0.815 precision=0.784 false_alarms=124
+    alert if P(crit)>=0.20: alerts=550 crit_recall=0.808 precision=0.809 false_alarms=105
+    alert if P(crit)>=0.30: alerts=531 crit_recall=0.797 precision=0.827 false_alarms=92
+    alert if P(crit)>=0.50: alerts=508 crit_recall=0.780 precision=0.846 false_alarms=78
+
+[4] HGB ALL: Kelvins F2=0.191 MSE_HR=1.063 L=5.567
+    tier argmax unweighted rec_safe=0.976 rec_elev=0.837 rec_crit=0.795 prec_safe=0.966 prec_elev=0.851 prec_crit=0.850 macroF1=0.879 crit_alerts=515 false_alarms=77 missed_crit=113
+    tier argmax balanced   rec_safe=0.974 rec_elev=0.843 rec_crit=0.797 prec_safe=0.968 prec_elev=0.847 prec_crit=0.838 macroF1=0.878 crit_alerts=524 false_alarms=85 missed_crit=112
+    P(crit) Brier=0.0210 ECE=0.0197 AUC=0.982 AP=0.873
+       [0.00,0.02) n=7674 pred=0.000 obs=0.012
+       [0.02,0.05) n=33 pred=0.031 obs=0.152
+       [0.05,0.10) n=30 pred=0.069 obs=0.267
+       [0.10,0.20) n=25 pred=0.148 obs=0.160
+       [0.20,0.40) n=16 pred=0.307 obs=0.375
+       [0.40,0.60) n=13 pred=0.545 obs=0.308
+       [0.60,0.80) n=16 pred=0.706 obs=0.562
+       [0.80,1.00) n=486 pred=0.987 obs=0.874
+    alert if P(crit)>=0.05: alerts=586 crit_recall=0.828 precision=0.778 false_alarms=130
+    alert if P(crit)>=0.10: alerts=556 crit_recall=0.813 precision=0.806 false_alarms=108
+    alert if P(crit)>=0.20: alerts=531 crit_recall=0.806 precision=0.836 false_alarms=87
+    alert if P(crit)>=0.30: alerts=524 crit_recall=0.799 precision=0.840 false_alarms=84
+    alert if P(crit)>=0.50: alerts=513 crit_recall=0.795 precision=0.854 false_alarms=75
+
+================ GROUPED BY MISSION ================
+[1] risk persistence   Kelvins F2=0.411 MSE_HR=0.330 L=MSE/F2=0.804
+[2] tier persistence   rec_safe=0.959 rec_elev=0.850 rec_crit=0.820 prec_safe=0.974 prec_elev=0.808 prec_crit=0.800 macroF1=0.868 crit_alerts=565 false_alarms=113 missed_crit=99
+    P(crit) persistence-empirical Brier=0.0223 ECE=0.0014 AUC=0.958
+    climatology Brier=0.0620

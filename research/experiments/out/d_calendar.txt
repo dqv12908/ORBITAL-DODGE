@@ -1,0 +1,7 @@
+tuples(days) K=1220, day-change pairs=51671, connected components=1, largest component=1220 tuples, singletons=0
+lsqr residual (days): median |r|=0.296, p90=0.471, RMS=0.423
+reconstructed calendar span (largest component): 487 days (~1.33 years)
+share of tuple positions within 0.3 d of an integer after rounding: 0.567 ; distinct rounded days: 485 for 1220 tuples
+lag-1 autocorr along reconstructed order: F3M 0.999  F10 0.901  SSN 0.821
+random-order control lag-1 autocorr F3M -0.027
+first/last reconstructed days F3M: [157.0, 156.0, 156.0] [69.0, 72.0, 70.0]

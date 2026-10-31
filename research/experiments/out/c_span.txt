@@ -1,0 +1,8 @@
+t_span by mission (median): {1: 21.0, 2: 12.0, 3: 4.12, 4: 5.42, 5: 1.0, 6: 9.1, 7: 9.1, 9: 20.0, 10: 17.6, 13: 11.8, 14: 0.63, 15: 5.1, 16: 0.8, 18: 27.71, 19: 1.5, 20: 0.8, 22: 0.1, 23: 0.1, 24: 0.1}
+c_span describe: {'count': 157468.0, 'mean': 2.27, 'std': 1.43, 'min': 2.0, '25%': 2.0, '50%': 2.0, '75%': 2.0, 'max': 30.45}
+c_span by object type (median): {'DEBRIS': 2.0, 'PAYLOAD': 3.0, 'ROCKET BODY': 2.8, 'TBA': 2.0, 'UNKNOWN': 2.0}
+HBR=t_span/2                     MAE(risk>=-10)=1.067 median|err|=0.358 within0.1=0.139 bias=-0.305  risk>=-4 MAE=0.348
+HBR=t_span                       MAE(risk>=-10)=0.992 median|err|=0.432 within0.1=0.044 bias=+0.297  risk>=-4 MAE=0.576
+HBR=(t_span+c_span)/2            MAE(risk>=-10)=0.741 median|err|=0.059 within0.1=0.584 bias=-0.000  risk>=-4 MAE=0.144
+HBR=t_span/2 + c_span/2 (same)   MAE(risk>=-10)=0.741 median|err|=0.059 within0.1=0.584 bias=-0.000  risk>=-4 MAE=0.144
+HBR=t_span+c_span                MAE(risk>=-10)=1.137 median|err|=0.605 within0.1=0.019 bias=+0.602  risk>=-4 MAE=0.633

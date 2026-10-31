@@ -1,0 +1,55 @@
+SENTINEL rows (t or c sigma_r ~ 63,781,363): 5129 events: 1313 | t-side 2486 c-side 2652
+  risk on sentinel rows: {'count': 5129.0, 'mean': -14.31, 'std': 0.34, 'min': -16.01, '25%': -14.42, '50%': -14.35, '75%': -13.98, 'max': -13.39}
+  object types on sentinel rows: {'PAYLOAD': 3549, 'DEBRIS': 821, 'UNKNOWN': 555, 'ROCKET BODY': 174, 'TBA': 30}
+  sentinel in final CDM of events: 481
+clean rows: 157468
+
+rows with risk>-30: 90239  risk>=-10: 45777  risk>=-6: 10183
+rotate=False HBR= 5 m: pearson(risk>-30)=0.7507 spearman=0.8212 MAE(risk>=-10)=5.986 median(risk-pc)=+0.012 -> implied HBR=5.07 m ; agree(-30 floor)=0.9468
+rotate=False HBR=10 m: pearson(risk>-30)=0.7441 spearman=0.8206 MAE(risk>=-10)=6.060 median(risk-pc)=-0.604 -> implied HBR=4.99 m ; agree(-30 floor)=0.9477
+rotate=False HBR=20 m: pearson(risk>-30)=0.7323 spearman=0.8180 MAE(risk>=-10)=6.314 median(risk-pc)=-1.246 -> implied HBR=4.76 m ; agree(-30 floor)=0.9476
+rotate=True  HBR= 5 m: pearson(risk>-30)=0.9024 spearman=0.9270 MAE(risk>=-10)=1.177 median(risk-pc)=-0.260 -> implied HBR=3.71 m ; agree(-30 floor)=0.9791
+rotate=True  HBR=10 m: pearson(risk>-30)=0.8996 spearman=0.9268 MAE(risk>=-10)=1.395 median(risk-pc)=-0.868 -> implied HBR=3.68 m ; agree(-30 floor)=0.9788
+rotate=True  HBR=20 m: pearson(risk>-30)=0.8937 spearman=0.9248 MAE(risk>=-10)=1.862 median(risk-pc)=-1.488 -> implied HBR=3.61 m ; agree(-30 floor)=0.9765
+
+GLOBAL HBR*=3.71 m: MAE log10 (risk>=-10)=1.158, median |err|=0.663, p90 |err|=1.394, within 0.1 dex: 0.132, within 0.5 dex: 0.344, spearman(risk>-30)=0.9270
+per-mission HBR (fit on even event_ids): {1: np.float64(11.55), 2: np.float64(6.99), 3: np.float64(3.06), 4: np.float64(3.71), 5: np.float64(1.5), 6: np.float64(5.74), 7: np.float64(5.55), 9: np.float64(11.11), 10: np.float64(9.96), 13: np.float64(7.32), 14: np.float64(16.68), 15: np.float64(3.55), 16: np.float64(1.4), 18: np.float64(14.84), 19: np.float64(1.75), 20: np.float64(1.4), 22: np.float64(1.04), 23: np.float64(1.06), 24: np.float64(1.05)}
+PER-MISSION HBR (all rows): MAE log10 (risk>=-10)=0.741, median |err|=0.060, p90 |err|=0.998, within 0.1 dex: 0.580, within 0.5 dex: 0.804, spearman(risk>-30)=0.9398
+   held-out odd event_ids only: MAE(risk>=-10)=0.692, median |err|=0.061, within 0.1 dex=0.579
+   risk in [-30,-20): n=10594 MAE=3.703 bias=-1.775
+   risk in [-20,-10): n=33868 MAE=2.203 bias=-1.159
+   risk in [-10,-6): n=35594 MAE=0.771 bias=-0.486
+   risk in [-6,-4): n=9467 MAE=0.679 bias=-0.604
+   risk in [-4,0): n=716 MAE=0.077 bias=-0.051
+   threshold -6: TP 9336 FN 847 FP 906 -> recall 0.917 precision 0.912
+   threshold -4: TP 669 FN 47 FP 47 -> recall 0.934 precision 0.934
+
+DISAGREE |err|>1 dex (per-mission HBR), risk>=-10: 4568 (9.98%)
+  by object type share bad vs all: {'DEBRIS': 0.59, 'UNKNOWN': 0.334, 'PAYLOAD': 0.062, 'ROCKET BODY': 0.012, 'TBA': 0.002} {'DEBRIS': 0.573, 'UNKNOWN': 0.398, 'PAYLOAD': 0.023, 'ROCKET BODY': 0.005, 'TBA': 0.0}
+  MAE by object type: {'DEBRIS': 0.738, 'PAYLOAD': 4.772, 'ROCKET BODY': 3.836, 'TBA': 2.703, 'UNKNOWN': 0.468}
+  MAE by mission: {1: 0.63, 2: 0.44, 3: 0.17, 4: 0.05, 5: 0.42, 6: 5.63, 7: 2.14, 9: 0.71, 10: 1.12, 13: 0.07, 14: 0.2, 15: 0.47, 16: 0.01, 18: 0.11, 19: 0.27, 20: 0.09, 22: 0.07, 23: 0.12, 24: 0.21}
+  bad median relative_speed: 9683.00 vs all 11716.00
+  bad median c_sigma_t: 21898.48 vs all 12830.92
+  bad median max_risk_scaling: 7.27 vs all 4.24
+  bad median time_to_tca: 5.20 vs all 4.80
+  bad median miss_distance: 30709.00 vs all 8437.00
+  share bad where physics > risk: 0.271
+  rows relative_speed<1000 m/s: 3717 MAE 0.496
+       event_id  mission_id  time_to_tca  risk  pc_phys  miss_distance  relative_speed c_object_type  c_sigma_r  c_sigma_t  c_sigma_n
+51872      4200           6         6.89 -4.99  -478.99        56878.0         12248.0        DEBRIS     199.44  105804.49       5.32
+86547      7007           6         5.27 -5.10  -375.86        61913.0         12250.0        DEBRIS     197.12   79189.05       5.96
+30344      2450           6         4.05 -5.05  -327.73        55071.0         12137.0        DEBRIS     174.43   54009.46       5.41
+43445      3535           7         4.51 -9.70  -225.45        43803.0          1314.0       PAYLOAD      60.42   18131.55       9.26
+        event_id  mission_id  time_to_tca  risk  pc_phys  miss_distance  relative_speed c_object_type  c_sigma_r  c_sigma_t  c_sigma_n
+19070       1528           1         6.81 -9.59    -5.25        28611.0          4248.0        DEBRIS     106.30   13504.87      11.12
+62203       5000           6         3.37 -9.83    -5.43        41833.0         12853.0       UNKNOWN    4476.81   97816.82      57.17
+134012     10837           6         6.40 -9.98    -5.49        22386.0          6956.0   ROCKET BODY      41.24   12182.63       3.85
+160120     12970           6         3.65 -9.68    -4.78        10710.0          9074.0       PAYLOAD      18.27    4973.26       3.72
+
+--- CRUDE (13 allowed cols: miss + combined sigma_r, isotropic 2D) ---
+HBR=5: pearson(risk>-30, floored -30)=0.1913 spearman=0.3423 MAE(risk>=-10)=6168.5 median err=-429.6 agree(-30 floor)=0.5056
+HBR=10: pearson(risk>-30, floored -30)=0.1915 spearman=0.3423 MAE(risk>=-10)=6168.0 median err=-429.0 agree(-30 floor)=0.5064
+HBR=20: pearson(risk>-30, floored -30)=0.1916 spearman=0.3423 MAE(risk>=-10)=6167.5 median err=-428.4 agree(-30 floor)=0.5070
+   crude threshold -6: TP 933 FN 9250 FP 1300
+   crude dilution-max Pc = HBR^2/(e d^2): pearson with max_risk_estimate 0.535  MAE 1.198
+   fraction risk <= max_risk_estimate: 0.9965

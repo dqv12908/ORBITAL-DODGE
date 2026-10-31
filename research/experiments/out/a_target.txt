@@ -1,0 +1,33 @@
+  print("row %\n", (ct.div(ct.sum(1), axis=0)*100).round(1))
+train (162634, 103) events 13154 test (24484, 103)
+eligible events 8293
+latest >=2d ttca describe {'count': 8293.0, 'mean': 2.313, 'std': 0.588, 'min': 2.0, '25%': 2.094, '50%': 2.186, '75%': 2.287, 'max': 6.952}
+final ttca describe {'count': 8293.0, 'mean': 0.195, 'std': 0.172, 'min': -0.144, '25%': 0.077, '50%': 0.165, '75%': 0.26, 'max': 0.997}
+(a) high risk final>=-6: 66 0.80%
+    final risk == -30: 6838 82.5%
+    latest >=2d risk>=-6: 308
+(b) final tiers: {'safe': 6138, 'elevated': 1604, 'critical': 551} {'safe': 74.01, 'elevated': 19.34, 'critical': 6.64}
+    latest(>=2d) tiers: {'safe': 6040, 'elevated': 1688, 'critical': 565}
+    critical by risk>=-4: 6  by miss<1km: 549  both: 4
+    elevated by risk in[-6,-4): 34  by miss 1-5km: 1593
+transition counts
+           safe  elevated  critical
+safe      5885       145        10
+elevated   235      1364        89
+critical    18        95       452
+row %
+           safe  elevated  critical
+safe      97.4       2.4       0.2
+elevated  13.9      80.8       5.3
+critical   3.2      16.8      80.0
+tier changed: 592 7.1%  up: 244  down: 348
+risk>=-6 latest vs final
+ y_risk  False  True 
+risk                
+False    7966     19
+True      261     47
+miss distance change final-latest (m) quantiles {0.05: -4112.0, 0.25: -331.0, 0.5: 8.0, 0.75: 387.0, 0.95: 4138.0}
+|log10 miss ratio| median 0.015
+all-train final tiers [9843 2403  908]
+test latest-CDM tiers [1481  500  186]  test latest risk>=-6: 178  test latest ttca range 2.000213078703704 6.8730966319444455
+test missions [np.int64(1), np.int64(2), np.int64(3), np.int64(4), np.int64(5), np.int64(6), np.int64(7), np.int64(9), np.int64(10), np.int64(14), np.int64(15), np.int64(16), np.int64(18), np.int64(19), np.int64(20), np.int64(22), np.int64(23), np.int64(24)]  train missions [np.int64(1), np.int64(2), np.int64(3), np.int64(4), np.int64(5), np.int64(6), np.int64(7), np.int64(9), np.int64(10), np.int64(13), np.int64(14), np.int64(15), np.int64(16), np.int64(18), np.int64(19), np.int64(20), np.int64(22), np.int64(23), np.int64(24)]

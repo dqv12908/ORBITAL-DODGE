@@ -1,0 +1,10 @@
+
+== event ==  LRP baseline: F2=0.411 MSE_HR=0.330 L=0.804  (recall 0.712, alerts 308)
+  A13       classifier(thr~0.01) + value=max(latest risk,-5.99): F2=0.201 MSE_HR=1.105 L=5.491 recall=0.197 alerts=59
+  A13+risk  classifier(thr~0.01) + value=max(latest risk,-5.99): F2=0.230 MSE_HR=1.037 L=4.509 recall=0.227 alerts=62
+  ALL       classifier(thr~0.01) + value=max(latest risk,-5.99): F2=0.307 MSE_HR=0.677 L=2.209 recall=0.303 alerts=62
+
+== mission ==  LRP baseline: F2=0.411 MSE_HR=0.330 L=0.804  (recall 0.712, alerts 308)
+  A13       classifier(thr~0.02) + value=max(latest risk,-5.99): F2=0.161 MSE_HR=1.152 L=7.139 recall=0.152 alerts=46
+  A13+risk  classifier(thr~0.01) + value=max(latest risk,-5.99): F2=0.234 MSE_HR=1.004 L=4.297 recall=0.227 alerts=57
+  ALL       classifier(thr~0.02) + value=max(latest risk,-5.99): F2=0.221 MSE_HR=0.952 L=4.304 recall=0.197 alerts=30
