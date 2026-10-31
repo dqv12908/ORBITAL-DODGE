@@ -20,6 +20,7 @@ class Approval:
     status: str = "pending"
     decided: dict | None = field(default=None)
     expired_reason: str | None = None
+    primary_reasons: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return asdict(self)

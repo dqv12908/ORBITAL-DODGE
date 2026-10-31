@@ -9,7 +9,7 @@ export const S = {
   events: new Map(), // key -> E
   focus: null,
   approvals: new Map(),
-  policy: { tier_mode: 'BRIEF', tau_watch: 0.1, confidence_bar: 0.75 },
+  policy: { tier_mode: 'BRIEF', tau_watch: 0.0634, confidence_bar: 0.7 },
   ledger: { seq: 0, n: 0, last: null },
   log: [],
   liveSky: null,

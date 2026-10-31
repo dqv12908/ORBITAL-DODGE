@@ -220,6 +220,63 @@ export function decisionBlock(e, { footnote = true } = {}) {
 }
 
 // ═══ Approval card (modal) ════════════════════════════════════════════
+const REC_WORD = { MONITOR: 'Keep monitoring', REQUEST_TRACKING: 'Request tracking', PREPARE_MANOEUVRE: 'Prepare' };
+const modelName = (d) => (/jev/i.test(d?.provider || '') ? 'Jev' : 'Decision model');
+/** Probability the decision model gives its own pick (decision.confidence = p(chosen action); else probabilities[answer]). */
+const pickP = (d) => d?.confidence ?? (d?.answer && d.probabilities?.[d.answer] != null ? d.probabilities[d.answer] : null);
+const confBar = () => S.policy?.confidence_bar ?? 0.7;
+function forecastTile(e, c) {
+  const f = e.forecast, t2 = e.meta?.forecast_t2;
+  const leftD = e.tcaMs != null ? (e.tcaMs - simNow()) / 86400e3 : c?.ttca_d;
+  const late = leftD != null && leftD < 2; // inside 2 d physics on the latest CDM governs: no forecast on the card
+  const live = f && f.valid !== false && f.p_critical != null;
+  const val = late ? 'n/a inside 2 d' : live ? fmtPct(f.p_critical) : t2?.p_critical != null ? `${fmtPct(t2.p_critical)} at T−2 d` : 'n/a';
+  const t2txt = t2?.p_critical != null ? `served at T−2 d: ${fmtPct(t2.p_critical)}${t2.model ? ' (' + t2.model + ')' : ''}` : '';
+  const src = live ? fcSource(f) + (late ? ` · last served value ${fmtPct(f.p_critical)} (not shown inside 2 d)` : '') : t2?.model ? t2.model + (/^train:/.test(e.key) ? ' · out-of-fold' : '') : 'none (inside 2 d, physics on the latest CDM governs)';
+  return { val, src, t2txt, cost: costText(f && f.valid !== false ? f : t2) };
+}
+function costText(f) {
+  const t = f?.alert_threshold ?? f?.threshold ?? f?.tau, R = f?.cost_ratio_R ?? f?.cost_ratio;
+  if (t == null && R == null) return '';
+  const parts = [t != null ? `alert threshold t = ${(+t).toFixed(3)}` : null, R != null ? `cost ratio R = ${+R % 1 ? (+R).toFixed(1) : R} (a missed critical costs R false alarms)` : null].filter(Boolean);
+  return parts.join(', ') + (f?.alert == null ? '' : f.alert ? ' · ALERT (p ≥ t)' : ' · below t');
+}
+/** One line naming who suggests what + one bar: the model's probability of its pick vs the confidence bar. */
+function recWho(d, e) {
+  if (!d) return e.decisionPending ? '<div class="ap-rec-who">Asking the decision model…</div>' : '';
+  const nm = modelName(d), base = d.baseline?.action;
+  const w = (x) => REC_WORD[x] || x || '—';
+  const p = pickP(d), bar = confBar();
+  let who;
+  if (d.refused) who = `${nm} declined · cost rule: ${w(base)}`;
+  else if (base && d.answer === base) who = `${nm} and the cost rule agree`;
+  else who = `${nm}: ${w(d.answer)}${p != null ? ` (${fmtPct(p)} sure)` : ''}${base ? ` · cost rule: ${w(base)}` : ''}`;
+  const meter = !d.refused && p != null ? `<div class="ap-conf${p >= bar ? ' ok' : ''}" title="${esc(nm)}'s probability for its own pick vs the ${fmtPct(bar)} confidence bar (decision-model probability, not a collision probability)">
+      <span class="ap-conf-bar"><i style="width:${(Math.max(0, Math.min(1, p)) * 100).toFixed(1)}%"></i><b style="left:${(bar * 100).toFixed(1)}%"></b></span>
+      <small>${fmtPct(p)} · bar ${fmtPct(bar)}</small></div>` : '';
+  return `<div class="ap-rec-who">${esc(who)}</div>${meter}`;
+}
+/** Everything the card no longer shows up front, verbatim: provenance for the audit trail. */
+function detailsHtml(a, e, r, c, fc, reasons) {
+  const d = e.decision, row = (k, v) => (v == null || v === '' ? '' : `<div class="ap-det-r"><span>${esc(k)}</span><div>${v}</div></div>`);
+  const L = (x) => ACTION_LABEL[x] || x;
+  const probs = d?.probabilities ? Object.entries(d.probabilities).map(([k, v]) => `${esc(L(k))} ${fmtPct(v)}`).join(' · ') : '';
+  const el = d?.baseline?.expected_loss ? Object.entries(d.baseline.expected_loss).map(([k, v]) => `${esc(L(k))} ${esc(+v % 1 ? (+v).toFixed(3) : v)}`).join(' · ') : '';
+  const bx = d?.baseline ? Object.entries(d.baseline).filter(([k, v]) => !['action', 'expected_loss'].includes(k) && v != null && typeof v !== 'object').map(([k, v]) => `${esc(k)}: ${esc(v)}`).join(' · ') : '';
+  return `<div class="ap-det-b">
+    ${row('All reasons', reasons.length ? `<ul>${reasons.map((s) => `<li>${esc(s)}</li>`).join('')}</ul>` : '—')}
+    ${d ? row('Decision model', `${esc(d.provider)}${d.model ? ` · model ${esc(d.model)}` : ''}${routedTxt(d.routed)}${d.latency_ms != null ? ` · ${d.latency_ms} ms` : ''}${d.cached ? ' · cached' : ''}${d.refused ? ' · refused' : ''}`) : ''}
+    ${d ? row('Per-action probabilities', `${probs || '—'}${d.probability_kind ? ` <em>(${esc(d.probability_kind)})</em>` : ''}<br><em>Pick ${esc(L(d.answer))} ${fmtPct(pickP(d))} vs confidence bar ${fmtPct(confBar())}.</em>`) : ''}
+    ${d?.model_confidence != null ? row(/jev|typesafe/i.test(d.provider || '') ? 'TypeSafe confidence' : 'Model confidence', fmtPct(d.model_confidence)) : ''}
+    ${d?.evidence_sufficient_p != null ? row('Evidence sufficient', fmtPct(d.evidence_sufficient_p)) : ''}
+    ${d?.baseline ? row('Cost rule', `${esc(L(d.baseline.action))}${el ? ` · expected loss ${el}` : ''}${bx ? `<br><em>${bx}</em>` : ''}`) : ''}
+    ${row('Forecast', `${esc(fc.val)} · source: ${esc(fc.src)}${fc.t2txt ? `<br>${esc(fc.t2txt)}` : ''}${fc.cost ? `<br><em>${esc(fc.cost)}</em>` : ''}`)}
+    ${r?.tier ? row('Sub-tiers', `Pc ${esc(r.tier.pc_tier || '—')} · miss ${esc(r.tier.miss_tier || '—')}${r.tier.mode ? ` · rules ${esc(r.tier.mode)}` : ''}`) : ''}
+    ${d ? row('Note', '<em>Decision-model numbers are not collision probabilities. Only Pc (physics) is a collision probability.</em>') : ''}
+    ${row('Ledger', `${a.ledger_seq != null ? `seq #${esc(a.ledger_seq)} · ` : ''}approval ${esc(a.approval_id)}${a.decision_id ? ` · decision ${esc(a.decision_id)}` : ''}${c?.cdm_id ? ` · CDM ${esc(c.cdm_id)}` : ''}<br><em>Your choice is written to the hash-chained ledger with the CDM row, rules and model versions.${S.mode.fixture ? ' FIXTURE mode: canned sequence, backend offline.' : ''}</em>`)}
+  </div>`;
+}
+
 export class ApprovalCard {
   constructor(root, { api, toast }) {
     this.root = root; this.api = api; this.toast = toast;
@@ -243,45 +300,67 @@ export class ApprovalCard {
   get isOpen() { return !!this.back; }
   #render() {
     if (!this.back || !this.a) return;
-    const a = this.a, e = ev(a.event_key), r = latestRisk(e), c = latestCdm(e), t = tierOf(e);
-    const opts = a.options || ['REQUEST_TRACKING', 'PREPARE_MANOEUVRE'];
-    const btnCls = { PREPARE_MANOEUVRE: 'good', REQUEST_TRACKING: 'accent', MONITOR: '' };
-    const order = ['PREPARE_MANOEUVRE', 'REQUEST_TRACKING', 'MONITOR'].filter((x) => opts.includes(x));
-    const f = e.forecast;
+    const a = this.a, e = ev(a.event_key), r = latestRisk(e), c = latestCdm(e), t = tierOf(e) || 'UNKNOWN';
     const m = this.back.querySelector('.ap-modal');
-    m.innerHTML = `<div class="ap-m-h"><span class="chip warn">APPROVAL NEEDED</span><small>suggested: ${esc(ACTION_SHORT[a.suggested] || a.suggested || '—')}</small><button class="pop-x">✕</button></div>
-      <div class="ap-m-title">${esc(a.event_key)} — needs your decision</div>
-      <div class="ap-m-sub">The system stopped before acting: this event is outside what it may do on its own. Nothing commands a burn.</div>
-      <div class="ap-cols"><div class="ap-col">
+    // re-renders happen on every event update: keep what the analyst typed / opened
+    const prevNote = m.querySelector('.ap-note');
+    const note = prevNote?.value ?? '', hadFocus = prevNote && document.activeElement === prevNote;
+    const det = m.querySelector('.ap-det');
+    if (det) this.detOpen = det.open;
+    if (a !== this.renderedFor) { this.advOpen = false; this.renderedFor = a; }
+    const opts = a.options || ['REQUEST_TRACKING', 'PREPARE_MANOEUVRE'];
+    const sugg = opts.includes(a.suggested) ? a.suggested : null;
+    const order = [sugg, ...['PREPARE_MANOEUVRE', 'REQUEST_TRACKING', 'MONITOR'].filter((x) => x !== sugg && opts.includes(x))].filter(Boolean);
+    const d = e.decision;
+    const words = (x) => ACTION_LABEL[x] || x || '—';
+    const fc = forecastTile(e, c);
+    const all = a.reasons || e.verdict?.reasons || [];
+    const primary = (a.primary_reasons || e.verdict?.primary_reasons || all).slice(0, 2);
+    const x = e.explanation;
+    const exBadge = x ? (x.source === 'template' ? '<span class="ap-badge">template</span>' : `<span class="ap-badge ai">AI advisor${x.verified ? ' · verified' : ''}</span>`) : '';
+    m.classList.toggle('is-block', a.verdict === 'BLOCK');
+    m.innerHTML = `<div class="ap-m-h"><span class="chip warn">NEEDS YOUR DECISION</span><button class="pop-x" title="Close (decide later)">✕</button></div>
+      <div class="ap-m-title">${esc(a.event_key)} — <span class="tc-${esc(t)}">${esc(t)}</span><span class="ap-m-tsub"> · miss ${esc(fmtMiss(c?.miss_m))} · TCA <span class="ap-tca"></span></span></div>
       <div class="ap-ev">
-        <div><span>Pc <em class="chip-mini">PHYSICS</em></span><b class="tc-${t}">${fmtPc(r?.pc?.log10, r?.pc)}</b></div>
-        <div><span>Miss</span><b>${fmtMiss(c?.miss_m)}</b></div>
-        <div><span>Sub-tiers</span><b>Pc ${esc(r?.tier?.pc_tier || '—')} · miss ${esc(r?.tier?.miss_tier || '—')}</b></div>
-        <div><span>Forecast <em class="chip-mini st">STATISTICS</em></span><b>${f && f.valid !== false && f.p_critical != null ? (c?.ttca_d != null && c.ttca_d < 2 ? `at T−2 d: ${fmtPct(f.p_critical)}` : `${fmtPct(f.p_critical)} ends CRITICAL`) : e.meta?.forecast_t2?.p_critical != null ? `at T−2 d: ${fmtPct(e.meta.forecast_t2.p_critical)}` : 'n/a inside 2 d'}</b></div>
+        <div><span>Pc <em>physics</em></span><b class="tc-${esc(r?.tier?.pc_tier || t)}">${esc(fmtPc(r?.pc?.log10, r?.pc))}</b></div>
+        <div><span>Miss distance</span><b class="tc-${esc(r?.tier?.miss_tier || '')}">${esc(fmtMiss(c?.miss_m))}</b></div>
+        <div><span>Chance it ends CRITICAL</span><b${/^n\/a/.test(fc.val) ? ' class="na"' : ''}>${esc(fc.val)}</b></div>
       </div>
-      <div class="ap-src fc-src">Forecast source: ${esc(f && f.valid !== false ? fcSource(f) : e.meta?.forecast_t2?.model ? e.meta.forecast_t2.model + (/^train:/.test(e.key) ? ' · out-of-fold' : '') : 'none (inside 2 d, physics governs)')}</div>
-      ${costLine(f && f.valid !== false ? f : e.meta?.forecast_t2)}
-      <div class="ap-sub">Why it asks you</div>
-      <ul class="ap-m-reasons">${(a.reasons || e.verdict?.reasons || []).map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
+      <div class="ap-rec">
+        <div class="ap-rec-k">Recommendation</div>
+        <div class="ap-rec-v">${esc(sugg ? words(sugg) : 'Your call')}</div>
+        ${recWho(d, e)}
+      </div>
+      ${primary.length ? `<div class="ap-why"><div class="ap-rec-k">Why it asks you</div><ul>${primary.map((s) => `<li>${esc(s)}</li>`).join('')}</ul></div>` : ''}
+      ${x?.text ? `<div class="ap-adv${this.advOpen ? ' open' : ''}"><div class="ap-rec-k">Advisor ${exBadge}</div><p>${esc(x.text)}</p><button class="ap-more" hidden>${this.advOpen ? 'less' : 'more'}</button></div>` : ''}
+      <textarea class="ap-note" rows="1" placeholder="Note for the ledger (optional)"></textarea>
+      <div class="ap-m-btns">${order.map((o, i) => `<button class="${i === 0 ? 'good' : 'ghost'}" data-act="${o}">${esc(words(o))}</button>`).join('')}<button class="ghost rej" data-act="REJECT" title="Reject the suggestion (logged)">Reject</button></div>
       <div class="ap-m-wait"></div>
-      <textarea class="ap-note" rows="2" placeholder="Note for the ledger (optional)"></textarea>
-      <div class="ap-m-btns">${order.map((o) => `<button class="${btnCls[o]}" data-act="${o}">${esc(ACTION_LABEL[o] || o)}</button>`).join('')}<button class="ghost rej" data-act="REJECT" title="Reject the suggestion (logged)">Reject</button></div>
-      </div><div class="ap-col">
-      ${decisionBlock(e)}
-      ${e.explanation ? `<div class="ap-sub">Explanation <span class="chip ${e.explanation.verified ? 'good' : ''}">${esc(e.explanation.source)}${e.explanation.verified ? ' · verified' : ''}</span></div><div class="ap-say">${esc(e.explanation.text)}</div>` : ''}
-      </div></div>
-      <small class="ap-m-foot">Your choice is written to the hash-chained ledger with the CDM row, rules and model versions. ${S.mode.fixture ? 'FIXTURE mode: canned sequence, backend offline.' : ''}</small>`;
+      <details class="ap-det"${this.detOpen ? ' open' : ''}><summary>Details</summary>${detailsHtml(a, e, r, c, fc, all)}</details>`;
+    const n = m.querySelector('.ap-note');
+    n.value = note;
+    if (hadFocus) n.focus();
     m.querySelector('.pop-x').addEventListener('click', () => this.close());
+    m.querySelector('.ap-det').addEventListener('toggle', (ev2) => { this.detOpen = ev2.target.open; });
     m.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', () => this.#decide(b.dataset.act, b)));
+    const adv = m.querySelector('.ap-adv');
+    if (adv) {
+      const p = adv.querySelector('p'), more = adv.querySelector('.ap-more');
+      more.hidden = !this.advOpen && p.scrollHeight <= p.clientHeight + 1; // only when the clamp actually cuts text
+      more.addEventListener('click', () => { this.advOpen = !this.advOpen; adv.classList.toggle('open', this.advOpen); more.textContent = this.advOpen ? 'less' : 'more'; });
+    }
     this.#live();
   }
   #live() {
     if (!this.back || !this.a) return;
     const e = ev(this.a.event_key);
-    const w = this.back.querySelector('.ap-m-wait');
     const left = e?.tcaMs != null ? e.tcaMs - simNow() : (this.a.ttca_h ?? 0) * 3600e3;
-    const txt = `<b>TCA in ${fmtDur(left)}</b> · ${this.a.mcp_passed || left < 86400e3 ? '<span class="warntxt">commitment window open</span>' : 'before the commitment window'} · clock held while you decide`;
-    if (w.innerHTML !== txt) w.innerHTML = txt;
+    const tca = this.back.querySelector('.ap-tca');
+    const tt = left > 0 ? `in ${fmtDur(left)}` : 'passed';
+    if (tca && tca.textContent !== tt) tca.textContent = tt;
+    const w = this.back.querySelector('.ap-m-wait');
+    const txt = 'Clock held while you decide';
+    if (w && w.innerHTML !== txt) w.innerHTML = txt;
   }
   async #decide(action, btn) {
     const a = this.a;

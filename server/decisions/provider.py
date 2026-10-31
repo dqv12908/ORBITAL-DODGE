@@ -114,11 +114,19 @@ def finish(raw: dict, mapping: dict) -> dict:
         probs[ans] = 1.0
     if ans is None and probs:
         ans = max(probs, key=probs.get)
-    conf = raw.get("confidence")
-    if conf is None:
-        conf = probs.get(ans) if ans in probs else (max(probs.values()) if probs else None)
+    # ONE certainty number everywhere: `confidence` = the probability of the chosen action (capped when a vote had
+    # too few samples). The provider's own confidence field (e.g. TypeSafe's) is kept as `model_confidence`.
+    conf = probs.get(ans) if ans in probs else None
+    if conf is None and raw.get("confidence") is not None and not probs:
+        conf = raw.get("confidence")
+    cap = raw.get("confidence_cap")
+    if conf is not None and cap is not None:
+        conf = min(float(conf), float(cap))
+    mconf = raw.get("confidence")
     ev = raw.get("evidence_sufficient_p")
     return {"answer": ans, "probabilities": probs, "confidence": None if conf is None else round(float(conf), 4),
+            "model_confidence": None if mconf is None else round(float(mconf), 4),
+            "confidence_cap": None if cap is None else float(cap),
             "evidence_sufficient_p": None if ev is None else round(float(ev), 4)}
 
 
@@ -236,7 +244,8 @@ class DecisionService:
                                          "fallback": "next provider" if p is not self.providers[-1] else "mock"})
             if self.providers and refusals == len(self.providers):
                 # every real model declined: do not substitute the mock's rule as if it were a model
-                return {"answer": None, "probabilities": {}, "confidence": None, "evidence_sufficient_p": None,
+                return {"answer": None, "probabilities": {}, "confidence": None, "model_confidence": None,
+                        "evidence_sufficient_p": None,
                         "provider": attempts[-1]["provider"], "model": None, "refused": True,
                         "probability_kind": None, "routed": None,
                         "latency_ms": int((time.monotonic() - t_start) * 1000), "request_hash": prepared["request_hash"],

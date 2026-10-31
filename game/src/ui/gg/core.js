@@ -49,7 +49,53 @@ export class Panel {
     this.out = []; this.over = [];
   }
   clipDef() { return `<clipPath id="${this.id}"><rect x="${f2(this.x)}" y="${f2(this.y)}" width="${f2(this.w)}" height="${f2(this.h)}"/></clipPath>`; }
-  svg() { return `<g clip-path="url(#${this.id})">${this.out.join('')}</g>${this.over.join('')}`; }
+  svg() { return `<g clip-path="url(#${this.id})">${this.out.join('')}</g>${this.over.join('')}${this.#labels()}`; }
+  /** Reference-line labels, laid out together so they never overlap each other or cross a vertical rule.
+   *  vline labels sit inside the top of the panel (stacked into rows when they collide); hline labels sit
+   *  just above their line at the requested side, slide away from vertical rules and placed labels, and
+   *  drop below the line if there is no room above. Each gets a small background so lines don't cut it. */
+  #labels() {
+    const L = this.refLabels || [];
+    if (!L.some((l) => l.label)) return '';
+    const fs = this.s.annot, pad = 2.5, hgt = fs * 1.25, placed = [], out = [];
+    const hit = (a) => placed.some((b) => a.x0 < b.x1 + 2 && a.x1 > b.x0 - 2 && a.y0 < b.y1 + 1 && a.y1 > b.y0 - 1);
+    const inX = (x0, x1) => Math.max(this.x + 1, Math.min(x0, this.x + this.w - 1 - (x1 - x0)));
+    const vx = L.filter((l) => l.kind === 'v').map((l) => l.x);
+    const box = (l, x0, y0) => { const w = textW(l.label, fs) + 2 * pad; const X0 = inX(x0, x0 + w); return { x0: X0, x1: X0 + w, y0, y1: y0 + hgt }; };
+    const emit = (l, b) => {
+      placed.push(b);
+      out.push(`<rect x="${f2(b.x0)}" y="${f2(b.y0)}" width="${f2(b.x1 - b.x0)}" height="${f2(b.y1 - b.y0)}" rx="2" fill="${GG.bgExport}" fill-opacity="0.78"/>`);
+      out.push(text(b.x0 + pad, b.y0 + hgt / 2, l.label, { size: fs, color: l.color, base: 'middle' }));
+    };
+    for (const l of L.filter((q) => q.kind === 'v' && q.label)) {
+      const w = textW(l.label, fs) + 2 * pad;
+      const cands = [];
+      for (let row = 0; row < 4; row++) {
+        const y0 = this.y + 2 + row * (hgt + 1);
+        const sides = l.side === 'left' ? [l.x - 2 - w, l.x + 2] : [l.x + 2, l.x - 2 - w];
+        for (const x0 of sides) cands.push(box(l, x0, y0));
+      }
+      emit(l, cands.find((b) => !hit(b)) || cands[0]);
+    }
+    for (const l of L.filter((q) => q.kind === 'h')) {
+      const w = textW(l.label, fs) + 2 * pad;
+      const xs0 = [];
+      // preferred anchor, then step away from each vertical rule the label would cross
+      let x0 = l.side === 'left' ? this.x + 2 : this.x + this.w - 2 - w;
+      for (let i = 0; i < 6; i++) {
+        xs0.push(x0);
+        const cross = vx.filter((v) => v > x0 - 2 && v < x0 + w + 2);
+        if (!cross.length) break;
+        x0 = l.side === 'left' ? Math.max(...cross) + 3 : Math.min(...cross) - 3 - w;
+      }
+      const clear = (b) => !vx.some((v) => v > b.x0 - 1 && v < b.x1 + 1);
+      const cands = [];
+      for (const ya of [l.y - 1.5 - hgt, l.y + 1.5]) for (const xx of xs0.slice().reverse()) cands.push(box(l, xx, ya));
+      const inside = (b) => b.y0 >= this.y && b.y1 <= this.y + this.h;
+      emit(l, cands.find((b) => inside(b) && clear(b) && !hit(b)) || cands.find((b) => inside(b) && !hit(b)) || cands[0]);
+    }
+    return out.join('');
+  }
   #d(pts) {
     let d = '', pen = false;
     for (const p of pts) {
@@ -94,8 +140,7 @@ export class Panel {
     const y = f2(this.Y(v));
     this.out.push(`<line x1="${f2(this.x)}" x2="${f2(this.x + this.w)}" y1="${y}" y2="${y}" ${stroke({ color: GG.ref, width: this.s.ref, dash: true, ...o }, this.s)}/>`);
     if (o.label && v >= this.ys.domain[0] && v <= this.ys.domain[1]) {
-      const right = o.side !== 'left';
-      this.over.push(text(right ? this.x + this.w - 3 : this.x + 3, y - 2, o.label, { size: this.s.annot, color: o.labelColor || o.color || GG.muted, anchor: right ? 'end' : 'start', base: 'bottom' }));
+      (this.refLabels ||= []).push({ kind: 'h', y: +y, label: o.label, side: o.side === 'left' ? 'left' : 'right', color: o.labelColor || o.color || GG.muted });
     }
     return this;
   }
@@ -104,9 +149,8 @@ export class Panel {
     if (!fin(v) || v < this.xs.domain[0] || v > this.xs.domain[1]) return this;
     const x = f2(this.X(v));
     this.out.push(`<line x1="${x}" x2="${x}" y1="${f2(this.y)}" y2="${f2(this.y + this.h)}" ${stroke({ color: GG.ref, width: this.s.ref, dash: true, ...o }, this.s)}/>`);
-    if (o.label) {
-      const left = o.side === 'left';
-      this.over.push(text(left ? x - 3 : x + 3, this.y + 3, o.label, { size: this.s.annot, color: o.labelColor || o.color || GG.muted, anchor: left ? 'end' : 'start', base: 'top' }));
+    {  // unlabelled rules are registered too, so hline labels can steer clear of them
+      (this.refLabels ||= []).push({ kind: 'v', x: +x, label: o.label || null, side: o.side === 'left' ? 'left' : 'right', color: o.labelColor || o.color || GG.muted });
     }
     return this;
   }
@@ -238,8 +282,17 @@ export function header(title, subtitle, x, s) {
   return { svg: o.join(''), h: y ? y + 7 * s.k : 0 };
 }
 /** Right-aligned caption lines ending at xr; returns {svg, h}. */
-export function caption(lines, xr, y0, s, anchor = 'end') {
-  const L = (Array.isArray(lines) ? lines : [lines]).filter(Boolean);
+export function caption(lines, xr, y0, s, anchor = 'end', maxW = anchor === 'end' ? xr - 2 : Infinity) {
+  // wrap any line wider than the room it has (greedy on spaces), so long captions never run off the card
+  const L = [];
+  for (const t of (Array.isArray(lines) ? lines : [lines]).filter(Boolean)) {
+    let cur = '';
+    for (const w of String(t).split(' ')) {
+      const nxt = cur ? `${cur} ${w}` : w;
+      if (cur && textW(nxt, s.caption) > maxW) { L.push(cur); cur = w; } else cur = nxt;
+    }
+    if (cur) L.push(cur);
+  }
   return { svg: L.map((t, i) => text(xr, y0 + i * s.caption * 1.35, t, { size: s.caption, color: GG.dim, anchor, base: 'top' })).join(''), h: L.length * s.caption * 1.35 };
 }
 export function wrapSvg(w, h, inner, panels) {

@@ -13,7 +13,10 @@ from decisions.expected_cost import expected_losses
 
 def decide(facts: dict, allowed: list[str], baseline: dict, loss: dict, seed: int, request_hash: str) -> dict:
     p = baseline.get("p_critical", 0.05)
-    el = expected_losses(p, allowed, loss)
+    el = baseline.get("expected_loss") or {}
+    if not all(a in el for a in allowed):  # the baseline's losses are time-aware; recompute only if absent
+        el = expected_losses(p, allowed, loss)
+    el = {a: el[a] for a in allowed}
     m = min(el.values()) if el else 0
     w = {a: math.exp(-(el[a] - m) / 2.0) for a in allowed}
     s = sum(w.values()) or 1.0

@@ -1582,6 +1582,30 @@
   "ForecastUpdated": {
    "additionalProperties": true,
    "properties": {
+    "alert": {
+     "anyOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Alert"
+    },
+    "alert_threshold": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Alert Threshold"
+    },
     "baseline": {
      "anyOf": [
       {
@@ -1606,6 +1630,30 @@
      ],
      "title": "Calib Bin"
     },
+    "cost_ratio_R": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Cost Ratio R"
+    },
+    "model": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Model"
+    },
     "model_version": {
      "anyOf": [
       {
@@ -1627,6 +1675,18 @@
       }
      ],
      "title": "P Critical"
+    },
+    "p_source": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "P Source"
     },
     "p_tiers": {
      "anyOf": [

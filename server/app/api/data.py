@@ -241,6 +241,9 @@ async def assess(request: Request):
         rs = sorted(rs, key=lambda r: -(fnum(r.get("time_to_tca")) or 0))
         if (fnum(rs[0].get("time_to_tca")) or 0) >= 2:
             fc = c.engine.forecast(ek, rs, rs[-1]["_tier"], c.sim.policy["tau_watch"])
+            if fc.get("valid"):
+                from decisions.policy import watch_flag
+                fc["watch"] = watch_flag(fc, rs[-1]["_tier"], c.sim.policy)
             if fc.get("fallback") or not c.engine.forecaster:
                 fc["error"] = {"code": "MODEL_DEGRADED", "message": "forecast model unavailable; persistence-empirical shown"}
             forecasts[ek] = fc

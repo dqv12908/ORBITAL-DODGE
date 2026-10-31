@@ -1,0 +1,61 @@
+{
+ "method": "Ops day run at 8x on our own backend (port 8032), auto-approving, then paused; dashboard tiles compared with counts recomputed from the saved /api/state cast (latest CDM per event)",
+ "sim_time": "2026-10-31T14:32:14.801Z",
+ "cast": 33,
+ "active": 30,
+ "in_24h_window": 17,
+ "tiles": {
+  "within_1km": {
+   "dashboard": 2,
+   "recomputed": 2,
+   "match": true
+  },
+  "within_5km": {
+   "dashboard": 8,
+   "recomputed": 8,
+   "match": true
+  },
+  "critical": {
+   "dashboard": 2,
+   "recomputed": 2,
+   "match": true
+  },
+  "elevated": {
+   "dashboard": 7,
+   "recomputed": 7,
+   "match": true
+  },
+  "awaiting": {
+   "dashboard": 0,
+   "recomputed": 0,
+   "match": true
+  }
+ },
+ "verdicts": {
+  "AUTO": 28,
+  "ESCALATE": 2,
+  "BLOCK": 0
+ },
+ "decision_calls": 11,
+ "mode": {
+  "decisions": "mock",
+  "llm": "template",
+  "engine": "riskengine.cdm",
+  "orbits": "reconstructed",
+  "scenarios": "shared/scenarios",
+  "decisions_badge": "DECISIONS: MOCK (cost rule)"
+ },
+ "insights": [
+  "1 of 2 critical events are critical only by miss distance; their Pc ≤ 6.4×10⁻⁵",
+  "Next commitment deadline: train:2115 at 20:24 SIM",
+  "2 events within 1 km in the next 24 h",
+  "AP peaked at 51 in the released CDMs — context only: across 8,293 historic events AP did not predict risk change (corr 0.001, offline analysis)",
+  "Revealed so far: persistence 3/3 correct, model 3/3 correct at T−2 d"
+ ],
+ "backend_mode": "decisions=mock engine=riskengine.cdm llm=template",
+ "backend_http_status_counts": {
+  "200": 666,
+  "409": 6
+ },
+ "note_409": "the 409 Conflict responses are the runner re-posting approvals that were already resolved"
+}

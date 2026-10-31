@@ -1,0 +1,1525 @@
+{
+ "_meta": {
+  "generated": "2026-10-31",
+  "by": "Task B fact-sheet agent",
+  "rule": "Every value has a repo file + key. 'recomputed' = re-derived by this agent from repo data with server/.venv/bin/python on 2026-10-31; command summarised in note.",
+  "project": "ORBITAL DODGE, Airbus Autonomous SG 2026, AI & Aerospace track, Challenge 1 (AI-driven satellite collision avoidance)",
+  "rubric": {
+   "value": {
+    "problem_realism": 20,
+    "technical_soundness": 25,
+    "honest_evaluation": 20,
+    "trust_traceability": 20,
+    "impact": 10,
+    "time_discipline": 5
+   },
+   "source": "docs/brief.txt"
+  },
+  "revised": "2026-10-31: synced with README fact-check and judge revision"
+ },
+ "dataset": {
+  "train_cdms": {
+   "value": 162634,
+   "source": "docs/design/11-dataset-experiments.md line 3; recomputed data/processed/cdm_clean.parquet split=='train' rows"
+  },
+  "test_cdms": {
+   "value": 24484,
+   "source": "docs/design/11-dataset-experiments.md line 3; recomputed cdm_clean.parquet split=='test'"
+  },
+  "train_events": {
+   "value": 13154,
+   "source": "data/raw/organizer/train_event_labels.csv rows; data/processed/events.parquet split=='train'"
+  },
+  "test_events": {
+   "value": 2167,
+   "source": "data/processed/events.parquet split=='test'; research/organizer/out/build_summary.json n_test"
+  },
+  "train_missions": {
+   "value": 19,
+   "source": "events.parquet nunique(mission_id) train; build_summary.json n_missions"
+  },
+  "test_missions": {
+   "value": 18,
+   "source": "events.parquet nunique(mission_id) test; doc 11 line 104 (mission 13 in train only)"
+  },
+  "final_tiers_all_train_safe_elev_crit": {
+   "value": [
+    9843,
+    2403,
+    908
+   ],
+   "source": "data/raw/organizer/tier_rules.csv 'train events'; train_event_labels.csv final_tier counts; doc 11 line 90"
+  },
+  "tier_rule": {
+   "value": "Critical: risk>=-4 OR miss<1,000 m; Elevated: -6<=risk<-4 OR 1-5 km; Safe otherwise; precedence Critical>Elevated>Safe",
+   "source": "data/raw/organizer/tier_rules.csv"
+  },
+  "risk_floor_minus30": {
+   "value": {
+    "meaning": "risk=-30 is a placeholder for a probability too small to compute (Pc~0)",
+    "train_rows_at_floor": 67240,
+    "test_rows_at_floor": 6884,
+    "eligible_events_final_at_floor": "6,838 of 8,293 (82.5 %)"
+   },
+   "source": "tier_rules.csv Note row; recomputed cdm_clean.parquet risk<=-30; doc 11 §A table"
+  },
+  "sentinel_covariance": {
+   "value": {
+    "value_m": "63,781,363 (=10 x Earth radius) in all three position sigmas of one object",
+    "doc11_train_rows": 5129,
+    "doc11_train_events": 1313,
+    "doc11_test_rows": 659,
+    "pipeline_flagged_train_rows": 5166,
+    "pipeline_flagged_train_events": 1325,
+    "pipeline_flagged_test_rows": 665,
+    "pipeline_flagged_test_events": 168,
+    "pc_rows_status_COV_UNKNOWN_all_rows": 5831,
+    "risk_on_sentinel_rows": "pinned to mean -14.31, sd 0.34 (meaningless)"
+   },
+   "source": "docs/design/11-dataset-experiments.md §C.1 lines 127-133; recomputed cdm_clean.parquet cov_unknown_t|cov_unknown_c; data/processed/pc_rows.parquet pc_status counts",
+   "note": "doc 11 and the pipeline differ slightly (pipeline also flags other meaningless sigmas, e.g. c_sigma_t 1e7-6e7 m). Quote one set with its source."
+  },
+  "pc_rows_status": {
+   "value": {
+    "OK": 181134,
+    "COV_UNKNOWN": 5831,
+    "LOW_VREL": 151,
+    "NPD_CLIPPED": 2
+   },
+   "source": "data/processed/pc_rows.parquet pc_status value_counts (recomputed)"
+  },
+  "kelvins_eligible_population": {
+   "value": {
+    "events": 8293,
+    "critical": 551,
+    "final_tiers_safe_elev_crit": [
+     6138,
+     1604,
+     551
+    ],
+    "definition": ">=1 CDM at ttca>=2 d and final CDM <1 d"
+   },
+   "source": "docs/design/11-dataset-experiments.md §A; registry/forecaster_bakeoff/model_card.json label"
+  },
+  "criticals_by_cause_eligible": {
+   "value": {
+    "miss_lt_1km": 549,
+    "risk_ge_-4": 6,
+    "both": 4
+   },
+   "source": "doc 11 §A 'What drives each tier'; docs/COST_RATIO.md evidence table"
+  },
+  "cdm_cadence": {
+   "value": "median 8.07 h between CDMs, 74.4 % within 6-10 h; median 13 CDMs/event, first CDM median 6.60 d before TCA",
+   "source": "doc 11 §D table lines 208-212"
+  },
+  "label_agreement_with_organizer": {
+   "value": {
+    "agree": 13154,
+    "of": 13154
+   },
+   "source": "recomputed: data/raw/organizer/train_event_labels.csv final_tier vs data/processed/events.parquet final_tier (train), merged on event_id; also research/organizer/out/build_summary.json label_mismatches_vs_organizer=0"
+  }
+ },
+ "organizer_population": {
+  "usable_for_training": {
+   "value": 11942,
+   "source": "train_event_labels.csv usable_for_training=='yes'; build_summary.json n_usable"
+  },
+  "not_usable": {
+   "value": 1212,
+   "source": "train_event_labels.csv usable_for_training=='no'"
+  },
+  "tiers_safe_elev_crit": {
+   "value": [
+    8946,
+    2162,
+    834
+   ],
+   "source": "build_summary.json tiers_safe_elev_crit"
+  },
+  "subpopulations_by_final_ttca": {
+   "value": {
+    "final_lt1d": {
+     "n": 8293,
+     "crit": 551
+    },
+    "final_1to2d": {
+     "n": 599,
+     "crit": 39
+    },
+    "final_ge2d": {
+     "n": 3050,
+     "crit": 244
+    }
+   },
+   "source": "build_summary.json subpop_counts / subpop_crit"
+  },
+  "final_ge2d_caveat": {
+   "value": "On final_ge2d (26 % of events) the final message IS the latest input, so persistence is exact by construction (recall 1, 0 FA). Skill on the full population is diluted/inflated by this slice; the forecasting problem lives in final_lt1d and final_1to2d.",
+   "source": "registry/forecaster_organizer/1.0.0/model_card.json caveats[0]; build_summary.json persistence_exact_on_ge2d=true"
+  },
+  "features": {
+   "value": {
+    "A13": 84,
+    "ALL": 233
+   },
+   "source": "build_summary.json n_features"
+  }
+ },
+ "physics_agreement": {
+  "doc11_median_abs_err_dex": {
+   "value": 0.059,
+   "source": "docs/design/11-dataset-experiments.md headline 1 and §C.3 table (HBR=(t_span+c_span)/2, no fitting; 157,468 clean rows; MAE 0.741 dex on risk>=-10)"
+  },
+  "pipeline_median_abs_err_dex_risk_ge_-10": {
+   "value": 0.0545,
+   "source": "recomputed: data/processed/pc_rows.parquet log10_pc vs cdm_clean.parquet risk, pc_status=='OK', split train, risk>=-10 (45,737 rows)",
+   "note": "This is where README's 0.054 dex comes from; no repo file states 0.054. Over ALL OK rows the median is 1.89 dex (rows at the -30 floor); with physics floored at -30 it is 0.0054 dex. State the risk>=-10 scope."
+  },
+  "median_abs_err_dex_risk_ge_-4": {
+   "value": {
+    "doc11": 0.006,
+    "pipeline_recomputed": 0.0026
+   },
+   "source": "doc 11 §C.3 band table; recomputed pc_rows (715 rows)"
+  },
+  "tier_agreement_pct": {
+   "value": {
+    "doc11": 98.97,
+    "pipeline_recomputed": 98.968,
+    "rows": 157346
+   },
+   "source": "doc 11 §C.3 line 179 (no safe<->critical swaps); recomputed brief tier from log10_pc vs from risk on OK train rows"
+  },
+  "pc_ge_1e-4_threshold": {
+   "value": {
+    "recall": 0.918,
+    "precision": 0.945
+   },
+   "source": "doc 11 §C.3 line 178"
+  },
+  "frame_rotation_effect": {
+   "value": "MAE 5.99 -> 1.18 dex",
+   "source": "doc 11 §C.3"
+  },
+  "disagreement_hotspots": {
+   "value": "missions 6 and 7 hold 28.5 % of bad rows (10.7 % of rows); far tail encounters (miss>20 km) MAE 2.5 dex vs 0.065 for miss<=5 km",
+   "source": "doc 11 lines 182-190"
+  },
+  "thirteen_columns_cannot_compute_pc": {
+   "value": "isotropic 2D Pc from radial sigmas only: Spearman 0.34 vs 0.94 with full covariance; GBM on 13 columns MAE 3.7 dex",
+   "source": "doc 11 headline 2"
+  }
+ },
+ "headline_organizer_results": {
+  "_setup": {
+   "value": {
+    "R": 10,
+    "recall_floor": 0.9,
+    "splits": {
+     "event80_20": "GroupShuffleSplit(test_size=0.2, groups=event_id), random_state 0-4 (5 seeds); point = mean per test set (~2,389 events, 159.2 crit)",
+     "mission": "GroupKFold(5, groups=mission_id), 19 missions; totals over 11,942"
+    },
+    "bootstrap_B": 500,
+    "served_model": "lgbm_all__train_organizer (LightGBM multiclass, 233 features, threshold p_critical>=0.0634)",
+    "cost": "cost_per_1000 = (10*missed + FA)/n*1000"
+   },
+   "source": "research/organizer/results.json setup; final.threshold; registry/forecaster_organizer/1.0.0/model_card.json"
+  },
+  "event80_20": {
+   "persistence": {
+    "value": {
+     "recall": 0.8509,
+     "recall_ci": [
+      0.83,
+      0.878
+     ],
+     "missed": 24.0,
+     "false_alarms": 24.8,
+     "fa_ci": [
+      20.6,
+      29.2
+     ],
+     "cost_per_1000": 110.84,
+     "cost_ci": [
+      93.3,
+      127.1
+     ],
+     "auc": 0.9703,
+     "auc_ci": [
+      0.964,
+      0.976
+     ],
+     "macro_f1": 0.8954,
+     "f1_ci": [
+      0.887,
+      0.904
+     ],
+     "precision": 0.845
+    },
+    "source": "research/organizer/results.json metrics.event80_20.persistence.all"
+   },
+   "orbital_dodge": {
+    "value": {
+     "recall": 0.9366,
+     "recall_ci": [
+      0.919,
+      0.955
+     ],
+     "missed": 10.2,
+     "false_alarms": 89.4,
+     "fa_ci": [
+      81.6,
+      97.2
+     ],
+     "cost_per_1000": 80.12,
+     "cost_ci": [
+      67.9,
+      92.5
+     ],
+     "auc": 0.988,
+     "auc_ci": [
+      0.984,
+      0.991
+     ],
+     "macro_f1": 0.8952,
+     "f1_ci": [
+      0.887,
+      0.904
+     ],
+     "precision": 0.626,
+     "alerts": 238.4
+    },
+    "source": "research/organizer/results.json metrics.event80_20.lgbm_all__train_organizer.all"
+   },
+   "cost_reduction_pct": {
+    "value": 27.7,
+    "source": "derived: (110.84-80.12)/110.84; JUDGING.md says 'about 28 %'"
+   }
+  },
+  "by_mission": {
+   "persistence": {
+    "value": {
+     "recall": 0.8657,
+     "recall_ci": [
+      0.841,
+      0.89
+     ],
+     "missed": 112,
+     "false_alarms": 126,
+     "fa_ci": [
+      104,
+      146
+     ],
+     "cost_per_1000": 104.34,
+     "cost_ci": [
+      86.2,
+      123.8
+     ],
+     "auc": 0.9694,
+     "macro_f1": 0.8981,
+     "f1_ci": [
+      0.89,
+      0.906
+     ]
+    },
+    "source": "research/organizer/results.json metrics.mission.persistence.all"
+   },
+   "orbital_dodge": {
+    "value": {
+     "recall": 0.9484,
+     "recall_ci": [
+      0.932,
+      0.964
+     ],
+     "missed": 43,
+     "false_alarms": 439,
+     "fa_ci": [
+      396,
+      476
+     ],
+     "cost_per_1000": 72.77,
+     "cost_ci": [
+      61.5,
+      85.3
+     ],
+     "auc": 0.9882,
+     "auc_ci": [
+      0.984,
+      0.992
+     ],
+     "macro_f1": 0.8929,
+     "f1_ci": [
+      0.885,
+      0.902
+     ],
+     "alerts": 1230
+    },
+    "source": "research/organizer/results.json metrics.mission.lgbm_all__train_organizer.all; verified oof_organizer.parquet alert_mission: recall 0.9484, FA 439, missed 43"
+   },
+   "note": {
+    "value": "Macro-F1 is a tie on 80/20 (0.8952 vs 0.8954) and persistence is slightly higher by mission (0.8981 vs 0.8929). The win is on critical recall, cost and AUC, paid for with ~3.5x more false alarms.",
+    "source": "research/organizer/results.json"
+   }
+  },
+  "other_rows": {
+   "value": {
+    "lgbm_a13_train_organizer_8020": {
+     "recall": 0.934,
+     "FA": 78.4,
+     "cost": 77.19
+    },
+    "lgbm_all_train_kelvins_8020": {
+     "recall": 0.933,
+     "FA": 87.8,
+     "cost": 81.96
+    },
+    "persistence_costcut_8020": {
+     "recall": 0.9812,
+     "FA": 447.8,
+     "cost": 200.0
+    },
+    "persistence_costcut_mission": {
+     "recall": 0.9844,
+     "FA": 2276,
+     "cost": 201.47
+    }
+   },
+   "source": "research/organizer/results.json metrics.*",
+   "note": "persistence_costcut = persistence lowered to alert on ELEVATED too; shows the naive way to buy recall costs ~2.5x more"
+  }
+ },
+ "subpopulation_breakdown": {
+  "event80_20": {
+   "value": {
+    "final_lt1d": {
+     "persistence": {
+      "recall": 0.8035,
+      "FA": 22.2,
+      "cost": 138.0
+     },
+     "model": {
+      "recall": 0.9174,
+      "FA": 69.8,
+      "cost": 94.6
+     }
+    },
+    "final_1to2d": {
+     "persistence": {
+      "recall": 0.6981,
+      "FA": 2.6,
+      "cost": 284.1
+     },
+     "model": {
+      "recall": 0.8678,
+      "FA": 4.6,
+      "cost": 153.7
+     }
+    },
+    "final_ge2d": {
+     "persistence": {
+      "recall": 1.0,
+      "FA": 0.0,
+      "cost": 0.0
+     },
+     "model": {
+      "recall": 1.0,
+      "FA": 15.0,
+      "cost": 25.0
+     }
+    }
+   },
+   "source": "research/organizer/results.json metrics.event80_20.{persistence,lgbm_all__train_organizer}.{final_lt1d,final_1to2d,final_ge2d}.point"
+  },
+  "by_mission": {
+   "value": {
+    "final_lt1d": {
+     "persistence": {
+      "recall": 0.8203,
+      "FA": 113,
+      "missed": 99,
+      "cost": 133.0
+     },
+     "model": {
+      "recall": 0.931,
+      "FA": 335,
+      "missed": 38,
+      "cost": 86.2
+     }
+    },
+    "final_1to2d": {
+     "persistence": {
+      "recall": 0.6667,
+      "FA": 13,
+      "cost": 238.7
+     },
+     "model": {
+      "recall": 0.8974,
+      "FA": 23,
+      "cost": 105.2
+     }
+    },
+    "final_ge2d": {
+     "persistence": {
+      "recall": 1.0,
+      "FA": 0,
+      "cost": 0.0
+     },
+     "model": {
+      "recall": 0.9959,
+      "FA": 81,
+      "missed": 1,
+      "cost": 29.8
+     }
+    }
+   },
+   "source": "research/organizer/results.json metrics.mission.*"
+  }
+ },
+ "operating_curve": {
+  "value": {
+   "population": "11,942 organizer events, held-out-mission OOF p_critical_mission (834 critical)",
+   "points": [
+    {
+     "recall": 0.8657,
+     "caught": 722,
+     "FA": 123,
+     "note": "persistence's exact recall; persistence has 126 FA here -> near tie"
+    },
+    {
+     "recall": 0.8669,
+     "caught": 723,
+     "FA": 136
+    },
+    {
+     "recall": 0.9005,
+     "caught": 751,
+     "FA": 179
+    },
+    {
+     "recall": 0.9209,
+     "caught": 768,
+     "FA": 269
+    },
+    {
+     "recall": 0.9508,
+     "caught": 793,
+     "FA": 475
+    },
+    {
+     "recall": 0.97,
+     "caught": 809,
+     "FA": 862
+    }
+   ],
+   "served_point": {
+    "recall": 0.9484,
+    "FA": 439,
+    "missed": 43
+   },
+   "persistence_point": {
+    "recall": 0.8657,
+    "FA": 126,
+    "missed": 112
+   }
+  },
+  "source": "recomputed from registry/forecaster_organizer/1.0.0/oof_organizer.parquet (y_tier=='Critical', sort by p_critical_mission desc, minimal FA to reach k caught)",
+  "note": "The 86.7->136 point is 723/834 caught. At persistence's own 722/834 the model has 123 FA vs 126: the gain is buying recall above persistence cheaply, not fewer FA at equal recall."
+ },
+ "bakeoff": {
+  "population": {
+   "value": "Kelvins-eligible 8,293 events, 551 critical, brief tiers on final CDM (<1 d); NOT the organizer population",
+   "source": "docs/BAKEOFF.md Question; research/bakeoff/leaderboard.json n_events/n_critical"
+  },
+  "prereg": {
+   "value": "PRIMARY = critical recall at persistence's FA budget (113), by-mission GroupKFold 5, paired bootstrap B=1000; sha256-pinned PREREG.md, no amendments",
+   "source": "docs/BAKEOFF.md; research/bakeoff/PREREG.md + PREREG.sha256; leaderboard.json B"
+  },
+  "contenders": {
+   "value": {
+    "entrants": [
+     "futures (MDN risk futures)",
+     "tabpfn (TabPFN v2)",
+     "ebm",
+     "gru"
+    ],
+    "references": [
+     "persistence",
+     "hgb_a13",
+     "lgbm_a13",
+     "lgbm_all"
+    ],
+    "count": 8
+   },
+   "source": "docs/BAKEOFF.md Contenders",
+   "note": "8 contenders; LightGBM appears twice (A13 and ALL), so '8 model families' is loose wording"
+  },
+  "leaderboard_by_mission": {
+   "value": [
+    {
+     "model": "lgbm_all",
+     "primary": 0.842,
+     "ci": [
+      0.808,
+      0.876
+     ],
+     "caught": "464/551",
+     "d_vs_pers": 0.022,
+     "d_ci": [
+      0.0,
+      0.041
+     ],
+     "auc": 0.985,
+     "gate": "PASS (b)"
+    },
+    {
+     "model": "tabpfn",
+     "primary": 0.838,
+     "ci": [
+      0.807,
+      0.874
+     ],
+     "caught": "462/551",
+     "d_vs_pers": 0.018,
+     "d_ci": [
+      0.002,
+      0.042
+     ],
+     "auc": 0.984,
+     "gate": "PASS (a)"
+    },
+    {
+     "model": "gru",
+     "primary": 0.831,
+     "ci": [
+      0.796,
+      0.865
+     ],
+     "auc": 0.983
+    },
+    {
+     "model": "lgbm_a13",
+     "primary": 0.831,
+     "ci": [
+      0.795,
+      0.863
+     ],
+     "auc": 0.983
+    },
+    {
+     "model": "futures",
+     "primary": 0.831,
+     "ci": [
+      0.798,
+      0.861
+     ],
+     "auc": 0.982
+    },
+    {
+     "model": "ebm",
+     "primary": 0.831,
+     "ci": [
+      0.795,
+      0.868
+     ],
+     "auc": 0.98
+    },
+    {
+     "model": "hgb_a13",
+     "primary": 0.824,
+     "ci": [
+      0.786,
+      0.856
+     ],
+     "auc": 0.983
+    },
+    {
+     "model": "persistence",
+     "primary": 0.82,
+     "ci": [
+      0.789,
+      0.852
+     ],
+     "caught": "452/551",
+     "auc": 0.958
+    }
+   ],
+   "source": "docs/BAKEOFF.md leaderboard; research/bakeoff/leaderboard.json splits.mission.models.*.primary/primary_ci/auc"
+  },
+  "winner": {
+   "value": {
+    "model": "lgbm_all",
+    "gate_path": "b",
+    "ece_after_isotonic": 0.005,
+    "runner_up": "tabpfn",
+    "honest_reading": "gain at the operating point is small (+12 of 551); by event lgbm_all ties persistence (0.820); audit seeds give 0.828-0.842; tabpfn is the only significant (gate a) gain"
+   },
+   "source": "research/bakeoff/leaderboard.json decision; docs/BAKEOFF.md 'How to read this honestly'"
+  },
+  "failure_case": {
+   "value": {
+    "event": "train:4973",
+    "mission": 2,
+    "story": "stable at ~1.7 km for 6 days; at 0.81 d new debris OD (sigma_r 32.7->53.4 m) moves miss to 814 m -> CRITICAL by miss clause while risk ~1e-14",
+    "p_critical": {
+     "lgbm_all": 0.015,
+     "tabpfn": 0.024,
+     "persistence": 0.054
+    },
+    "missed_by_all_8": 68
+   },
+   "source": "docs/BAKEOFF.md Failure case; research/bakeoff/failure_case.json"
+  },
+  "missed_by_all_eight": {
+   "value": {
+    "n": 68,
+    "of": 551,
+    "ceiling": "483/551 = 0.877"
+   },
+   "source": "docs/BAKEOFF.md failure case section; arithmetic (551-68)/551",
+   "note": "README and BAKEOFF.md previously said 'about 84%'; corrected to about 88%"
+  },
+  "prereg_timing": {
+   "value": {
+    "PREREG.md_mtime": "12:05:43",
+    "PREREG.sha256_mtime": "12:05:44",
+    "results_gru_json": "12:18:25",
+    "results_tabpfn_json": "12:22:15",
+    "results_ebm_json": "12:26:18",
+    "logs_score_all": "12:34:29",
+    "leaderboard.json": "12:37:05",
+    "logs_refs.log": "12:04:04 (early-stopping iterations only, no scores)",
+    "first_commit": "1ddfa4e 2026-10-31 14:02:04 +0800 (PREREG.md and leaderboard.json together)"
+   },
+   "source": "stat -f %Sm on the dev machine; git log --follow",
+   "note": "local file mtimes only; ordering is the team's attestation, not git-provable"
+  }
+ },
+ "cost_ratio": {
+  "value": {
+   "R": 10,
+   "basis": "COST_RATIO.md self-declares it was written before any sweep result was produced or read (only the label file opened); not hash-pinned; first committed 14:02 (1ddfa4e), after e9d9449 (12:21, v1 metrics) and 2044eb8 (13:16, results.json with R=10). Cost model C_fa vs C_miss from NASA OTPS 2023 labour/outage/loss values, ESA alert volumes and Swarm-B timeline, CARA 2x late delta-v. Central R=6.0 (C_fa EUR 1,120, C_miss EUR 6,750). Monte Carlo 200k draws: P10 2.4, P50 5.1, P90 10.3. R=10 = ~P90, chosen because the user prioritises catching criticals. A miss = late discovery, not a collision (mean final Pc of critical events 6.1e-6). At R>=14 'flag everything' beats 'flag nothing', so R>=20 not supported.",
+   "calibrated_threshold": "p_critical>=1/(1+R)=0.091",
+   "served_threshold": "0.0634 (argmin 10*FN+FP s.t. recall>=0.90 on by-event OOF)"
+  },
+  "source": "docs/COST_RATIO.md §3 Results, §4; registry/forecaster_organizer/1.0.0/model_card.json alert_threshold/threshold_source"
+ },
+ "conformal": {
+  "value": {
+   "population": "Kelvins-eligible 8,293 events, by held-out mission",
+   "score": "futures P(critical), split conformal calibrated on other missions",
+   "target_95": {
+    "realised_recall": 0.949,
+    "ci": [
+     0.925,
+     0.967
+    ],
+    "FA": 613,
+    "alerts": 1136
+   },
+   "target_90": {
+    "realised_recall": 0.907,
+    "FA": 257
+   },
+   "persistence_at_95": {
+    "realised_recall": 0.926,
+    "FA": 1323,
+    "definition": "persistence-empirical P(critical | latest tier) used as the conformal score at target 0.95; the 3-level score's cut-off falls below the ELEVATED level, giving 1,833 alerts (vs 565 for the plain persistence CRITICAL alert, 113 FA)",
+    "source": "registry/conformal/metrics.json evaluation.mission['persistence|target_recall_0.95|plain'] (alerts 1833)"
+   },
+   "lgbm_A13_at_95": {
+    "realised_recall": 0.955,
+    "FA": 552
+   },
+   "limits": "pooled guarantee, not per mission (mission 15 below target for every score); Mondrian per-tier variant fails (~7,000 alerts) - negative result",
+   "tau95": 0.067
+  },
+  "source": "research/bigml/results.json conformal.mission['futures_mc|target_recall_0.95|plain'] etc.; registry/conformal/metrics.json; research/bigml/REPORT.md §B"
+ },
+ "decision_policy": {
+  "value": {
+   "method": "value iteration over 588 discretised CDM states, real + MDN-simulated transitions",
+   "n_heldout_events": 8293,
+   "optimal_mean_loss": 0.859,
+   "ci": [
+    0.811,
+    0.913
+   ],
+   "missed_crit": 0,
+   "prepare_if_critical": 1.039,
+   "brief_rule_track_every_elevated": 3.896,
+   "oracle_lower_bound": 0.332,
+   "never_act": 6.644,
+   "cost_assumptions": {
+    "prep_crit": 5,
+    "prep_safe": 8,
+    "late": 10,
+    "track": 1,
+    "miss": 100,
+    "mcp_d": 1
+   },
+   "finding": "requesting tracking almost never optimal under these costs"
+  },
+  "source": "registry/policy/metrics.json policies.dp_real_sim etc.; research/bigml/REPORT.md §C"
+ },
+ "risk_futures": {
+  "value": {
+   "method": "mixture-density network (10 comps, 3x256 MLP) CDM->next-CDM transitions, 31 state features; Monte Carlo rollouts to TCA (10,000 paths/event by-mission, 4,000 by-event/LOMO) on GPU",
+   "by_mission": {
+    "futures": {
+     "auc": 0.982,
+     "brier": 0.0187,
+     "FA_at_pers_recall_0.820": 100
+    },
+    "persistence": {
+     "auc": 0.958,
+     "brier": 0.0223,
+     "FA": 113
+    },
+    "lgbm_ALL_optuna": {
+     "auc": 0.9857,
+     "brier": 0.0174,
+     "FA": 94
+    },
+    "ens_futures_lgbmA13": {
+     "FA": 91
+    }
+   },
+   "verdict": "futures beat persistence, do not beat tuned LightGBM (CIs overlap)",
+   "fans": "registry/futures/fans/<event_key>.json for all 13,154 train (out-of-mission) + 2,167 test events",
+   "calibration": "raw MC P(crit) ECE 0.008"
+  },
+  "source": "research/bigml/results.json splits.mission.*.op_points.at_persistence_recall, methods.futures_mc, summary; research/bigml/REPORT.md §A"
+ },
+ "fa_reduction_study": {
+  "value": {
+   "rows_in_table": 15,
+   "new_candidates": 13,
+   "rows_breakdown": "15 = current_lgbm_all + plain persistence + 13 candidates (physics features, ensembles, bagging, Mondrian/two-signal thresholds, 3 persistence variants)",
+   "winner_by_rule": "lgbm_all_phys (1.1.0)",
+   "outcome": "TIE: 1.1.0 vs 1.0.0 by mission dCost -1.8 [-7.0,+3.0], dFA -1 [-19,+16]; 80/20 dFA -8.8 [-12.8,-5.1] but dCost CI includes 0; FA at matched recall not better (82.6 vs 81.0; 442 vs 423). Audit: no leakage, NOT significant; 1.0.0 stays served, 1.1.0 kept as alternative",
+   "bias_note": "selected on the same by-mission data reported -> optimistic"
+  },
+  "source": "research/fa/select/results.json table_markdown/winner/rule; registry/forecaster_organizer/1.1.0/model_card.json audit, selection, known_limits; registry/forecaster_organizer/CURRENT = 1.0.0"
+ },
+ "tier_forecaster_v1": {
+  "value": {
+   "model": "sklearn HGB on 84 A13 features + isotonic",
+   "population": "8,293 eligible",
+   "by_mission": {
+    "auc_cal": 0.98,
+    "brier": 0.0192,
+    "persistence_auc": 0.958
+   },
+   "lesson": "as an alarm it does not beat persistence at argmax (122 vs 99 missed by event); used only to rank/WATCH, never gate"
+  },
+  "source": "registry/tier_forecaster/1.0.0/README.md; metrics.json by_event",
+  "desk_tau_0.20": {
+   "value": {
+    "recall": 0.853,
+    "false_alarms": 186,
+    "persistence": {
+     "recall": 0.82,
+     "false_alarms": 113
+    }
+   },
+   "source": "registry/tier_forecaster/1.0.0/metrics.json by_event.operating_curve_calibrated tau=0.2 (Kelvins-eligible 8,293 events, 551 critical); shown on the desk via /api/eval"
+  }
+ },
+ "live_sky": {
+  "value": {
+   "objects_screened": 28686,
+   "catalogue": 30654,
+   "window_h": 72,
+   "events_lt5km": 334820,
+   "pairs": 193319,
+   "events_lt1km": 24710,
+   "next24h_lt1km": 4402,
+   "next24h_lt1km_excl_formation": 2496,
+   "formation_pairs": 398,
+   "runtime_s": {
+    "propagate": 21.5,
+    "gpu_screen": 21.6,
+    "total": 156
+   },
+   "gpu": "Tesla PG503-216, peak 3.43 GB",
+   "validation_vs_SOCRATES": {
+    "socrates_events_in_window": 80839,
+    "recall_same_elset_lt5km": 0.9714,
+    "recall_same_elset_lt1km": 0.8804,
+    "n_same_elset": 1746,
+    "median_drange_same_elset_m": 0.3,
+    "recall_all_lt5km": 0.2883,
+    "median_dtca_s": 0.1,
+    "precision_same_elset_excl_starlink_formation": 0.9096
+   },
+   "caveat": "public TLEs have no covariance -> max Pc only; disagreement mostly element age; never used for dataset risk"
+  },
+  "source": "data/livesky/latest.json summary, validation, run_stats; research/livesky/REPORT.md"
+ },
+ "globe_population": {
+  "value": {
+   "n": 19513,
+   "counts": {
+    "payload": 5647,
+    "starlink": 11184,
+    "debris": 2673,
+    "rocket_body": 7,
+    "station": 2
+   },
+   "note": "display only, Kepler+J2"
+  },
+  "source": "game/public/population.meta.json"
+ },
+ "compute": {
+  "server": {
+   "value": "Triologay: shared 56-core / 4-GPU server",
+   "source": "registry/forecaster_bakeoff/model_card.json runtime.server; README.md 'Model search'",
+   "note": "README states: 56 CPU cores and 4 GPUs (V100-SXM2 16 GB, PG503-216 32 GB, RTX 2060 named). RAM, a second V100 and the RTX 2060 memory are NOT stated because no repo file records them"
+  },
+  "gpus": {
+   "value": [
+    "Tesla V100-SXM2-16GB",
+    "Tesla PG503-216 (32 GB)",
+    "NVIDIA GeForce RTX 2060"
+   ],
+   "source": "research/bakeoff/models/tabpfn/runlog_tabpfn_*.json gpu_name; research/livesky/REPORT.md (PG503 32 GB); data/livesky/latest.json run_stats.gpu",
+   "note": "README names only these three GPUs; the 4-GPU count comes from forecaster_bakeoff model_card runtime.server"
+  },
+  "ram_247GB": {
+   "value": null,
+   "source": "NOT FOUND in repo",
+   "note": "Unverified: no file states 247 GB RAM; removed from README"
+  },
+  "sweep_configs": {
+   "value": {
+    "total_rows": 315,
+    "by_family": {
+     "gbm-cpu": 164,
+     "tabular-misc": 72,
+     "neural": 61,
+     "gbm-gpu": 17,
+     "reference": 1
+    },
+    "distinct_model_classes": 17,
+    "best_inner_cost": "lgbm-ALL-crit-w30-0044 85.36"
+   },
+   "source": "research/fa/ens/config_rank.csv (research/sweep not present locally)",
+   "note": "~314 configs across 4 families + 1 reference"
+  },
+  "optuna": {
+   "value": "60 trials, tuned on separate by-event split seed 99, for A13 and ALL (x2), LightGBM mean of 10 seeds",
+   "source": "research/bigml/results.json methods.lgbm_A13; research/bigml/run_gbm.py NTRIALS=60"
+  },
+  "monte_carlo": {
+   "value": "10,000 paths per event (by-mission), 4,000 by-event/LOMO",
+   "source": "research/bigml/results.json methods.futures_mc"
+  },
+  "tabpfn_runtime": {
+   "value": "by-event OOF 611 s (V100), by-mission 727 s (RTX 2060), final fit 3 min 44 s (PG503)",
+   "source": "research/bakeoff/models/tabpfn/NOTES.md"
+  }
+ },
+ "decision_model_jev": {
+  "value": {
+   "provider": "TypeSafe Jev official System One API, POST https://api.typesafe.ai/v1/systemone, model jev-latest -> responds jev-1.14.0 with per-action probabilities + confidence + evidence_sufficient",
+   "chain": "typesafe-jev (official) -> openai-decisions -> jev-router (OpenRouter, k=5 vote shares) -> mock",
+   "latency": "~0.3 s (claimed only in commit 52ee7a8 message; no cached typesafe response in var/cache/decisions - all 24 cached are jev-router)",
+   "policy_prompt": "R=10; MONITOR 0, REQUEST_TRACKING 0.3, PREPARE_MANOEUVRE 1.0, unmitigated critical 10",
+   "guard": "Jev chooses only among rule-allowed actions; probabilities are decision-model probabilities, never collision probabilities",
+   "baseline": "expected-cost rule server/decisions/expected_cost.py"
+  },
+  "source": "server/decisions/typesafe.py docstring + POLICY; server/decisions/provider.py line 1 and 133-142; server/app/settings.py typesafe_url/typesafe_model; git log 52ee7a8"
+ },
+ "llm": {
+  "value": {
+   "model": "claude-sonnet-5-5",
+   "role": "explains only, with {{placeholders}}; template text always first; source 'llm' only if verifier passes",
+   "verifier": "every numeral must equal a fact-sheet value as rendered (or same value in another unit within 1 %); Pc as percent, unknown placeholder, or action contradicting the policy verdict -> reject",
+   "tests": "tests/test_verifier.py 11 tests"
+  },
+  "source": "server/app/settings.py llm_model; server/llm/verify.py docstring; server/README.md Honesty notes"
+ },
+ "backend_tests": {
+  "value": {
+   "total": 156,
+   "by_file": {
+    "test_api": 5,
+    "test_contract": 4,
+    "test_forecast": 6,
+    "test_ledger": 5,
+    "test_pc_golden": 7,
+    "test_pc_physics": 13,
+    "test_perf_honesty": 7,
+    "test_policy": 71,
+    "test_providers": 6,
+    "test_replay": 2,
+    "test_rules": 19,
+    "test_verifier": 11
+   }
+  },
+  "source": "recomputed: cd server && .venv/bin/python -m pytest --co -q -> '156 tests collected'; JUDGING.md also says 156",
+  "note": "collected, not run in this task"
+ },
+ "endpoints": {
+  "value": [
+   "GET /api/state",
+   "GET /api/scenarios",
+   "POST /api/sim/scenario",
+   "POST /api/sim/speed",
+   "POST /api/sim/pause",
+   "POST /api/sim/resume",
+   "POST /api/sim/next-cdm",
+   "GET /api/health",
+   "GET /api/events (SSE)",
+   "GET|PUT /api/policy",
+   "GET /api/approvals",
+   "POST /api/approvals/{id}",
+   "GET /api/ledger",
+   "GET /api/ledger/verify",
+   "GET /api/ledger.jsonl",
+   "POST /api/ask",
+   "GET /api/conjunctions/{key}",
+   "GET /api/conjunctions/{key}/geometry",
+   "GET /api/conjunctions/{key}/rtn",
+   "GET /api/dashboard",
+   "GET /api/eval",
+   "GET /api/eval/curves",
+   "POST /api/assess",
+   "GET /api/livesky",
+   "GET /api/futures/{key}",
+   "GET /api/models",
+   "GET /api/models/{name}/card",
+   "GET /api/predictions/{fname}"
+  ],
+  "source": "grep @router decorators in server/app/api/*.py (prefix /api per server/README.md)",
+  "count": {
+   "value": {
+    "route_handlers": 29,
+    "endpoints_policy_merged": 28
+   },
+   "source": "grep @router.(get|post|put) in server/app/api/*.py -> 29 decorators; GET|PUT /api/policy counted once -> 28"
+  }
+ },
+ "architecture": {
+  "value": "FastAPI single process: SIM clock + CDM replay -> physics Pc -> rules -> forecast -> policy gate -> decision model -> policy verdict -> human approval -> explanation; one SSE bus feeding a hash-chained SQLite ledger. SimClock 4 Hz, 1x = 3 sim-min/s, 2/4/8x",
+  "source": "server/README.md"
+ },
+ "decision_chain_files": {
+  "value": [
+   "server/decisions/policy.py (gate + AUTO/ESCALATE/BLOCK verdict)",
+   "server/decisions/expected_cost.py (cost-rule baseline)",
+   "server/decisions/provider.py (chain, opaque choices o1..oN, disk cache, 12 s budget)",
+   "server/decisions/typesafe.py",
+   "server/decisions/openai_decisions.py",
+   "server/decisions/jev.py",
+   "server/decisions/mock.py"
+  ],
+  "source": "ls server/decisions; server/README.md Modules"
+ },
+ "game": {
+  "value": {
+   "stack": "Vite + three.js",
+   "src": [
+    "main.js",
+    "director.js",
+    "net.js",
+    "store.js",
+    "orbit.js",
+    "mock.js",
+    "world/{World,earth,models,palette,population}.js",
+    "ui/{hud,panels,desk,dashboard,charts,opslog,scenarios}.js + gg/ + css"
+   ],
+   "public": [
+    "population.f32.bin (19,513 objects)",
+    "land-110m.json",
+    "textures/earth_*"
+   ]
+  },
+  "source": "ls game/src game/src/ui game/src/world game/public"
+ },
+ "scenarios": {
+  "value": [
+   {
+    "id": "ops-day",
+    "order": 1,
+    "title": "Ops day, mission 15",
+    "focus": "train:2563",
+    "cast": 33
+   },
+   {
+    "id": "late-cdm",
+    "order": 2,
+    "title": "The late CDM",
+    "focus": "train:2563",
+    "alternates": [
+     "train:5253"
+    ]
+   },
+   {
+    "id": "steady-climb",
+    "order": 3,
+    "title": "Steady climb",
+    "focus": "train:8767"
+   },
+   {
+    "id": "scary-then-nothing",
+    "order": 4,
+    "title": "Scary, then nothing",
+    "focus": "train:2427",
+    "cast": [
+     "train:2427",
+     "train:7465"
+    ]
+   },
+   {
+    "id": "rules-disagree",
+    "order": 5,
+    "title": "Rules disagree",
+    "focus": "train:8756",
+    "cast": [
+     "train:8756",
+     "train:9361"
+    ]
+   },
+   {
+    "id": "cov-unknown",
+    "order": 6,
+    "title": "Covariance unknown",
+    "focus": "train:2299",
+    "cast": [
+     "train:2299",
+     "train:2759"
+    ]
+   },
+   {
+    "id": "failure",
+    "order": 7,
+    "title": "Where we fail",
+    "focus": "train:4200",
+    "missed_critical": "train:11180"
+   },
+   {
+    "id": "blind-test",
+    "order": 8,
+    "title": "Blind test",
+    "focus": "test:891",
+    "truth_hidden": true
+   },
+   {
+    "id": "free-play",
+    "order": 9,
+    "title": "Free play",
+    "generator": "12 random eligible, seed 1729"
+   }
+  ],
+  "source": "shared/scenarios/*.json id/title/order/focus/cast",
+  "note": "ops-day cast of 33 includes train:2563 (32 others)"
+ },
+ "failure_cases": {
+  "train:2563": {
+   "value": {
+    "mission": 15,
+    "story": "SAFE at T-2.43 d (8.05 km), CRITICAL at T-0.44 d by miss 136 m (risk -4.19)",
+    "organizer_oof_p_critical_by_mission": 0.0114,
+    "tier_forecaster_oof_p_critical": 0.0053,
+    "futures_p_crit": 0.092,
+    "conformal_tau95": 0.067,
+    "in_sample_value_never_shown": 0.88
+   },
+   "source": "data/processed/events.parquet; registry/forecaster_organizer/1.0.0/oof_organizer.parquet p_critical_mission; research/bigml/results.json summary.failure_cases; server/README.md honesty notes",
+   "note": "Futures would flag it 2 d early (0.092 >= 0.067) - a partial win worth mentioning"
+  },
+  "train:9361": {
+   "value": {
+    "mission": 18,
+    "story": "critical by Pc 1.2e-4 at 3.93 km (risk -3.93)",
+    "futures_p_crit": 0.04,
+    "organizer_oof_p_critical": 0.013,
+    "pc_driven_criticals": "6 of 551"
+   },
+   "source": "research/bigml/REPORT.md failure cases; oof_organizer.parquet; events.parquet"
+  },
+  "train:2299": {
+   "value": {
+    "mission": 7,
+    "story": "default covariance -> Pc refused, tier floored ELEVATED, automation blocked",
+    "cov_unknown_cdms": "14 of 18 (pipeline) vs 13 in scenario text"
+   },
+   "source": "recomputed cdm_clean.parquet; events.parquet n_cov_unknown=14; shared/scenarios/cov-unknown.json teaches"
+  },
+  "train:4200": {
+   "value": {
+    "mission": 6,
+    "story": "ESA reports Pc 1e-5 at 57 km, physics says 1e-478; missions 6/7 hold 28.5 % of |err|>1 dex rows"
+   },
+   "source": "shared/scenarios/failure.json; doc 11 line 185"
+  },
+  "train:11180": {
+   "value": "forecaster gave <1 % at T-2 d, ended CRITICAL",
+   "source": "shared/scenarios/failure.json missed_critical/teaches"
+  },
+  "train:4973": {
+   "value": "missed by all 8 bake-off models (late OD update, miss 1.7 km -> 814 m at 0.81 d)",
+   "source": "docs/BAKEOFF.md"
+  },
+  "mission_15_LOMO": {
+   "value": {
+    "persistence_and_futures_recall": 0.685,
+    "lightgbm": 0.704
+   },
+   "source": "research/bigml/REPORT.md failure cases"
+  },
+  "mission_6": {
+   "value": "critical recall 0.50 for every method (8 criticals)",
+   "source": "research/bigml/REPORT.md"
+  }
+ },
+ "git_history": {
+  "value": [
+   {
+    "h": "e80427c",
+    "t": "11:37",
+    "s": "Research and system design for ORBITAL DODGE (Challenge 1)"
+   },
+   {
+    "h": "e9d9449",
+    "t": "12:21",
+    "s": "Add risk engine, offline pipeline, forecaster registry and live-sky screening"
+   },
+   {
+    "h": "54962a8",
+    "t": "12:33",
+    "s": "Add FastAPI backend: SSE sim loop, decision and LLM layers, hash-chained ledger"
+   },
+   {
+    "h": "a2c1734",
+    "t": "12:34",
+    "s": "Add risk-futures model, conformal alerts and optimal decision policy results"
+   },
+   {
+    "h": "69ce333",
+    "t": "12:34",
+    "s": "Add fan charts for scenario events"
+   },
+   {
+    "h": "20fe687",
+    "t": "12:42",
+    "s": "Add 3D Earth simulator and mission-console UI"
+   },
+   {
+    "h": "52ee7a8",
+    "t": "13:09",
+    "s": "Use TypeSafe's official Jev API as the primary decision model"
+   },
+   {
+    "h": "2044eb8",
+    "t": "13:16",
+    "s": "Evaluate on the organizer's official label set and population"
+   },
+   {
+    "h": "1ddfa4e",
+    "t": "14:02",
+    "s": "Serve the organizer-trained forecaster; add model search results and docs"
+   },
+   {
+    "h": "ef4b155",
+    "t": "14:05",
+    "s": "Hand-drawn dark ggplot-style charts, statistics tab and integration fixes"
+   },
+   {
+    "h": "3eefbe8",
+    "t": "14:07",
+    "s": "Keep ops.log clear of the wider chart inspector"
+   },
+   {
+    "h": "d390e01",
+    "t": "14:21",
+    "s": "Stream per-axis CDM sigmas and shade ±1σ on the RTN chart"
+   }
+  ],
+  "source": "git log --format='%h %ad %s' --date=format:'%H:%M' (all on 2026-10-31; 11 commits)",
+  "note": "12 commits on 2026-10-31, 11:37 -> 14:21 (git log), all before the README revision; the README, docs/FACTS.json, docs/evidence/ and research/organizer/recompute_table.py are committed afterwards, so the submission time is the final commit on the pushed branch"
+ },
+ "assets_for_readme": {
+  "value": {
+   "server_image": "docs/images/triologay-server.webp",
+   "screenshots": [
+    "docs/screenshots/01-hero-globe.png",
+    "03-approval-card.png",
+    "04-late-cdm-critical.png",
+    "05-live-backend-spacecraft.png",
+    "06-live-sky.png",
+    "07-dashboard.png",
+    "08-desk.png",
+    "09-scenarios.png",
+    "10-tca-approach.png",
+    "11-agent-popover.png",
+    "12-inspector-charts(-full).png",
+    "12-ops-day.png",
+    "13-stats-tab(-full).png",
+    "13-tier-flip.png",
+    "14-desk-operating-curve.png",
+    "readme/inspector.png",
+    "readme/scenarios.png",
+    "before-01/02/03 (pre-theme)"
+   ],
+   "readme_screenshots": [
+    "docs/screenshots/readme/hero.png",
+    "docs/screenshots/readme/scenarios.png",
+    "docs/screenshots/readme/inspector.png",
+    "docs/screenshots/readme/inspector-rtn.png",
+    "docs/screenshots/readme/approval.png",
+    "docs/screenshots/readme/dashboard.png",
+    "docs/screenshots/readme/stats.png",
+    "docs/screenshots/readme/stats-2.png",
+    "docs/screenshots/readme/desk.png",
+    "docs/screenshots/readme/ledger.png",
+    "docs/screenshots/readme/livesky.png"
+   ],
+   "evidence": "docs/evidence/e2e/ (summary.json, stories_report.json, ops_day_dashboard_check.json, assess_csv.json, assess_mp.json, ui/*.png, make_summary.py)"
+  },
+  "source": "ls docs/images docs/screenshots"
+ },
+ "run_locally": {
+  "value": {
+   "make": [
+    "make setup",
+    "make precompute (needs data/raw/, gitignored)",
+    "make dev (backend :8000 + game :5173)",
+    "make test (cd server && pytest -q)",
+    "make server",
+    "make game",
+    "make push-triologay"
+   ],
+   "mock_mode": "C1_MOCK_AI=1 or no decision keys -> mock decisions + template text",
+   "keys": ".env (gitignored), .env.example provided",
+   "keys_optional": [
+    "C1_TYPESAFE_API_KEY",
+    "C1_JEV_API_KEY",
+    "C1_ANTHROPIC_API_KEY",
+    "C1_OPENAI_API_KEY",
+    "C1_OPENROUTER_API_KEY"
+   ],
+   "raw_layout": [
+    "data/raw/Challenge 1 Airbus /train_data.csv",
+    "data/raw/Challenge 1 Airbus /test_data.csv",
+    "data/raw/organizer/train_event_labels.csv",
+    "data/raw/organizer/tier_rules.csv",
+    "data/raw/organizer/data_notes.csv",
+    "data/raw/organizer/challenge1_event_labels.xlsx"
+   ],
+   "precompute_runtime": "not measured on the M2; make precompute trains the v1 tier_forecaster (HGB A13), not the served organizer model (research/organizer/organizer.py; eval.log ~533 s for eval, machine not recorded)",
+   "recompute_headline": "server/.venv/bin/python research/organizer/recompute_table.py -> reproduces README §6.2 point estimates from registry/forecaster_organizer/1.0.0/oof_organizer.parquet"
+  },
+  "source": "Makefile targets; server/README.md Run/Environment; .gitignore; .env.example key names; server/riskengine/paths.py RAW_DIR; server/pipelines/run_all.py, train.py"
+ },
+ "thresholds": {
+  "value": {
+   "alert_final_model": 0.0634,
+   "alert_per_fold_thr_mission": {
+    "fold0_missions_4_5_13": 0.0787,
+    "fold1_missions_1_9_14_18_20": 0.1035,
+    "fold2_missions_3_10_15_16_23": 0.0502,
+    "fold3_missions_7_19_22_24": 0.0947,
+    "fold4_missions_2_6": 0.0907
+   },
+   "tau_watch_default": 0.2,
+   "confidence_bar_default": 0.75
+  },
+  "source": "registry/forecaster_organizer/1.0.0/model_card.json alert_threshold; oof_organizer.parquet thr_mission by fold_mission; server/decisions/policy.py DEFAULT"
+ },
+ "oof_recompute": {
+  "value": {
+   "n": 11942,
+   "critical": 834,
+   "persistence": {
+    "caught": 722,
+    "missed": 112,
+    "fa": 126,
+    "alerts": 848,
+    "cost_total": 1246,
+    "cost_per_1000": 104.3,
+    "auc": 0.969,
+    "macro_f1": 0.898
+   },
+   "served_per_fold": {
+    "caught": 791,
+    "missed": 43,
+    "fa": 439,
+    "alerts": 1230,
+    "cost_total": 869,
+    "cost_per_1000": 72.8,
+    "auc": 0.988,
+    "macro_f1": 0.893
+   },
+   "global_0.0634": {
+    "caught": 796,
+    "missed": 38,
+    "fa": 511,
+    "cost_total": 891,
+    "cost_per_1000": 74.6
+   },
+   "pooled_0.090": {
+    "caught": 786,
+    "missed": 48,
+    "fa": 397,
+    "cost_total": 877,
+    "cost_per_1000": 73.4
+   },
+   "tau_0.20": {
+    "caught": 758,
+    "missed": 76,
+    "fa": 214,
+    "recall": 0.909,
+    "cost_total": 974,
+    "cost_per_1000": 81.6
+   }
+  },
+  "source": "recomputed: server/.venv/bin/python research/organizer/recompute_table.py on registry/forecaster_organizer/1.0.0/oof_organizer.parquet"
+ },
+ "stats_tab": {
+  "value": {
+   "pooled_t_star": 0.09,
+   "cost_total": 877,
+   "cost_per_1000": 73.4,
+   "persistence_cost_total": 1246,
+   "persistence_cost_per_1000": 104.3,
+   "archive_histogram": {
+    "population": "train events with final_ttca <= 1 d",
+    "events": 9463,
+    "critical": 623
+   }
+  },
+  "source": "oof recompute; data/processed/events.parquet split=='train' & final_ttca<=1"
+ },
+ "audits": {
+  "value": {
+   "a3_shuffle_lgbm_auc_mission": [
+    0.453,
+    0.469,
+    0.506
+   ],
+   "a3_shuffle_lgbm_auc_event": [
+    0.521,
+    0.552,
+    0.522
+   ],
+   "a3_shuffle_within_mission_auc": 0.671,
+   "a6_tabpfn_shuffle_auc": [
+    0.378,
+    0.671
+   ],
+   "a6_spearman_between_shuffles": 0.014,
+   "a1_recompute_mismatches": 11,
+   "a1_recompute_missing_cols": [
+    "last_c_object_type"
+   ],
+   "a1_suspicious_feature_names": [
+    "last_relative_velocity_r",
+    "last_relative_velocity_t",
+    "last_relative_velocity_n"
+   ],
+   "a1_labels_mismatch": 0
+  },
+  "source": "research/bakeoff/audit/a1_out.json, a3_out.json, a6_out.json"
+ },
+ "e2e": {
+  "value": {
+   "mode": "mock (backend logs: ready decisions=mock llm=template)",
+   "scenarios_driven": "7 of 9 (not blind-test, free-play)",
+   "story_runner": {
+    "scenarios": 5,
+    "sse_events": 1805,
+    "sse_event_types": 15,
+    "policy_verdicts": 48,
+    "verdicts": {
+     "ESCALATE": 36,
+     "BLOCK": 7,
+     "AUTO": 5
+    },
+    "mock_decision_calls": 43,
+    "fallbacks": 0,
+    "http_errors": 0,
+    "ledger_verify_entries": 729
+   },
+   "late_cdm": {
+    "sse_events": 84,
+    "verdicts": [
+     "AUTO MONITOR",
+     "AUTO REQUEST_TRACKING",
+     "ESCALATE PREPARE_MANOEUVRE"
+    ]
+   },
+   "ops_day_dashboard_check": {
+    "tiles_matched": "5/5",
+    "verdicts": {
+     "AUTO": 28,
+     "ESCALATE": 2,
+     "BLOCK": 0
+    },
+    "decision_calls": 11,
+    "http_409_reposts": 6
+   },
+   "ui_runner": {
+    "scenario": "late-cdm",
+    "screenshots": 3,
+    "console_http_numbers": "not saved, not claimed"
+   },
+   "assess": {
+    "rows": 5,
+    "forms": [
+     "csv",
+     "multipart"
+    ]
+   }
+  },
+  "source": "docs/evidence/e2e/summary.json, stories_report.json, ops_day_dashboard_check.json (built by docs/evidence/e2e/make_summary.py from var/e2e/)"
+ },
+ "dashboard_screenshot": {
+  "value": {
+   "policy_verdicts": 25,
+   "AUTO": 23,
+   "ESCALATE": 2,
+   "BLOCK": 0,
+   "decisions_tab_model_calls": 11,
+   "derived_unflagged_auto": 14,
+   "derived_auto_after_model_call": 9,
+   "mode": "not shown on screen"
+  },
+  "source": "docs/screenshots/readme/dashboard.png; server/app/simloop.py (unflagged SAFE -> AUTO without model call; decisions_log only on model calls)"
+ },
+ "screenshot_modes": {
+  "value": {
+   "approval.png": "live (typesafe-jev jev-1.14.0, 476 ms, LLM VERIFIED)",
+   "inspector.png": "mock decisions (ops.log AGENT DEC train:2563 mock)",
+   "inspector-rtn.png": "mock decisions",
+   "ledger.png": "mock decisions (actor decisions:mock)"
+  },
+  "source": "the screenshots themselves"
+ },
+ "approval_card": {
+  "value": {
+   "confidence_field": 0.33,
+   "top_action_probability": 0.55,
+   "bar": 0.75,
+   "button_classes": {
+    "PREPARE_MANOEUVRE": "good (filled green)",
+    "REQUEST_TRACKING": "accent (outlined)",
+    "MONITOR": "neutral"
+   }
+  },
+  "source": "docs/screenshots/readme/approval.png; server/decisions/typesafe.py parse(); server/decisions/policy.py verdict(); game/src/ui/panels.js btnCls"
+ },
+ "default_covariance_scope": {
+  "value": {
+   "train_rows": 5129,
+   "train_events": 1313,
+   "share_of_train_rows": "3.2%",
+   "cov_unknown_rows_train_plus_test": 5831,
+   "all_rows": 187118
+  },
+  "source": "docs/design/11-dataset-experiments.md §C.1 (train only); data/processed/pc_rows.parquet status counts (train+test)"
+ }
+}

@@ -75,7 +75,7 @@ export class MockServer {
     this.subs = [];
     this.seq = 0;
     this.ledger = [];
-    this.policy = { tier_mode: 'BRIEF', tau_watch: 0.1, confidence_bar: 0.75, version: 'p1' };
+    this.policy = { tier_mode: 'BRIEF', tau_watch: 0.0634, confidence_bar: 0.7, version: 'p1' };
     this.speed = 1; this.paused = true; this.held = false; this.hold_reason = null;
     this.simMs = Date.parse('2026-10-31T06:00:00Z');
     this.scn = null; this.queue = []; this.approvals = new Map(); this.events = new Map();

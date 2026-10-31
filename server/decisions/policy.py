@@ -15,7 +15,7 @@ SHORT = {MONITOR: "MONITOR", TRACK: "TRACK", PREPARE: "PREPARE"}
 DEFAULT_POLICY = {
     "tier_mode": "BRIEF",
     "tau_watch": 0.20,
-    "confidence_bar": 0.75,
+    "confidence_bar": 0.70,
     "loss": {MONITOR: {"critical": 100.0, "not_critical": 0.0},
              TRACK: {"critical": 30.0, "not_critical": 1.0},
              PREPARE: {"critical": 5.0, "not_critical": 8.0}},
@@ -25,6 +25,41 @@ EDITABLE = {"tier_mode", "tau_watch", "confidence_bar", "loss", "hold_on_approva
 
 BLOCK_REASON = "Covariance is a default: not actionable (CARA App. P.7)"
 NO_PREPARE_COV = "PREPARE not offered: cannot plan on a default covariance"
+
+
+def served_policy(alert_threshold: float | None) -> dict:
+    """DEFAULT_POLICY with the desk's τ_watch set to the served forecaster's alert threshold (its evaluated operating point)."""
+    p = copy.deepcopy(DEFAULT_POLICY)
+    if alert_threshold is not None and 0.01 <= float(alert_threshold) <= 0.9:
+        p["tau_watch"] = float(alert_threshold)
+    return p
+
+
+def watch_rule(forecast: dict | None, policy: dict) -> tuple[float | None, str]:
+    """(threshold, source) the WATCH flag uses for this forecast.
+
+    The served forecaster's own alert flag governs whenever the forecast carries an alert_threshold and the desk has
+    not moved τ_watch away from it ("served"); otherwise p_critical >= τ_watch ("desk").
+    """
+    fc = forecast or {}
+    tau = float(policy.get("tau_watch", 0.20))
+    thr = fc.get("alert_threshold")
+    if thr is not None and fc.get("alert") is not None and abs(float(thr) - tau) < 1e-6:
+        return float(thr), "served"
+    return tau, "desk"
+
+
+def watch_flag(forecast: dict | None, tier: str, policy: dict) -> bool:
+    """ML can only ADD attention: WATCH is never set on a CRITICAL event and never lowers a tier."""
+    fc = forecast or {}
+    if not fc.get("valid") or fc.get("p_critical") is None or tier == "CRITICAL":
+        return False
+    if ((fc.get("baseline") or {}).get("persistence_tier")) == "CRITICAL":
+        return False
+    thr, src = watch_rule(fc, policy)
+    if src == "served":
+        return bool(fc["alert"])
+    return float(fc["p_critical"]) >= thr
 
 
 class PolicyError(ValueError):
@@ -89,8 +124,7 @@ def gate(tier: dict, pc: dict, ttca_d: float | None, forecast: dict | None, poli
     lowv = "Q-LOW-VREL" in flags or pc.get("status") == "LOW_VREL"
     mcp = "T-MCP" in flags or (ttca_d is not None and ttca_d <= 1.0)
     p = (forecast or {}).get("p_critical") if (forecast or {}).get("valid") else None
-    fcw = (forecast or {}).get("watch") if (forecast or {}).get("valid") else None
-    watch = bool(p is not None and t != "CRITICAL" and (fcw if fcw is not None else p >= policy.get("tau_watch", 0.20)))
+    watch = watch_flag(forecast, t, policy)
     any_q = cov or disagree or lowv
     reasons: list[str] = []
     rule_reasons = list(tier.get("reasons", []))
@@ -123,28 +157,90 @@ def gate(tier: dict, pc: dict, ttca_d: float | None, forecast: dict | None, poli
             if r not in reasons and not r.startswith("Pc < 1e-6 and miss > 5 km"):
                 reasons.append(r)
     if watch:
-        reasons.append(f"WATCH: chance this ends CRITICAL {p * 100:.1f}% ≥ τ_watch {policy.get('tau_watch', 0.20) * 100:.0f}%")
+        thr, src = watch_rule(forecast, policy)
+        name = "the forecaster's alert threshold" if src == "served" else "τ_watch"
+        reasons.append(f"WATCH: chance this ends CRITICAL {_pct(p)} ≥ {name} {_pct(thr)}")
     flagged = t != "SAFE" or watch or any_q
+    reason_rules = {r: rid for rid, r in zip(tier.get("rule_ids", []), rule_reasons)}
     return {"allowed": allowed, "must_escalate": bool(must), "blocked": blocked, "reasons": reasons,
+            "reason_rules": {r: reason_rules[r] for r in reasons if r in reason_rules},
             "flagged": bool(flagged), "watch": watch, "mcp_passed": bool(mcp), "critical": t == "CRITICAL"}
 
 
+# Reason ranking for `primary_reasons` (lower = more important): data quality / BLOCK > physics-vs-reported
+# disagreement > CRITICAL rule > commitment window > model uncertainty > model-vs-cost-rule disagreement > the rest.
+RANK_DATA, RANK_PHYS, RANK_CRIT, RANK_MCP, RANK_MODEL, RANK_DISAGREE, RANK_OTHER = range(7)
+RULE_RANK = {"Q-COV-DEFAULT": RANK_DATA, "Q-LOW-VREL": RANK_DATA, "Q-PHYS-DISAGREE": RANK_PHYS,
+             "R-PC-CRIT": RANK_CRIT, "R-MISS-CRIT": RANK_CRIT, "T-MCP": RANK_MCP}
+MODEL_UNSURE_PREFIXES = ("Decision model only", "Decision model declined", "Model chose a disallowed action",
+                         "Model says evidence is thin")
+CRITICAL_ALWAYS = "CRITICAL events always come to you"
+
+
+def reason_rank(reason: str, reason_rules: dict | None = None) -> int:
+    rid = (reason_rules or {}).get(reason)
+    if rid in RULE_RANK:
+        return RULE_RANK[rid]
+    if reason in (BLOCK_REASON, NO_PREPARE_COV):
+        return RANK_DATA
+    if reason == CRITICAL_ALWAYS:
+        return RANK_CRIT
+    if reason.startswith(MODEL_UNSURE_PREFIXES):
+        return RANK_MODEL
+    if reason.startswith("Model and cost rule disagree"):
+        return RANK_DISAGREE
+    return RANK_OTHER
+
+
+def primary_reasons(reasons: list[str], reason_rules: dict | None = None, n: int = 2) -> list[str]:
+    """The (at most) n most important reasons, most important first; ties keep their original order."""
+    order = sorted(range(len(reasons)), key=lambda i: (reason_rank(reasons[i], reason_rules), i))
+    return [reasons[i] for i in order[:n]]
+
+
+def chosen_p(decision: dict) -> float | None:
+    """The decision model's certainty: the probability of the action it chose (capped like `confidence` when the
+    provider flagged too few samples). Falls back to `confidence` when no per-action probabilities exist."""
+    ans = decision.get("answer")
+    p = (decision.get("probabilities") or {}).get(ans)
+    if p is None:
+        p = decision.get("confidence")
+    if p is None:
+        return None
+    cap = decision.get("confidence_cap")
+    return min(float(p), float(cap)) if cap is not None else float(p)
+
+
 def unflagged_verdict() -> dict:
-    return {"verdict": "AUTO", "action": MONITOR,
-            "reasons": ["Within policy: SAFE and not on watch — log and keep monitoring (no model call)"]}
+    r = ["Within policy: SAFE and not on watch — log and keep monitoring (no model call)"]
+    return {"verdict": "AUTO", "action": MONITOR, "reasons": r, "primary_reasons": list(r)}
+
+
+def _pct(x: float | None) -> str:
+    if x is None:
+        return "n/a"
+    v = x * 100
+    return f"{v:.1f}%" if v < 10 else f"{v:.0f}%"
 
 
 def verdict(g: dict, decision: dict, baseline: dict, policy: dict, *, mock: bool = False) -> dict:
-    """AUTO / ESCALATE / BLOCK. Checks in design order; ESCALATE collects every applicable reason."""
+    """AUTO / ESCALATE / BLOCK. Checks in design order; ESCALATE collects every applicable reason.
+
+    Certainty is ONE number: the probability of the chosen action (chosen_p) against confidence_bar. The provider's own
+    confidence field (decision["model_confidence"]) is provenance only and never gates.
+    Returns {verdict, action, reasons (all), primary_reasons (max 2, most important first)}.
+    """
     allowed = g["allowed"]
-    bar = float(policy.get("confidence_bar", 0.75))
+    bar = float(policy.get("confidence_bar", 0.70))
     ans = decision.get("answer")
-    conf = decision.get("confidence")
+    conf = chosen_p(decision)
     base_action = baseline.get("action")
     suggested = ans if ans in allowed else base_action
+    rr = g.get("reason_rules") or {}
     if g.get("blocked"):
+        reasons = [BLOCK_REASON] + [r for r in g["reasons"] if r != BLOCK_REASON]
         return {"verdict": "BLOCK", "action": suggested if suggested in allowed else TRACK,
-                "reasons": [BLOCK_REASON] + [r for r in g["reasons"] if r != BLOCK_REASON]}
+                "reasons": reasons, "primary_reasons": primary_reasons(reasons, rr)}
     reasons: list[str] = []
     if decision.get("refused"):
         reasons.append("Decision model declined")
@@ -156,7 +252,7 @@ def verdict(g: dict, decision: dict, baseline: dict, policy: dict, *, mock: bool
         if g.get("must_escalate"):
             reasons += list(g["reasons"]) or ["Rules require a human decision"]
         if conf is not None and conf < bar:
-            reasons.append(f"Not sure enough ({conf * 100:.0f}% < {bar * 100:.0f}%)")
+            reasons.append(f"Decision model only {conf * 100:.0f}% sure of {SHORT[ans]} (bar {bar * 100:.0f}%)")
         if base_action and ans != base_action and not mock:
             reasons.append(f"Model and cost rule disagree ({SHORT[ans]} vs {SHORT.get(base_action, base_action)})")
         ev = decision.get("evidence_sufficient_p")
@@ -165,8 +261,9 @@ def verdict(g: dict, decision: dict, baseline: dict, policy: dict, *, mock: bool
         if ans == PREPARE and not reasons:
             reasons.append("PREPARE is never automatic: flight dynamics needs a human go/no-go")
     if g.get("critical") and not reasons:  # defence in depth: CRITICAL is never AUTO
-        reasons.append("CRITICAL events always come to you")
+        reasons.append(CRITICAL_ALWAYS)
     if reasons:
-        return {"verdict": "ESCALATE", "action": suggested, "reasons": reasons}
-    return {"verdict": "AUTO", "action": ans,
-            "reasons": [f"Within policy: {SHORT[ans]} at {conf * 100:.0f}% (bar {bar * 100:.0f}%)"]}
+        return {"verdict": "ESCALATE", "action": suggested, "reasons": reasons,
+                "primary_reasons": primary_reasons(reasons, rr)}
+    r = [f"Within policy: {SHORT[ans]} at {conf * 100:.0f}% (bar {bar * 100:.0f}%)"]
+    return {"verdict": "AUTO", "action": ans, "reasons": r, "primary_reasons": list(r)}

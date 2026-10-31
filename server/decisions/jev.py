@@ -116,9 +116,11 @@ class JevProvider:
         ev = [bool(v["evidence_sufficient"]) for v in votes if isinstance(v.get("evidence_sufficient"), bool)]
         models = sorted({_short(v.get("model")) for v in votes})
         conf = shares[top]
+        cap = None
         if n < self.min_votes:  # too few samples answered: never present a 2-vote split as a confident choice
-            conf = min(conf, 0.5)
-        return {"choice": top, "probabilities": shares, "confidence": conf,
+            cap = 0.5
+            conf = min(conf, cap)
+        return {"choice": top, "probabilities": shares, "confidence": conf, "confidence_cap": cap,
                 "evidence_sufficient_p": (sum(ev) / len(ev)) if ev else None,
                 "probability_kind": f"vote share (n={n} of {self.k})", "routed": routed,
                 "routed_model": ",".join(models),

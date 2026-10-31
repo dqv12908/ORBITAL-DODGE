@@ -53,13 +53,32 @@ async def events(request: Request):
                              headers={"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"})
 
 
+def _follows(sim) -> bool:
+    thr = sim.served_alert_threshold()
+    return thr is not None and abs(thr - sim.policy["tau_watch"]) < 1e-6
+
+
+def _watch_pct(sim) -> str:
+    v = sim.policy["tau_watch"] * 100
+    return f"{v:.1f}%" if v < 10 else f"{v:.0f}%"
+
+
+def _watch_src(sim) -> str:
+    return (" (the served forecaster's own alert threshold)" if _follows(sim)
+            else " (desk τ_watch)")
+
+
 @router.get("/policy")
 async def get_policy(request: Request):
     sim = ctx(request).sim
     return jresp({"policy": sim.policy, "version": sim.policy_version,
                   "sentence": "The system logs and keeps monitoring on its own only when an event is SAFE or ELEVATED, "
-                              f"the decision model is at least {sim.policy['confidence_bar'] * 100:.0f}% sure and agrees "
-                              "with the cost rule. Critical events, default covariances and disagreements always come to you.",
+                              f"the decision model gives its chosen action at least {sim.policy['confidence_bar'] * 100:.0f}% "
+                              "and agrees with the cost rule. Critical events, default covariances and disagreements always "
+                              "come to you. An event goes on WATCH when the forecast's chance it ends CRITICAL is at least "
+                              f"{_watch_pct(sim)}{_watch_src(sim)}.",
+                  "watch": {"tau_watch": sim.policy["tau_watch"], "served_alert_threshold": sim.served_alert_threshold(),
+                            "follows_served_model": _follows(sim)},
                   "assumptions": "loss values are stated assumptions (analyst-hour equivalents), not measured costs"})
 
 

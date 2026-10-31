@@ -67,7 +67,7 @@ Details are in LEADERBOARD.md, under "Audit outcome".
 - **What the inputs showed:** for six days the debris conjunction sat stably at about 1.7 km. Collision probability was negligible (about 1e-18), the covariance was frozen, and the history was quiet.
 - **What changed:** at 0.8 d a new orbit determination for the debris object (sigma_r 32.7 → 53.4 m) moved the predicted miss distance to 814 m. That flips the tier to critical through the **miss < 1 km** clause, even though the risk is still about 1e-14.
 - **Model scores:** p_critical was 0.015 (lgbm_all), 0.024 (tabpfn), 0.054 (persistence) and < 0.04 for all other models.
-- **Lesson:** nothing in the ≥ 2 d data predicts this. It is a late, new measurement. Misses like this put a hard ceiling on PRIMARY (about 84%), and they are an argument for showing the *uncertainty* ("could still move by about 1 km") as well as the tier.
+- **Lesson:** nothing in the ≥ 2 d data predicts this. It is a late, new measurement. Misses like this put a hard ceiling on PRIMARY: 68 of 551 criticals are missed by all eight models, so the ceiling is about 88% (483/551), and they are an argument for showing the *uncertainty* ("could still move by about 1 km") as well as the tier.
 
 ## What we'd do next
 1. **Re-run with several seeds.** Re-run the bake-off with averages over 5 seeds, or seed-bagged models, as a pre-registered amendment, so that a 2-event gap stops deciding the winner. Consider a tabpfn + lgbm_all average.

@@ -1,0 +1,395 @@
+{
+ "steady-climb": {
+  "cast": [
+   "train:8767"
+  ],
+  "n_events": 143,
+  "next_cdm_calls": 4,
+  "types": [
+   "approval.required",
+   "cdm.received",
+   "clock.tick",
+   "decision.made",
+   "decision.requested",
+   "explanation.ready",
+   "forecast.updated",
+   "human.action",
+   "ledger.appended",
+   "log.entry",
+   "outcome.revealed",
+   "policy.gated",
+   "policy.verdict",
+   "risk.assessed",
+   "scenario.loaded"
+  ],
+  "per": {
+   "train:8767": {
+    "conj_status": 200,
+    "geom_status": 200
+   }
+  },
+  "kpis": {
+   "within_1km_24h": 0,
+   "within_5km_24h": 0,
+   "critical": 0,
+   "critical_miss_only": 0,
+   "critical_by_pc": 0,
+   "elevated": 0,
+   "watch": 0,
+   "refused": 0,
+   "awaiting": 0,
+   "awaiting_oldest_sim_min": null,
+   "decisions": {
+    "AUTO": 0,
+    "ESCALATE": 4,
+    "BLOCK": 0
+   },
+   "ai_calls": 4,
+   "fallbacks": 0,
+   "llm_verified": 0,
+   "llm_rejected": 0,
+   "scoreboard": {
+    "persistence": {
+     "TP": 1,
+     "FP": 0,
+     "FN": 0,
+     "TN": 0
+    },
+    "model": {
+     "TP": 1,
+     "FP": 0,
+     "FN": 0,
+     "TN": 0
+    }
+   }
+  },
+  "clock": {
+   "sim_time": "2026-11-04T00:24:23.490Z",
+   "speed": 8,
+   "paused": false,
+   "held": false,
+   "hold_reason": null,
+   "sim_per_real_s": 1440.0
+  }
+ },
+ "scary-then-nothing": {
+  "cast": [
+   "train:2427",
+   "train:7465"
+  ],
+  "n_events": 721,
+  "next_cdm_calls": 22,
+  "types": [
+   "approval.required",
+   "cdm.received",
+   "clock.tick",
+   "decision.made",
+   "decision.requested",
+   "explanation.ready",
+   "forecast.updated",
+   "human.action",
+   "ledger.appended",
+   "log.entry",
+   "outcome.revealed",
+   "policy.gated",
+   "policy.verdict",
+   "risk.assessed",
+   "scenario.loaded"
+  ],
+  "per": {
+   "train:2427": {
+    "conj_status": 200,
+    "geom_status": 200
+   },
+   "train:7465": {
+    "conj_status": 200,
+    "geom_status": 200
+   }
+  },
+  "kpis": {
+   "within_1km_24h": 0,
+   "within_5km_24h": 0,
+   "critical": 0,
+   "critical_miss_only": 0,
+   "critical_by_pc": 0,
+   "elevated": 0,
+   "watch": 0,
+   "refused": 0,
+   "awaiting": 0,
+   "awaiting_oldest_sim_min": null,
+   "decisions": {
+    "AUTO": 0,
+    "ESCALATE": 23,
+    "BLOCK": 0
+   },
+   "ai_calls": 23,
+   "fallbacks": 0,
+   "llm_verified": 0,
+   "llm_rejected": 0,
+   "scoreboard": {
+    "persistence": {
+     "TP": 2,
+     "FP": 0,
+     "FN": 0,
+     "TN": 0
+    },
+    "model": {
+     "TP": 2,
+     "FP": 0,
+     "FN": 0,
+     "TN": 0
+    }
+   }
+  },
+  "clock": {
+   "sim_time": "2026-11-05T14:48:23.748Z",
+   "speed": 8,
+   "paused": false,
+   "held": false,
+   "hold_reason": null,
+   "sim_per_real_s": 1440.0
+  }
+ },
+ "rules-disagree": {
+  "cast": [
+   "train:8756",
+   "train:9361"
+  ],
+  "n_events": 310,
+  "next_cdm_calls": 4,
+  "types": [
+   "approval.required",
+   "cdm.received",
+   "clock.tick",
+   "decision.made",
+   "decision.requested",
+   "explanation.ready",
+   "forecast.updated",
+   "human.action",
+   "ledger.appended",
+   "log.entry",
+   "outcome.revealed",
+   "policy.gated",
+   "policy.verdict",
+   "risk.assessed",
+   "scenario.loaded"
+  ],
+  "per": {
+   "train:8756": {
+    "conj_status": 200,
+    "geom_status": 200
+   },
+   "train:9361": {
+    "conj_status": 200,
+    "geom_status": 200
+   }
+  },
+  "kpis": {
+   "within_1km_24h": 0,
+   "within_5km_24h": 0,
+   "critical": 0,
+   "critical_miss_only": 0,
+   "critical_by_pc": 0,
+   "elevated": 0,
+   "watch": 0,
+   "refused": 0,
+   "awaiting": 0,
+   "awaiting_oldest_sim_min": null,
+   "decisions": {
+    "AUTO": 0,
+    "ESCALATE": 4,
+    "BLOCK": 0
+   },
+   "ai_calls": 4,
+   "fallbacks": 0,
+   "llm_verified": 0,
+   "llm_rejected": 0,
+   "scoreboard": {
+    "persistence": {
+     "TP": 2,
+     "FP": 0,
+     "FN": 0,
+     "TN": 0
+    },
+    "model": {
+     "TP": 1,
+     "FP": 0,
+     "FN": 1,
+     "TN": 0
+    }
+   }
+  },
+  "clock": {
+   "sim_time": "2026-11-01T12:18:19.315Z",
+   "speed": 8,
+   "paused": false,
+   "held": false,
+   "hold_reason": null,
+   "sim_per_real_s": 1440.0
+  }
+ },
+ "cov-unknown": {
+  "cast": [
+   "train:2299",
+   "train:2759"
+  ],
+  "n_events": 443,
+  "next_cdm_calls": 10,
+  "types": [
+   "approval.required",
+   "cdm.received",
+   "clock.tick",
+   "decision.made",
+   "decision.requested",
+   "explanation.ready",
+   "forecast.updated",
+   "human.action",
+   "ledger.appended",
+   "log.entry",
+   "outcome.revealed",
+   "policy.gated",
+   "policy.verdict",
+   "risk.assessed",
+   "scenario.loaded"
+  ],
+  "per": {
+   "train:2299": {
+    "conj_status": 200,
+    "geom_status": 200
+   },
+   "train:2759": {
+    "conj_status": 200,
+    "geom_status": 200
+   }
+  },
+  "kpis": {
+   "within_1km_24h": 0,
+   "within_5km_24h": 0,
+   "critical": 0,
+   "critical_miss_only": 0,
+   "critical_by_pc": 0,
+   "elevated": 0,
+   "watch": 0,
+   "refused": 0,
+   "awaiting": 0,
+   "awaiting_oldest_sim_min": null,
+   "decisions": {
+    "AUTO": 4,
+    "ESCALATE": 0,
+    "BLOCK": 7
+   },
+   "ai_calls": 7,
+   "fallbacks": 0,
+   "llm_verified": 0,
+   "llm_rejected": 0,
+   "scoreboard": {
+    "persistence": {
+     "TP": 0,
+     "FP": 0,
+     "FN": 0,
+     "TN": 2
+    },
+    "model": {
+     "TP": 0,
+     "FP": 0,
+     "FN": 0,
+     "TN": 2
+    }
+   }
+  },
+  "clock": {
+   "sim_time": "2026-11-02T07:36:28.533Z",
+   "speed": 8,
+   "paused": false,
+   "held": false,
+   "hold_reason": null,
+   "sim_per_real_s": 1440.0
+  }
+ },
+ "failure": {
+  "cast": [
+   "train:4200",
+   "train:11180"
+  ],
+  "n_events": 188,
+  "next_cdm_calls": 5,
+  "types": [
+   "approval.required",
+   "cdm.received",
+   "clock.tick",
+   "decision.made",
+   "decision.requested",
+   "explanation.ready",
+   "forecast.updated",
+   "human.action",
+   "ledger.appended",
+   "log.entry",
+   "outcome.revealed",
+   "policy.gated",
+   "policy.verdict",
+   "risk.assessed",
+   "scenario.loaded"
+  ],
+  "per": {
+   "train:4200": {
+    "conj_status": 200,
+    "geom_status": 200
+   },
+   "train:11180": {
+    "conj_status": 200,
+    "geom_status": 200
+   }
+  },
+  "kpis": {
+   "within_1km_24h": 0,
+   "within_5km_24h": 0,
+   "critical": 0,
+   "critical_miss_only": 0,
+   "critical_by_pc": 0,
+   "elevated": 0,
+   "watch": 0,
+   "refused": 0,
+   "awaiting": 0,
+   "awaiting_oldest_sim_min": null,
+   "decisions": {
+    "AUTO": 1,
+    "ESCALATE": 5,
+    "BLOCK": 0
+   },
+   "ai_calls": 5,
+   "fallbacks": 0,
+   "llm_verified": 0,
+   "llm_rejected": 0,
+   "scoreboard": {
+    "persistence": {
+     "TP": 0,
+     "FP": 0,
+     "FN": 1,
+     "TN": 1
+    },
+    "model": {
+     "TP": 0,
+     "FP": 0,
+     "FN": 1,
+     "TN": 1
+    }
+   }
+  },
+  "clock": {
+   "sim_time": "2026-11-07T06:24:22.280Z",
+   "speed": 8,
+   "paused": false,
+   "held": false,
+   "hold_reason": null,
+   "sim_per_real_s": 1440.0
+  }
+ },
+ "_verify": {
+  "ok": true,
+  "n": 729,
+  "first_bad_seq": null,
+  "head": "e74acbed665da789274f12d897252f56df83fdf32f3849d6f0348bded4d91fbd"
+ },
+ "_dashboard_status": 200,
+ "_http_errors": []
+}

@@ -237,7 +237,7 @@ export class Director {
       }
       case 'approval.required': {
         const e = ev(key);
-        const a = { ...d, event_key: key };
+        const a = { ...d, event_key: key, ledger_seq: d.ledger_seq ?? evt.ledger_seq };
         e.approval = a; S.approvals.set(d.approval_id, a);
         e.steps = { ...e.steps, You: 'on' };
         if (key !== S.focus) this.setFocus(key);

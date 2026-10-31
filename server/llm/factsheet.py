@@ -16,6 +16,7 @@ PCT_KEYS = {"p_critical", "p_critical_empirical", "decision_confidence", "eviden
 MISS_KEYS = {"miss_m"}
 KM_KEYS = {"miss_red_km", "miss_yellow_km"}
 DUR_KEYS = {"ttca"}
+WORDS_DUR_KEYS = {"ttca_words"}  # the same time to TCA, rounded for plain-language sentences ("11 hours", "2.4 days")
 HOUR_KEYS = {"mcp_h", "next_cdm_h"}
 DAY_KEYS = {"forecast_min_ttca_d"}
 SPEED_KEYS = {"rel_speed_ms"}
@@ -69,8 +70,23 @@ def fmt_ttca(d: float | None) -> str:
     return f"{d:.2f} d"
 
 
+def fmt_ttca_words(d: float | None) -> str:
+    """Time to TCA for a sentence: whole hours inside a day, one-decimal days otherwise."""
+    if d is None:
+        return "n/a"
+    if d < 0:
+        h = round(-d * 24)
+        return f"{h} hour{'s' if h != 1 else ''} after TCA"
+    if d < 1:
+        h = max(1, round(d * 24))
+        return f"{h} hour{'s' if h != 1 else ''}"
+    return f"{d:.1f} days"
+
+
 def render(facts: dict, key: str) -> str:
     v = facts.get(key)
+    if key in WORDS_DUR_KEYS:
+        return fmt_ttca_words(v)
     if key in PC_KEYS:
         return fmt_sci(v)
     if key in PCT_KEYS:
@@ -120,6 +136,7 @@ def build_facts(*, event_key: str, row: dict, cdm_index: int, n_known: int, pc: 
         "cdm_number": cdm_index + 1,
         "n_cdm_known": n_known,
         "ttca": ttca,
+        "ttca_words": ttca,
         "miss_m": f(row.get("miss_distance")),
         "rel_speed_ms": f(row.get("relative_speed")),
         "pc": None if lp is None else 10 ** lp,

@@ -111,7 +111,12 @@ export class Dashboard {
       try { this.evalData = await this.api('GET', '/eval'); } catch (e) { this.evalData = { __err: e.message, __status: e.status }; }
     }
     if (this.tab === 'ledger') {
-      try { const r = await this.api('GET', '/ledger?limit=200'); this.ledgerData = Array.isArray(r) ? r : r?.entries || r?.items || []; } catch (e) { this.ledgerData = { __err: e.message }; }
+      try {
+        // the API pages forward from `after`; show the newest 200 rows, not the first 200
+        let r = await this.api('GET', '/ledger?limit=200');
+        if (r && !Array.isArray(r) && r.seq > 200 && (r.entries?.length ?? 0) >= 200) r = await this.api('GET', `/ledger?limit=200&after=${r.seq - 200}`);
+        this.ledgerData = Array.isArray(r) ? r : r?.entries || r?.items || [];
+      } catch (e) { this.ledgerData = { __err: e.message }; }
     }
     if (!quiet) this.#render();
   }

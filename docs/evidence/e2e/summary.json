@@ -1,0 +1,97 @@
+{
+ "run_date": "2026-10-31",
+ "machine": "MacBook M2 8 GB",
+ "ports": {
+  "stories_backend": 8031,
+  "ops_backend": 8032,
+  "vite": 5191
+ },
+ "story_runner": {
+  "scenarios": [
+   "cov-unknown",
+   "failure",
+   "rules-disagree",
+   "scary-then-nothing",
+   "steady-climb"
+  ],
+  "sse_events": 1805,
+  "sse_event_types": 15,
+  "policy_verdicts": {
+   "ESCALATE": 36,
+   "AUTO": 5,
+   "BLOCK": 7
+  },
+  "decision_calls": 43,
+  "fallbacks": 0,
+  "focal_endpoint_status": [
+   200
+  ],
+  "runner_http_errors": [],
+  "ledger_verify": {
+   "ok": true,
+   "n": 729,
+   "first_bad_seq": null,
+   "head": "e74acbed665da789274f12d897252f56df83fdf32f3849d6f0348bded4d91fbd"
+  },
+  "backend_mode": "decisions=mock engine=riskengine.cdm llm=template",
+  "backend_http_status_counts": {
+   "200": 146
+  },
+  "policy_verdicts_total": 48
+ },
+ "late_cdm": {
+  "sse_events": 84,
+  "types": {
+   "scenario.loaded": 1,
+   "ledger.appended": 24,
+   "log.entry": 14,
+   "clock.tick": 22,
+   "cdm.received": 3,
+   "risk.assessed": 3,
+   "forecast.updated": 1,
+   "policy.gated": 3,
+   "policy.verdict": 3,
+   "explanation.ready": 3,
+   "decision.requested": 2,
+   "decision.made": 2,
+   "approval.required": 1,
+   "human.action": 1,
+   "outcome.revealed": 1
+  },
+  "verdicts": [
+   [
+    "AUTO",
+    "MONITOR"
+   ],
+   [
+    "AUTO",
+    "REQUEST_TRACKING"
+   ],
+   [
+    "ESCALATE",
+    "PREPARE_MANOEUVRE"
+   ]
+  ],
+  "decision_providers": {
+   "mock": 2
+  }
+ },
+ "ops_day_dashboard_check": "ops_day_dashboard_check.json",
+ "ui_runner": {
+  "runner": "var/e2e/stories/ui_stories.py (Chrome DevTools Protocol)",
+  "scenarios_run": [
+   "late-cdm"
+  ],
+  "screenshots": [
+   "late-cdm_01_start.png",
+   "late-cdm_02_approval_train_2563.png",
+   "late-cdm_03_agent_train_2563.png"
+  ],
+  "log_bytes": 0,
+  "note": "the runner's console-error and HTTP>=400 lists were printed, not saved; the log file is empty, so no console or network numbers are claimed"
+ },
+ "scenarios_not_driven": [
+  "blind-test",
+  "free-play"
+ ]
+}

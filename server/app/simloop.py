@@ -57,7 +57,7 @@ class Sim:
         self.ledger = ledger
         self.lock = asyncio.Lock()
         self.approvals = Approvals()
-        self.policy = dict(pol.DEFAULT_POLICY)
+        self.policy = self.default_policy()
         self.policy_version = pol.policy_version(self.policy)
         self.catalogue: list[dict] = []
         self.catalogue_source = ""
@@ -177,7 +177,7 @@ class Sim:
         self.outcomes = []
         self.counters = {"decisions": {"AUTO": 0, "ESCALATE": 0, "BLOCK": 0}, "ai_calls": 0, "fallbacks": 0,
                          "refusals": 0, "llm_verified": 0, "llm_rejected": 0, "degraded": 0}
-        self.policy = dict(pol.DEFAULT_POLICY, **(r.get("policy") or {}))
+        self.policy = dict(self.default_policy(), **(r.get("policy") or {}))
         self.policy_version = pol.policy_version(self.policy)
         self.sim_time = parse_ts(r["d0_sim"])
         self.paused = True
@@ -358,8 +358,11 @@ class Sim:
             annotated = [dict(r["row"], _tier=r["tier"]["tier"]) for r in ev.released]
             fc = self.engine.forecast(key, annotated, tier["tier"], self.policy["tau_watch"])
             if fc.get("valid"):
-                watch = bool(fc.get("watch")) and tier["tier"] != "CRITICAL"
+                # WATCH follows the served forecaster's own alert flag (model-card alert_threshold) unless the desk
+                # moved τ_watch; ML can only add attention (never on a CRITICAL event, never lowers a tier)
+                watch = pol.watch_flag(fc, tier["tier"], self.policy)
                 fc["watch"] = watch
+                fc["watch_threshold"], fc["watch_source"] = pol.watch_rule(fc, self.policy)
                 ev.t2_forecast = fc
                 ev.last_forecast = fc
                 put("forecast.updated", {"cdm_id": cdm_id, "model_version": fc.get("model_version"), "valid": True,
@@ -367,6 +370,7 @@ class Sim:
                                          "p_tiers": fc.get("p_tiers"), "p_critical": fc.get("p_critical"),
                                          "calib_bin": fc.get("calib_bin"), "baseline": fc.get("baseline"),
                                          "watch": watch, "rank": self._rank(key, fc),
+                                         "watch_threshold": fc.get("watch_threshold"), "watch_source": fc.get("watch_source"),
                                          "fallback": bool(fc.get("fallback")),
                                          **{k: fc[k] for k in ("alert_threshold", "cost_ratio_R", "alert") if k in fc}},
                 actor="ml")
@@ -395,7 +399,8 @@ class Sim:
             rec["verdict"] = v
             self.counters["decisions"]["AUTO"] += 1
             put("policy.verdict", {"cdm_id": cdm_id, "decision_id": None, **v}, actor="rules")
-            facts.update(verdict=v["verdict"], verdict_action=v["action"], verdict_reasons=v["reasons"])
+            facts.update(verdict=v["verdict"], verdict_action=v["action"], verdict_reasons=v["reasons"],
+                         verdict_primary_reasons=v.get("primary_reasons", []))
             tpl = self.exp.template(facts)
             put("explanation.ready", {"cdm_id": cdm_id, "source": "template", "verified": True,
                                       "headline": tpl["headline"], "text": tpl["text"]}, actor="llm")
@@ -417,6 +422,18 @@ class Sim:
             return
         task.result()
 
+    def served_alert_threshold(self) -> float | None:
+        """The served forecaster's alert threshold (model card; organizer model first), or None."""
+        for name in getattr(self.engine, "PRED_SOURCES", ()):
+            thr = ((getattr(self.engine, "pred_sources", {}) or {}).get(name) or {}).get("alert_threshold")
+            if thr is not None:
+                return float(thr)
+        return None
+
+    def default_policy(self) -> dict:
+        """DEFAULT_POLICY with the desk's τ_watch = the served forecaster's alert threshold (falls back to 0.20)."""
+        return pol.served_policy(self.served_alert_threshold())
+
     def _rank(self, key: str, fc: dict) -> int:
         p = fc.get("p_critical") or 0.0
         others = [e.last_forecast.get("p_critical") or 0.0 for k, e in self.events.items()
@@ -426,7 +443,7 @@ class Sim:
     async def _decide(self, ev, idx, at, rec, facts, g, fc, tier, put) -> None:
         key, cdm_id = ev.key, rec["cdm_id"]
         decision_id = uid(f"{key}:{idx}:decision")
-        base = expected_cost.baseline(fc, tier["tier"], g["allowed"], self.policy["loss"])
+        base = expected_cost.baseline(fc, tier["tier"], g["allowed"], self.policy["loss"], ttca_d=rec["ttca_d"])
         prepared = self.dec.prepare(facts, g["allowed"], iso(at))
         put("decision.requested", {"cdm_id": cdm_id, "decision_id": decision_id, "provider_chain": self.dec.chain_names(),
                                    "request_hash": prepared["request_hash"], "allowed": g["allowed"],
@@ -442,11 +459,12 @@ class Sim:
         agree = (d.get("answer") == base["action"]) if not d.get("refused") else None
         made = {"cdm_id": cdm_id, "decision_id": decision_id, "provider": d["provider"], "model": d.get("model"),
                 "answer": d.get("answer"), "probabilities": d.get("probabilities"), "confidence": d.get("confidence"),
-                "probability_kind": d.get("probability_kind"), "routed": d.get("routed"),
+                "model_confidence": d.get("model_confidence"), "probability_kind": d.get("probability_kind"), "routed": d.get("routed"),
                 "evidence_sufficient_p": d.get("evidence_sufficient_p"), "refused": bool(d.get("refused")),
                 "latency_ms": d.get("latency_ms"), "cached": d.get("cached", False), "request_hash": d.get("request_hash"),
                 "baseline": base, "agree": agree, "mode": self.dec.mode, "attempts": d.get("attempts", []),
-                "note": "Decision model's confidence in its choice — not a collision probability"}
+                "note": "confidence = the decision model's probability for its chosen action (not a collision "
+                        "probability); model_confidence = the provider's own confidence field"}
         put("decision.made", made, actor=f"decisions:{d['provider']}")
         rec["decision"] = made
         if d.get("refused"):
@@ -460,7 +478,7 @@ class Sim:
         self.counters["decisions"][v["verdict"]] += 1
         put("policy.verdict", {"cdm_id": cdm_id, "decision_id": decision_id, **v}, actor="rules")
         lvl = {"AUTO": "INFO", "ESCALATE": "WARN", "BLOCK": "REFUSE"}[v["verdict"]]
-        self.logline(lvl, "POLICY", f"{key} {v['verdict']} · {'; '.join(v['reasons'][:2])}"
+        self.logline(lvl, "POLICY", f"{key} {v['verdict']} · {'; '.join(v.get('primary_reasons') or v['reasons'][:2])}"
                                     + (" · awaiting analyst" if v["verdict"] != "AUTO" else ""), key, at)
         self.decisions_log.append({"event_key": key, "cdm_index": idx, "sim_time": iso(at), "verdict": v["verdict"],
                                    "action": v["action"], "provider": d["provider"], "answer": d.get("answer"),
@@ -471,11 +489,13 @@ class Sim:
             a = self.approvals.add(Approval(approval_id=uid(f"{key}:{idx}:approval"), decision_id=decision_id,
                                             event_key=key, cdm_index=idx, options=list(g["allowed"]),
                                             suggested=v["action"], verdict=v["verdict"], reasons=v["reasons"],
-                                            ttca_h=ttca_h, mcp_passed=g["mcp_passed"], created_sim=iso(at)))
+                                            ttca_h=ttca_h, mcp_passed=g["mcp_passed"], created_sim=iso(at),
+                                            primary_reasons=v.get("primary_reasons", [])))
             rec["approval_id"] = a.approval_id
             put("approval.required", {"approval_id": a.approval_id, "decision_id": decision_id, "cdm_id": cdm_id,
                                       "options": a.options, "suggested": a.suggested, "verdict": v["verdict"],
                                       "ttca_h": ttca_h, "mcp_passed": a.mcp_passed, "reasons": v["reasons"],
+                                      "primary_reasons": v.get("primary_reasons", []),
                                       "tca_sim": iso(ev.tca)}, actor="system")
             try:
                 self.ledger.approval_put(a.approval_id, self.run_id, key, a.status, dumps(a.to_dict()))
@@ -487,7 +507,8 @@ class Sim:
         facts.update(decision_provider=d["provider"], decision_answer=d.get("answer"),
                      decision_confidence=d.get("confidence"), evidence_sufficient_p=d.get("evidence_sufficient_p"),
                      baseline_action=base["action"], verdict=v["verdict"], verdict_action=v["action"],
-                     verdict_reasons=v["reasons"])
+                     verdict_reasons=v["reasons"], verdict_primary_reasons=v.get("primary_reasons", []),
+                     baseline_track_too_late=bool(base.get("track_note")))
         tpl = self.exp.template(facts)
         put("explanation.ready", {"cdm_id": cdm_id, "source": "template", "verified": True,
                                   "headline": tpl["headline"], "text": tpl["text"]}, actor="llm")
@@ -532,7 +553,7 @@ class Sim:
             def score(flag):
                 return ("TP" if flag else "FN") if crit else ("FP" if flag else "TN")
             pers_flag = forecast_was["persistence_tier"] == "CRITICAL"
-            model_flag = (forecast_was["p_critical"] or 0) >= self.policy["tau_watch"]
+            model_flag = (forecast_was["p_critical"] or 0) >= (fw.get("watch_threshold") or self.policy["tau_watch"])
             pers_v, model_v = score(pers_flag), score(model_flag)
             verdict = score(pers_flag or bool(forecast_was["watch"]))
         data = {"final": None if final is None else {"tier": final["tier"], "log10_pc": final["log10_pc"],
