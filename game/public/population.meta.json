@@ -1,0 +1,34 @@
+{
+ "source": "CelesTrak GP groups active, fengyun-1c-debris, cosmos-2251-debris, iridium-33-debris",
+ "built_utc": "2026-10-31T03:51:11.471Z",
+ "ref_epoch_utc": "2026-10-31T23:00:00.000Z",
+ "n": 19513,
+ "stride": 10,
+ "fields": [
+  "a_re",
+  "e",
+  "i",
+  "raan",
+  "argp",
+  "M0",
+  "n_rad_min",
+  "raan_dot",
+  "argp_dot",
+  "type"
+ ],
+ "types": [
+  "payload",
+  "starlink",
+  "debris",
+  "rocket_body",
+  "station"
+ ],
+ "counts": {
+  "payload": 5647,
+  "starlink": 11184,
+  "debris": 2673,
+  "rocket_body": 7,
+  "station": 2
+ },
+ "note": "Display only: Kepler + J2 secular from mean elements. Not used for risk."
+}
