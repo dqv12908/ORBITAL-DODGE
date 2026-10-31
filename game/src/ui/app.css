@@ -118,7 +118,11 @@
 .lv-REFUSE .tl-lv, .lv-REFUSE .tl-code, .lv-REFUSE .tl-msg { color: #d6bfd2; }
 
 /* the inspector sits on the right: keep the log beside it on wide screens */
-@media (min-width: 1000px) { #ui[data-open=machine] .slot-log { right: calc(var(--gutter) + 380px + 12px); } }
+/* keep ops.log clear of the inspector whenever it is visible (it is 440 px wide with the charts) */
+@media (min-width: 1000px) {
+  #ui[data-open=machine] .slot-log, #ui:has(.insp:not([hidden])) .slot-log { right: calc(var(--gutter) + min(440px, 100vw - 2 * var(--gutter)) + 12px); }
+  #ui:has(.insp:not([hidden])) .slot-log .term { max-width: calc(100vw - 440px - 3 * var(--gutter) - 12px); }
+}
 @media (max-width: 1500px) { .tb-kpi.k-ref { display: none; } }
 @media (max-width: 1300px) { .tb .tb-live { font-size: 0; } .tb-kpi.k-elev { display: none; } }
 
