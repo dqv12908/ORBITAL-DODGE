@@ -53,7 +53,7 @@ def build_input(facts: dict, sim_time: str) -> str:
     rules = f"RULES: tier {facts.get('tier')} (Pc tier {facts.get('pc_tier')}, miss tier {facts.get('miss_tier')}, mode {facts.get('tier_mode')}); " + \
         "; ".join(facts.get("reasons") or [])
     if facts.get("forecast_valid"):
-        fc = f"FORECAST: chance this ends CRITICAL {facts['p_critical'] * 100:.1f}% (calibrated statistics; persistence tier {facts.get('persistence_tier')})"
+        fc = f"FORECAST: chance this ends CRITICAL {facts['p_critical'] * 100:.1f}% (calibrated statistics; baseline tier {facts.get('persistence_tier')})"
     else:
         fc = "FORECAST: not applicable inside 2 d (model trained at T-2 d)"
     q = []

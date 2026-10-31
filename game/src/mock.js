@@ -298,7 +298,7 @@ export class MockServer {
     const ev = EVENTS[key];
     const verdict = ev.persistence === 'CRITICAL' ? 'TP' : 'FN';
     this.#emit('outcome.revealed', { final: ev.final, forecast_was: { p_critical: null, persistence_tier: ev.persistence }, verdict }, key, 'outcome');
-    this.#log(verdict === 'FN' ? 'CRIT' : 'INFO', 'OUTCOME', `${key} TCA passed · final ${ev.final.tier} miss ${fmtM(ev.final.miss_m)} · persistence at T−2 d said ${ev.persistence} → ${verdict}`, key);
+    this.#log(verdict === 'FN' ? 'CRIT' : 'INFO', 'OUTCOME', `${key} TCA passed · final ${ev.final.tier} miss ${fmtM(ev.final.miss_m)} · baseline at T−2 d said ${ev.persistence} → ${verdict}`, key);
   }
 
   #geometry(key) {

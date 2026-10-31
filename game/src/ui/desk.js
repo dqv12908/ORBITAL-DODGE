@@ -139,7 +139,7 @@ export class Desk {
     const read = this.el.querySelector('.dk-tau-read');
     if (this.curve) {
       const near = this.curve.reduce((b, pt) => (Math.abs((pt.tau ?? pt.threshold) - tau) < Math.abs((b.tau ?? b.threshold) - tau) ? pt : b));
-      const bs = this.base ? ` <span class="dk-base">(persistence ${num(this.base.recall)} / ${fa(this.base)})</span>` : '';
+      const bs = this.base ? ` <span class="dk-base">(baseline ${num(this.base.recall)} / ${fa(this.base)})</span>` : '';
       read.innerHTML = `At τ ${num(near.tau ?? near.threshold, 2)}: recall <b>${num(near.recall)}</b> · false alarms <b>${fa(near)}</b>${bs} <span class="dk-measured">measured, OOF</span>`;
       this.gg ||= new PlotCard(this.el.querySelector('.dk-gg'), { name: 'operating-curve', base: 10.5 });
       this.gg.draw('operatingCurve', [{ curve: this.curve.map((p) => ({ tau: p.tau ?? p.threshold, recall: p.recall, false_alarms: p.false_alarms ?? p.fa ?? p.n_false_alarms ?? p.false_positives })), tau, base: this.base }]);

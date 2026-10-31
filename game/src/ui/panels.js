@@ -128,7 +128,7 @@ export class AgentPanel {
       CDM: c ? `CDM ${c.n_known ?? (c.cdm_index ?? 0) + 1} · T−${(+c.ttca_d || 0).toFixed(2)} d · miss ${fmtMiss(c.miss_m)}` : 'waiting',
       Pc: r ? `Pc ${fmtPc(r.pc?.log10, r.pc)} (${r.pc?.status || '—'})` : '',
       Tier: r ? `${r.tier?.tier} by ${(r.tier?.rule_ids || []).join(', ') || '—'}` : '',
-      Forecast: e.forecast ? (e.forecast.valid === false ? 'not applicable inside 2 d' : e.forecast.p_critical != null ? `P(crit) ${fmtPct(e.forecast.p_critical)}` : `persistence ${e.forecast.baseline?.persistence_tier || '—'}`) : (c && c.ttca_d < 2 ? 'not applicable inside 2 d' : ''),
+      Forecast: e.forecast ? (e.forecast.valid === false ? 'not applicable inside 2 d' : e.forecast.p_critical != null ? `P(crit) ${fmtPct(e.forecast.p_critical)}` : `baseline ${e.forecast.baseline?.persistence_tier || '—'}`) : (c && c.ttca_d < 2 ? 'not applicable inside 2 d' : ''),
       Decision: e.decision ? `${e.decision.provider} → ${ACTION_SHORT[e.decision.answer] || e.decision.answer}` : e.decisionPending ? 'asking…' : e.verdict?.verdict === 'AUTO' ? 'AUTO · no model call' : '',
       You: e.human ? `${ACTION_SHORT[e.human.action] || e.human.action} by ${e.human.actor || 'you'}` : e.approval ? 'waiting for you' : '',
     };
@@ -145,7 +145,7 @@ export class AgentPanel {
       ${decisionBlock(e)}
       ${e.verdict ? `<div class="ap-sub">Policy verdict</div><div class="ap-verdict ${e.verdict.verdict === 'AUTO' ? 'good' : e.verdict.verdict === 'BLOCK' ? 'bad' : 'warn'}"><div class="ap-verdict-h"><b>${esc(e.verdict.verdict)} · ${esc(ACTION_SHORT[e.verdict.action] || e.verdict.action || '')}</b><span>rules in code</span></div><ul>${(e.verdict.reasons || []).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}
       ${e.explanation ? `<div class="ap-sub">Explanation <span class="chip ${e.explanation.verified ? 'good' : ''}">${esc(e.explanation.source)}${e.explanation.verified ? ' · verified' : ''}</span></div><div class="ap-say">${esc(e.explanation.text)}</div>` : ''}
-      ${e.outcome ? `<div class="ap-sub">Outcome at TCA</div><div class="ap-done"><div class="ap-done-h">Final ${esc(e.outcome.final?.tier)} · miss ${fmtMiss(e.outcome.final?.miss_m)}</div><div class="ap-done-c">${e.outcome.hidden ? 'Truth hidden (blind test event).' : e.outcome.verdict == null ? esc(e.outcome.note || 'No CDM at ≥ 2 d: nothing to score.') : `T−2 d call by persistence: ${esc(e.outcome.forecast_was?.persistence_tier || '—')} → <b>${esc(e.outcome.persistence_verdict || e.outcome.verdict)}</b>${e.outcome.model_verdict ? ` · model → <b>${esc(e.outcome.model_verdict)}</b>` : ''}`}</div></div>` : ''}
+      ${e.outcome ? `<div class="ap-sub">Outcome at TCA</div><div class="ap-done"><div class="ap-done-h">Final ${esc(e.outcome.final?.tier)} · miss ${fmtMiss(e.outcome.final?.miss_m)}</div><div class="ap-done-c">${e.outcome.hidden ? 'Truth hidden (blind test event).' : e.outcome.verdict == null ? esc(e.outcome.note || 'No CDM at ≥ 2 d: nothing to score.') : `T−2 d call by the baseline: ${esc(e.outcome.forecast_was?.persistence_tier || '—')} → <b>${esc(e.outcome.persistence_verdict || e.outcome.verdict)}</b>${e.outcome.model_verdict ? ` · model → <b>${esc(e.outcome.model_verdict)}</b>` : ''}`}</div></div>` : ''}
     </div>`;
     sc.querySelector('[data-a=open-appr]')?.addEventListener('click', () => emit('approval.open', e.approval));
     sc.querySelector('.ap-title')?.addEventListener('click', () => emit('inspect', key));
@@ -171,7 +171,7 @@ export function fcSource(f) {
   if (f.valid === false) return f.reason || 'not applicable inside 2 d: physics on the latest CDM governs';
   if (f.fallback || f.model === 'persistence-empirical') {
     const b = f.baseline;
-    return `persistence-empirical${b?.persistence_tier ? ` (last tier ${b.persistence_tier})` : ''}${f.note ? ' · ' + f.note : ''}`;
+    return `baseline (empirical)${b?.persistence_tier ? ` (last tier ${b.persistence_tier})` : ''}${f.note ? ' · ' + f.note : ''}`;
   }
   let ps = String(f.p_source || '');
   const src = String(f.model || '').split(':')[0];

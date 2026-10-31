@@ -376,7 +376,7 @@ class Sim:
                 actor="ml")
                 if not preload:
                     self.logline("WARN" if watch else "INFO", "FCST",
-                                 f"{key} chance this ends CRITICAL {fmt_pct(fc.get('p_critical'))} · persistence "
+                                 f"{key} chance this ends CRITICAL {fmt_pct(fc.get('p_critical'))} · baseline "
                                  f"{(fc.get('baseline') or {}).get('persistence_tier')}" + (" · WATCH" if watch else ""),
                                  key, at)
         rec["forecast"] = fc
@@ -569,7 +569,7 @@ class Sim:
         else:
             self.logline("CRIT" if final["tier"] == "CRITICAL" else "INFO", "OUTCOME",
                          f"{key} TCA · final {final['tier']} miss {fmt_miss(final['miss_m'])}"
-                         + (f" · T−2 d call {verdict} (persistence {pers_v}, model {model_v})" if verdict else ""), key, at)
+                         + (f" · T−2 d call {verdict} (baseline {pers_v}, model {model_v})" if verdict else ""), key, at)
 
     # ------------------------------------------------------------------ human + policy
     def decide_approval(self, approval_id: str, action: str, note: str | None, actor: str = "analyst") -> dict:

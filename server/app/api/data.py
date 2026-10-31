@@ -153,7 +153,7 @@ def insights(sim, active, win, hours) -> list[dict]:
     sb = sim.kpis()["scoreboard"]
     n = sum(sb["persistence"].values())
     if n:
-        out.append({"id": "scoreboard", "text": f"Revealed so far: persistence {sb['persistence']['TP'] + sb['persistence']['TN']}/{n} "
+        out.append({"id": "scoreboard", "text": f"Revealed so far: baseline {sb['persistence']['TP'] + sb['persistence']['TN']}/{n} "
                                                 f"correct, model {sb['model']['TP'] + sb['model']['TN']}/{n} correct at T−2 d",
                     "query": "outcome.revealed verdicts in this run"})
     return out
@@ -177,7 +177,7 @@ FAILURE_CASES = [
     {"id": "F3", "case": "Default covariance", "event": "train:2299", "scenario": "cov-unknown"},
     {"id": "F4", "case": "Brief rule over-flags (miss screen ignores covariance)", "event": "train:8756",
      "scenario": "rules-disagree"},
-    {"id": "F5", "case": "ML misses more criticals than persistence at argmax", "event": None, "scenario": None},
+    {"id": "F5", "case": "ML misses more criticals than the baseline at argmax", "event": None, "scenario": None},
     {"id": "F6", "case": "Labels are biased (Kelvins pre-filtering)", "event": None, "scenario": None},
     {"id": "F7", "case": "Far-tail Pc (Gaussian tails)", "event": None, "scenario": None},
 ]

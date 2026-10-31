@@ -163,7 +163,7 @@ export class Dashboard {
       awaiting: val(get('awaiting', 'awaiting_you'), S.approvals.size),
       score: score ? (typeof score === 'object' ? `${score.persistence_hits ?? '—'} / ${score.model_hits ?? '—'}` : score)
         : revealed.length ? `${revealed.filter((r) => r.outcome === 'TP' || r.outcome === 'TN').length} / ${revealed.length}` : '—',
-      scoreCap: score ? 'persistence / model hits (revealed today)' : revealed.length ? 'persistence hits / revealed' : 'nothing revealed yet',
+      scoreCap: score ? 'baseline / model hits (revealed today)' : revealed.length ? 'baseline hits / revealed' : 'nothing revealed yet',
       split,
     };
   }

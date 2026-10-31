@@ -17,9 +17,9 @@ Airbus problem statement, Challenge 1 ("AI-driven satellite collision avoidance"
 4. **A decision model** (TypeSafe Jev) picks among the allowed actions. An LLM explains the result, and every number it writes is checked.
 5. **A human approves.** Every step is written to a hash-chained ledger and shown in a 3D simulator.
 
-**We beat the baseline.** The baseline is tier persistence, the standard "latest tier at ≥ 2 days is the final tier" rule. We measured on the **organizer's official labels**, 11,942 usable events:
+**We beat the baseline.** The baseline is the standard rule "the tier at ≥ 2 days before the encounter is the final tier". We measured on the **organizer's official labels**, 11,942 usable events:
 
-| | Persistence | ORBITAL DODGE |
+| | Baseline | ORBITAL DODGE |
 |---|---|---|
 | Critical events caught, organizer 80/20 split (5 seeds) | 85.1 % | **93.7 %** |
 | Critical events caught, held-out missions | 86.6 % | **94.8 %** |
@@ -32,9 +32,9 @@ You can recompute the held-out-missions rows without retraining: `server/.venv/b
 **What it costs.** We raise more false alarms, on purpose: 89.4 against 24.8 per 80/20 test set. The trade is set by a cost ratio R = 10, meaning one missed critical counts as much as ten false alarms. R was derived from ESA, NASA OTPS and CARA cost evidence and fixed before we read any model scores, as [docs/COST_RATIO.md](docs/COST_RATIO.md) records (§1 says what that record can and cannot prove). Macro-F1 over the three tiers is a tie (0.895 vs 0.895).
 
 **Where it fails, and how the analyst would know** (all of [§8](#8-where-it-fails-and-how-the-analyst-knows)):
-- **43 of 834 criticals are still missed 2 days ahead** (held-out missions). Persistence misses 112.
+- **43 of 834 criticals are still missed 2 days ahead** (held-out missions). Baseline misses 112.
 - **`train:2563` (scenario *The late CDM*):** the forecast at T−2 d is 1.1 %, and the event ends CRITICAL at a 136 m miss. Physics and rules catch it on the late CDM, and the event opens an approval card that shows the low forecast, so the analyst sees the forecaster missed it.
-- **About 1 alert in 3 is false:** precision of a CRITICAL alert is 64 % (held-out missions), against 85 % for persistence.
+- **About 1 alert in 3 is false:** precision of a CRITICAL alert is 64 % (held-out missions), against 85 % for the baseline.
 - We have not shown that it is safer than an expert, and the decision model (Jev) has not been validated offline.
 
 ---
@@ -69,7 +69,7 @@ You can recompute the held-out-missions rows without retraining: `server/.venv/b
 |---|---|---|---|
 | **Problem realism (20)** | A named user (duty conjunction analyst, ESA-SDO-style LEO operator), a narrow workflow (triage every ~8 h CDM drop; go/no-go at the manoeuvre commitment point 0.5–1 d before TCA) and a stated status quo | ESA: "hundreds of alerts" per satellite per week, ~2 need follow-up with "hours of analysis". CARA: a ×8–9 rise in manoeuvres would be "unbearable". Cost ratio R = 10 derived from evidence (central 6.0, MC P90 10.3) | [§1](#1-the-user-and-the-problem), [docs/design/12-domain-research.md](docs/design/12-domain-research.md) §1.4–1.7, §5, [docs/COST_RATIO.md](docs/COST_RATIO.md) |
 | **Technical soundness (25)** | Each layer does one job. Physics computes Pc, rules compute tiers and allowed actions, statistics forecast, the decision model picks only among rule-allowed actions, and the LLM only explains (every numeral is verified). Runs end to end, including ad-hoc CDM input (`POST /api/assess`) | Pc reproduces the dataset `risk`: median error 0.059 dex, 98.97 % tier agreement, Pc ≥ 1e-4 recall 0.918 / precision 0.945. **168/168 backend tests pass.** 28 REST/SSE endpoints. Headless end-to-end runs (mock mode): 1,805 SSE events, 48 verdicts, 0 HTTP errors, ledger verify OK over 729 entries ([§11.3](#113-end-to-end-runs-against-a-real-backend-headless)) | [§3](#3-architecture-and-division-of-labour), [§4](#4-physics-pc-from-the-covariance), [`server/riskengine/`](server/riskengine/), [`server/decisions/policy.py`](server/decisions/policy.py), [`server/llm/verify.py`](server/llm/verify.py) |
-| **Honest evaluation (20)** | The baseline is stated (persistence). We use the organizer's labels, two splits (80/20 by event, held-out missions) and bootstrap CIs. The bake-off rule was written down before scoring and sha256-pinned (the order is our attestation, see §5.3). Leakage audits were run. Negative results are reported. The headline table can be recomputed from a committed file in one command | **Beats baseline:** recall 93.7 % vs 85.1 % (80/20), 94.8 % vs 86.6 % (missions). Cost −28 % / −30 %. Macro-F1 is a tie, and persistence wins the ≥ 2 d slice by construction. The false-alarm study ended in a tie | [§5](#5-machine-learning-the-full-process), [§6](#6-results-with-confidence-intervals), [`research/organizer/results.json`](research/organizer/results.json), [docs/BAKEOFF.md](docs/BAKEOFF.md), [`research/bakeoff/audit/`](research/bakeoff/audit/) |
+| **Honest evaluation (20)** | The baseline is stated: the tier of the latest message ≥ 2 d out is kept as the final tier. We use the organizer's labels, two splits (80/20 by event, held-out missions) and bootstrap CIs. The bake-off rule was written down before scoring and sha256-pinned (the order is our attestation, see §5.3). Leakage audits were run. Negative results are reported. The headline table can be recomputed from a committed file in one command | **Beats baseline:** recall 93.7 % vs 85.1 % (80/20), 94.8 % vs 86.6 % (missions). Cost −28 % / −30 %. Macro-F1 is a tie, and the baseline wins the ≥ 2 d slice by construction. The false-alarm study ended in a tie | [§5](#5-machine-learning-the-full-process), [§6](#6-results-with-confidence-intervals), [`research/organizer/results.json`](research/organizer/results.json), [docs/BAKEOFF.md](docs/BAKEOFF.md), [`research/bakeoff/audit/`](research/bakeoff/audit/) |
 | **Trust & traceability (20)** | Every tier names the rule that fired and its citation. Pc is refused on a default covariance. Forecasts for training events are always out-of-fold. Decision-model probabilities are labelled as such. Every LLM numeral is verified. Ledger is hash-chained and append-only. A human approves | CRITICAL is never AUTO. PREPARE is never automatic. In-sample forecast for `train:2563` would be 0.88; we serve the out-of-fold 0.011. Ledger verify shows `CHAIN ✓ 1,408 ENTRIES` in the demo | [§7](#7-trust-and-traceability), [`server/tests/test_perf_honesty.py`](server/tests/test_perf_honesty.py), [`server/ledger/ledger.py`](server/ledger/ledger.py), `GET /api/ledger/verify` |
 | **Where it fails** | Seven named failure cases, each with an event key, the numbers, and how the analyst sees it | Late escalation `train:2563` (forecast 1.1 %, then CRITICAL at 136 m). `train:4973` missed by all 8 bake-off models. Pc-driven criticals are 6 of 551. Default covariance (`train:2299`). Physics vs ESA disagreement (`train:4200`) | [§8](#8-where-it-fails-and-how-the-analyst-knows), scenarios "The late CDM", "Rules disagree", "Covariance unknown", "Where we fail" |
 | **Impact (10)** | Measured on held-out missions: more criticals caught 2 days ahead at a lower expected cost. The price in false alarms is stated | 791 vs 722 of 834 criticals caught. Missed per 1,000 events: 3.6 vs 9.4. False alarms per 1,000: 36.8 vs 10.6. Model wins for any R above ~4.5 | [§12](#12-impact-before-and-after-for-the-analyst) |
@@ -131,7 +131,7 @@ The organizer population splits by the time of the final CDM ([`model_card.json`
 |---|---|---|---|
 | final CDM < 1 d before TCA (`final_lt1d`) | 8,293 | 551 | Identical to the Kelvins-eligible set. This is where the forecasting problem lives |
 | final 1–2 d (`final_1to2d`) | 599 | 39 | Small, hard |
-| final ≥ 2 d (`final_ge2d`) | 3,050 | 244 | **The final CDM is the latest input**, so persistence is exact by construction (recall 1, 0 false alarms). We report this slice separately so it cannot inflate or dilute claims |
+| final ≥ 2 d (`final_ge2d`) | 3,050 | 244 | **The final CDM is the latest input**, so the baseline is exact by construction (recall 1, 0 false alarms). We report this slice separately so it cannot inflate or dilute claims |
 
 ### The 13-column question
 The brief lists 13 columns that can be used "for simplicity purposes". We tested what those 13 columns can and cannot do, and we explain each extra column we use:
@@ -242,11 +242,11 @@ We cannot reproduce ESA's covariance scaling there, so a rule (`Q-PHYS-DISAGREE`
 ## 5. Machine learning: the full process
 
 ### 5.1 The baseline we had to beat
-**Tier persistence:** the tier of the latest CDM at T−2 d or earlier is the predicted final tier. It is hard to beat:
+**The baseline:** the tier of the latest CDM at T−2 d or earlier is the predicted final tier. It is hard to beat:
 - It is exact for 92.9 % of Kelvins-eligible events ([doc 11 headline 3](docs/design/11-dataset-experiments.md)).
 - In the original Kelvins competition, only 12 of 97 teams beat the related latest-risk baseline (Uriot et al. 2022; [doc 12 §0](docs/design/12-domain-research.md)).
 
-We report persistence next to every model number.
+We report baseline next to every model number.
 
 ### 5.2 Target and splits
 - **Target:** the final tier, with an alert when P(CRITICAL) is at or above a threshold. Inputs are only CDMs with `time_to_tca ≥ 2 d`. `mission_id` is never a feature.
@@ -259,20 +259,20 @@ We report persistence next to every model number.
 We wrote the decision rule in [`research/bakeoff/PREREG.md`](research/bakeoff/PREREG.md) and pinned it with sha256 ([`PREREG.sha256`](research/bakeoff/PREREG.sha256)). It has no amendments.
 
 **What this does and does not prove.** `PREREG.md` is dated 31 Oct 2026 in its text and says it was written before any contender result was scored. It was first committed together with the results in `1ddfa4e` (14:02). The hash proves the file has not changed since that commit. **It does not prove that the file was written before scoring; that order is our attestation, not something git can show.** The only timestamps we have are local file times on the dev machine, which are weaker evidence: `PREREG.md` 12:05:43 and `PREREG.sha256` 12:05:44, then the contender result files (`research/bakeoff/results/gru.json` 12:18, `tabpfn.json` 12:22, `ebm.json` 12:26), the scoring log `research/bakeoff/logs/score_all.log` 12:34 and `leaderboard.json` 12:37. The one earlier log, `logs/refs.log` (12:04), holds only the reference models' early-stopping iteration counts, no scores.
-- **PRIMARY metric:** critical recall at persistence's own false-alarm budget (113), computed by held-out mission.
+- **PRIMARY metric:** critical recall at the baseline's own false-alarm budget (113), computed by held-out mission.
 - **Winner:** the highest PRIMARY. It is served only if one of these holds:
   - (a) the paired ΔPRIMARY CI lower bound is above 0, or
-  - (b) PRIMARY ≥ persistence − 0.01 **and** the AUC CI lower bound is above persistence's AUC.
+  - (b) PRIMARY ≥ baseline − 0.01 **and** the AUC CI lower bound is above the baseline's AUC.
 - **Contenders:**
   - entrants: risk-futures MDN, TabPFN v2, EBM and GRU;
-  - references: persistence, HGB-A13, LightGBM-A13 and LightGBM-ALL.
+  - references: baseline, HGB-A13, LightGBM-A13 and LightGBM-ALL.
 - **Population:** the Kelvins-eligible 8,293 events, 551 critical.
 
 The leaderboard is in §6.4. **lgbm_all won through gate (b).** Its paired gain CI touches zero, [+0.000, +0.041]. TabPFN was 2 events behind and is the only contender with a significant gain (gate a).
 
 **The honest reading:**
-- Every ML model clearly beats persistence on **ranking** (AUC 0.98 vs 0.96).
-- At persistence's own false-alarm budget, the gain is small: +12 of 551 criticals.
+- Every ML model clearly beats the baseline on **ranking** (AUC 0.98 vs 0.96).
+- At the baseline's own false-alarm budget, the gain is small: +12 of 551 criticals.
 - Audit seeds give PRIMARY 0.828–0.842 ([docs/BAKEOFF.md](docs/BAKEOFF.md)).
 
 ### 5.4 The big compute run on our own GPU server, Triologay
@@ -298,7 +298,7 @@ The bake-off used the Kelvins-eligible population. When the organizer published 
 - **Training:** we retrained on the organizer population.
 - **Splits:** we evaluated on both splits and broke the results down by the three sub-populations.
 - **Threshold:** chosen on OOF predictions **inside the training data** as argmin `10·FN + FP` subject to recall ≥ 0.90. For the final model, trained on all 11,942 events, the inner recall was 95.4 % and the threshold is p_critical ≥ 0.0634.
-- **Held-out results use each fold's own threshold.** Every held-out-mission number in this README (791 caught, 439 false alarms, cost 72.8) uses the threshold that fold chose inside its own training missions: 0.050 for the fold that holds mission 15, 0.079–0.103 for the others (`thr_mission` in `oof_organizer.parquet`). If you apply 0.0634 to all OOF scores instead, you get 796 caught, 511 false alarms, cost 74.6 per 1,000. That is also below persistence's 104.3, but it is not what we report.
+- **Held-out results use each fold's own threshold.** Every held-out-mission number in this README (791 caught, 439 false alarms, cost 72.8) uses the threshold that fold chose inside its own training missions: 0.050 for the fold that holds mission 15, 0.079–0.103 for the others (`thr_mission` in `oof_organizer.parquet`). If you apply 0.0634 to all OOF scores instead, you get 796 caught, 511 false alarms, cost 74.6 per 1,000. That is also below the baseline's 104.3, but it is not what we report.
 - **Serving:** the served model is `registry/forecaster_organizer/1.0.0` (`CURRENT`).
 
 **Every threshold in the system, and what it triggers:**
@@ -320,7 +320,7 @@ We tried to cut false alarms without losing recall. There were **13 new candidat
 - ensembles (mean, rank, RF / HGB members);
 - bagging;
 - Mondrian and two-signal thresholds;
-- three persistence variants.
+- three baseline variants.
 
 The selection rule was fixed in advance: the lowest by-mission cost at R = 10 with recall ≥ 0.90. If the paired cost-difference CI includes 0, the candidate is preferred only if it also has fewer false alarms and recall within 0.01.
 
@@ -335,7 +335,7 @@ These operating points are recomputed from the held-out-mission OOF predictions 
 
 | Recall | Criticals caught | False alarms | Extra false alarms per extra critical caught (vs previous row) |
 |---|---|---|---|
-| **86.6 % (persistence's recall)** | 722 | 123 (persistence: 126) | — |
+| **86.6 % (the baseline's recall)** | 722 | 123 (baseline: 126) | — |
 | 90.0 % | 751 | 179 | 1.9 |
 | 92.1 % | 768 | 269 | 5.3 |
 | **95.1 %** | 793 | 475 | **8.2** (< R = 10, worth it) |
@@ -345,7 +345,7 @@ These operating points are recomputed from the held-out-mission OOF predictions 
 The last column is derived as ΔFA / Δcaught between rows.
 
 **How to read this:**
-- At persistence's own recall, the model needs about the same number of false alarms (123 vs 126). **Our gain is that we can buy recall above persistence cheaply.**
+- At the baseline's own recall, the model needs about the same number of false alarms (123 vs 126). **Our gain is that we can buy recall above baseline cheaply.**
 - Up to about 95 %, each extra critical caught costs fewer than 10 extra false alarms. Beyond that, the price jumps to 24. With R = 10 the knee sits at about 95 %, and that is where the cost-optimal threshold lands.
 - The pre-registered recall target in [COST_RATIO.md](docs/COST_RATIO.md) was the same: 95 %, with a floor of 90 %.
 
@@ -357,7 +357,7 @@ All numbers come from [`research/organizer/results.json`](research/organizer/res
 
 ### 6.1 Organizer labels, 80/20 split by event (5 seeds, ~2,389 test events and ~159 criticals per seed)
 
-| Metric | Persistence (baseline) | **ORBITAL DODGE** (served, LightGBM ALL) | Same model, 13 brief columns only (A13) |
+| Metric | Baseline (baseline) | **ORBITAL DODGE** (served, LightGBM ALL) | Same model, 13 brief columns only (A13) |
 |---|---|---|---|
 | **Critical recall** | 85.1 % [83.0, 87.8] | **93.7 % [91.9, 95.5]** | 93.4 % [91.7, 95.1] |
 | Missed criticals per test set | 24.0 | **10.2** | 10.6 |
@@ -369,7 +369,7 @@ All numbers come from [`research/organizer/results.json`](research/organizer/res
 
 ### 6.2 Organizer labels, held-out missions (GroupKFold 5 over 19 missions; totals over all 11,942 events, 834 critical)
 
-| Metric | Persistence (baseline) | **ORBITAL DODGE** | A13 (13 columns) |
+| Metric | Baseline (baseline) | **ORBITAL DODGE** | A13 (13 columns) |
 |---|---|---|---|
 | **Critical recall** | 86.6 % [84.1, 89.0] | **94.8 % [93.2, 96.4]** | 94.6 % [93.1, 96.2] |
 | Missed criticals | 112 | **43** | 45 |
@@ -384,25 +384,25 @@ All numbers come from [`research/organizer/results.json`](research/organizer/res
 - a lower expected cost at the agreed cost ratio;
 - better ranking (AUC).
 
-These hold on both splits. **We do not beat it on macro-F1:** a tie on 80/20, and persistence is slightly ahead by mission. We also raise about 3.5× more false alarms.
+These hold on both splits. **We do not beat it on macro-F1:** a tie on 80/20, and the baseline is slightly ahead by mission. We also raise about 3.5× more false alarms.
 
-**The naive way to buy recall costs far more.** If persistence also alerts on ELEVATED (`persistence_costcut`), recall rises to 98.1 % (80/20) and 98.4 % (missions). But false alarms jump to 447.8 and 2,276, and the cost to **200.0** and **201.5** per 1,000 events, about 2.5× (80/20) to 2.8× (missions) ours.
+**The naive way to buy recall costs far more.** If the baseline also alerts on ELEVATED (`persistence_costcut`), recall rises to 98.1 % (80/20) and 98.4 % (missions). But false alarms jump to 447.8 and 2,276, and the cost to **200.0** and **201.5** per 1,000 events, about 2.5× (80/20) to 2.8× (missions) ours.
 
 **Trained on the Kelvins population instead** (`lgbm_all__train_kelvins`): 80/20 recall 93.3 %, 87.8 false alarms, cost 82.0; held-out missions 93.5 %, 405 false alarms, cost 79.1. The win does not depend on which population we trained on.
 
 ### 6.3 Sub-populations (held-out missions)
 
-| Slice (events / criticals) | Persistence recall · FA · cost | ORBITAL DODGE recall · FA · cost |
+| Slice (events / criticals) | Baseline recall · FA · cost | ORBITAL DODGE recall · FA · cost |
 |---|---|---|
 | final CDM < 1 d (8,293 / 551) | 82.0 % · 113 · 133.0 | **93.1 %** · 335 · **86.2** |
 | final CDM 1–2 d (599 / 39) | 66.7 % · 13 · 238.7 | **89.7 %** · 23 · **105.2** |
 | final CDM ≥ 2 d (3,050 / 244) | **100 % · 0 · 0.0** (exact by construction) | 99.6 % · 81 · 29.8 |
 
-On the 80/20 split the pattern is the same: 91.7 % vs 80.4 % on < 1 d and 86.8 % vs 69.8 % on 1–2 d. The forecasting gain is in the slices where forecasting is needed. On the ≥ 2 d slice persistence is exact and we lose; we say so.
+On the 80/20 split the pattern is the same: 91.7 % vs 80.4 % on < 1 d and 86.8 % vs 69.8 % on 1–2 d. The forecasting gain is in the slices where forecasting is needed. On the ≥ 2 d slice the baseline is exact and we lose; we say so.
 
 ### 6.4 Bake-off leaderboard (Kelvins-eligible 8,293 events, by held-out mission, false-alarm budget 113)
 
-| Model | PRIMARY: recall at 113 FA [95 % CI] | Caught | Δ vs persistence [paired CI] | AUC |
+| Model | PRIMARY: recall at 113 FA [95 % CI] | Caught | Δ vs baseline [paired CI] | AUC |
 |---|---|---|---|---|
 | **lgbm_all** (served family) | **0.842** [0.808, 0.876] | 464/551 | +0.022 [+0.000, +0.041] | 0.985 |
 | tabpfn | 0.838 [0.807, 0.874] | 462/551 | +0.018 [+0.002, +0.042] | 0.984 |
@@ -411,29 +411,29 @@ On the 80/20 split the pattern is the same: 91.7 % vs 80.4 % on < 1 d and 86.8 %
 | futures (MDN) | 0.831 [0.798, 0.861] | 458/551 | +0.011 [−0.007, +0.026] | 0.982 |
 | ebm | 0.831 [0.795, 0.868] | 458/551 | +0.011 [−0.019, +0.038] | 0.980 |
 | hgb_a13 | 0.824 [0.786, 0.856] | 454/551 | +0.004 [−0.027, +0.025] | 0.983 |
-| persistence | 0.820 [0.789, 0.852] | 452/551 | — | 0.958 |
+| baseline | 0.820 [0.789, 0.852] | 452/551 | — | 0.958 |
 
 Source: [docs/BAKEOFF.md](docs/BAKEOFF.md), [`research/bakeoff/leaderboard.json`](research/bakeoff/leaderboard.json). ECE after isotonic calibration for the winner is 0.005.
 
 ### 6.5 Risk futures, conformal alerts, decision policy (Kelvins-eligible, by held-out mission)
 
-| Risk futures vs others, at persistence's recall of 0.820 | AUC | Brier | False alarms |
+| Risk futures vs others, at the baseline's recall of 0.820 | AUC | Brier | False alarms |
 |---|---|---|---|
-| Persistence | 0.958 | 0.0223 | 113 |
+| Baseline | 0.958 | 0.0223 | 113 |
 | Risk futures (10,000 MC paths per event) | 0.982 | 0.0187 | 100 |
 | LightGBM ALL, Optuna-tuned | 0.986 | 0.0174 | 94 |
 | Average of futures + LightGBM A13 | — | — | **91** |
 
-The futures model beats persistence but not tuned LightGBM, and the CIs overlap. Its value is the **fan chart** of how an event can still evolve, plus the simulator used by the policy.
+The futures model beats the baseline but not tuned LightGBM, and the CIs overlap. Its value is the **fan chart** of how an event can still evolve, plus the simulator used by the policy.
 
 | Conformal alert (futures score, calibrated on other missions) | Realised critical recall | False alarms |
 |---|---|---|
 | Target 95 % | **94.9 %** [92.5, 96.7] | 613 |
 | Target 90 % | 90.7 % | 257 |
-| Persistence score as the conformal score, target 95 % (reference) | 92.6 % | 1,323 |
+| Baseline score as the conformal score, target 95 % (reference) | 92.6 % | 1,323 |
 | LightGBM A13 at target 95 % | 95.5 % | 552 |
 
-The persistence row is not the persistence alert used elsewhere (82.0 %, 113 false alarms). Here the in-fold empirical P(critical | latest tier) is used as the conformal score. That score has only three levels, and the cut-off for 95 % falls below the ELEVATED level, so it alerts on many ELEVATED events too (1,833 alerts; `registry/conformal/metrics.json`, `persistence|target_recall_0.95|plain`).
+The baseline row is not the baseline alert used elsewhere (82.0 %, 113 false alarms). Here the in-fold empirical P(critical | latest tier) is used as the conformal score. That score has only three levels, and the cut-off for 95 % falls below the ELEVATED level, so it alerts on many ELEVATED events too (1,833 alerts; `registry/conformal/metrics.json`, `persistence|target_recall_0.95|plain`).
 
 The coverage is **pooled, not per mission**: mission 15 falls below target for every score. A per-tier (Mondrian) variant flagged about 7,000 events and is recorded as a negative result.
 
@@ -495,7 +495,7 @@ The judges ask: *"Where does this fail, and how would your user know?"* Here is 
 | 4 | **Default covariance**: `train:2299` (mission 7, scenario *Covariance unknown*) | 14 of 18 CDMs carry σ = 63,781,363 m | The state is not usable for risk assessment (CARA App. P.7) | Pc shows "unknown". The tier is floored at ELEVATED, verdict **BLOCK** with the reason quoted, and PREPARE is not offered. The dashboard "refused" tile counts it | A fresh orbit determination; the system waits for it rather than guessing |
 | 5 | **Physics vs ESA disagree**: `train:4200` (mission 6, scenario *Where we fail*) | ESA reports Pc 1e-5 at a 57 km miss; our physics gives 1e-478 | ESA appears to apply a covariance scaling we cannot reproduce. Missions 6 and 7 hold 28.5 % of the rows with > 1 dex error | `Q-PHYS-DISAGREE` fires: the tier comes from the **higher** value and the event escalates. The inspector plots both series ("physics" and "ESA reported") | The operator's covariance-realism parameters |
 | 6 | **Forecaster false negative**: `train:11180` (scenario *Where we fail*) | Forecast under 1 % at T−2 d; ended CRITICAL | Same family as #1 | Same as #1. The scenario exists to show it | Same as #1 |
-| 7 | **Hard missions** | Leave-one-mission-out recall on mission 15: 0.685 (persistence and futures), 0.704 (LightGBM). Mission 6: 0.50 for every method (8 criticals) | Satellite-specific behaviour that other missions do not teach | Per-mission performance is in [REPORT.md](research/bigml/REPORT.md). We would show it per operator before deployment | Per-operator calibration once that operator's labelled history exists |
+| 7 | **Hard missions** | Leave-one-mission-out recall on mission 15: 0.685 (baseline and futures), 0.704 (LightGBM). Mission 6: 0.50 for every method (8 criticals) | Satellite-specific behaviour that other missions do not teach | Per-mission performance is in [REPORT.md](research/bigml/REPORT.md). We would show it per operator before deployment | Per-operator calibration once that operator's labelled history exists |
 
 Other limits we state openly:
 - **Macro-F1 is not improved** (§6).
@@ -561,10 +561,10 @@ The SIM clock replays the historical CDMs at their real cadence, so the analyst 
 
 ![Statistics tab: ROC, PR, reliability, cost curve](docs/screenshots/readme/stats.png)
 *The Statistics tab, computed from the served model's out-of-fold predictions:*
-- *ROC with AUC 0.988 and the persistence operating point marked;*
+- *ROC with AUC 0.988 and the baseline operating point marked;*
 - *precision–recall, AP 0.902;*
 - *reliability: Brier 0.0157, ECE 0.0028;*
-- *expected cost vs threshold at R = 10: the tab's optimum t\* = 0.090 gives a cost of 877 against **1,246 for persistence**. These are totals of 10 × missed + false alarms over all 11,942 events (73.4 and 104.3 per 1,000 events). The tab uses one pooled threshold over all out-of-fold scores (48 missed, 397 false alarms). The served numbers use each fold's own threshold chosen inside its training missions (§5.5), which gives 869 (72.8 per 1,000). That is slightly lower than the pooled "optimum": the pooled curve summarises all scores under one cut-off and is not the rule we serve. Both are reproduced by `research/organizer/recompute_table.py`.*
+- *expected cost vs threshold at R = 10: the tab's optimum t\* = 0.090 gives a cost of 877 against **1,246 for the baseline**. These are totals of 10 × missed + false alarms over all 11,942 events (73.4 and 104.3 per 1,000 events). The tab uses one pooled threshold over all out-of-fold scores (48 missed, 397 false alarms). The served numbers use each fold's own threshold chosen inside its training missions (§5.5), which gives 869 (72.8 per 1,000). That is slightly lower than the pooled "optimum": the pooled curve summarises all scores under one cut-off and is not the rule we serve. Both are reproduced by `research/organizer/recompute_table.py`.*
 
 ![Statistics tab, distributions](docs/screenshots/readme/stats-2.png)
 *Further down: the reliability histogram, the density of P(critical) for each true tier (how well the classes separate), and the archive miss-distance histogram (training events whose final CDM is ≤ 1 d before TCA: 9,463 events, 623 critical) with the 1 km and 5 km lines. Live events with TCA in the next 24 h are overlaid when present; in this screenshot there are none.*
@@ -572,7 +572,7 @@ The SIM clock replays the historical CDMs at their real cadence, so the analyst 
 ![Analyst desk](docs/screenshots/readme/desk.png)
 *The Analyst desk holds the operator's policy in plain language:*
 - *the BRIEF / CARA_PC tier-mode switch;*
-- *the watch threshold (this screenshot predates the change: the desk now defaults τ to the served model's 0.0634 alert threshold; it showed 0.20), labelled **MEASURED OOF**. Its figures come from the **v1 tier forecaster** (HGB on the 13 brief columns, by-event OOF on the Kelvins-eligible 8,293 events, 551 critical; `registry/tier_forecaster/1.0.0/metrics.json` → `by_event.operating_curve_calibrated`, served by `/api/eval`), not from the served organizer model: recall 0.853 with 186 false alarms, against persistence's 0.820 with 113. On the served model's held-out-mission OOF (organizer population, 834 critical), τ = 0.20 gives recall 0.909 with 214 false alarms (`recompute_table.py`);*
+- *the watch threshold (this screenshot predates the change: the desk now defaults τ to the served model's 0.0634 alert threshold; it showed 0.20), labelled **MEASURED OOF**. Its figures come from the **v1 tier forecaster** (HGB on the 13 brief columns, by-event OOF on the Kelvins-eligible 8,293 events, 551 critical; `registry/tier_forecaster/1.0.0/metrics.json` → `by_event.operating_curve_calibrated`, served by `/api/eval`), not from the served organizer model: recall 0.853 with 186 false alarms, against the baseline's 0.820 with 113. On the served model's held-out-mission OOF (organizer population, 834 critical), τ = 0.20 gives recall 0.909 with 214 false alarms (`recompute_table.py`);*
 - *the full operating curve.*
 
 *Policy changes are versioned and written to the ledger. The threshold table in §5.5 lists how τ_watch relates to the alert thresholds.*
@@ -665,7 +665,7 @@ make dev          # backend :8000 + Vite :5173 → open http://localhost:5173
 **Check the headline table in one command, without the dataset and without retraining.** It needs only the committed out-of-fold file [`registry/forecaster_organizer/1.0.0/oof_organizer.parquet`](registry/forecaster_organizer/1.0.0/oof_organizer.parquet):
 ```bash
 server/.venv/bin/python research/organizer/recompute_table.py
-# persistence (tier at T-2 d)                 722 caught, 112 missed, 126 FA, cost 1246 = 104.3 per 1,000, AUC 0.969, macro-F1 0.898
+# baseline (tier at T-2 d)                 722 caught, 112 missed, 126 FA, cost 1246 = 104.3 per 1,000, AUC 0.969, macro-F1 0.898
 # ORBITAL DODGE served (per-fold thresholds)  791 caught,  43 missed, 439 FA, cost  869 =  72.8 per 1,000, AUC 0.988, macro-F1 0.893
 # plus the global-0.0634, pooled-0.090 and watch-0.20 variants, and each fold's threshold
 ```
@@ -695,7 +695,7 @@ These are the §6.2 point estimates. The bootstrap CIs come from [`research/orga
 
 **Measured** on held-out missions (11,942 organizer events). Per-1,000 and per-100 values are derived by dividing the totals in §6.2:
 
-| For the analyst | Today (persistence at T−2 d) | With ORBITAL DODGE | Change |
+| For the analyst | Today (baseline at T−2 d) | With ORBITAL DODGE | Change |
 |---|---|---|---|
 | Criticals flagged 2 days ahead | 722 of 834 (86.6 %) | **791 of 834 (94.8 %)** | +69 caught early |
 | Criticals discovered late, per 1,000 events | 9.4 | **3.6** | −62 % |
@@ -798,7 +798,7 @@ Makefile                setup · precompute · test · dev · server · game
 - **Historical data.** The dataset is ESA's 2015–2019 archive, re-staged on a SIM clock. We have not run the system on a live operator feed.
 - **Hidden test labels.** The test set is unscored here. All accuracy claims are on training events, out-of-fold, by event and by held-out mission.
 - **The brief's tier definition.** "Critical" is mostly a miss-distance tier: 549 of 551 eligible criticals. CARA warns against miss-only screening (Vol 2 App. M.2). We follow the brief by default and expose CARA_PC mode as a switch.
-- **More false alarms.** The false-alarm rate is higher than persistence (36.8 vs 10.6 per 1,000 events). This is deliberate at R = 10. On the desk the operator can edit the loss table, the watch threshold and the confidence bar, and every change is versioned in the ledger. The CRITICAL alert threshold itself is re-derived from R offline.
+- **More false alarms.** The false-alarm rate is higher than the baseline (36.8 vs 10.6 per 1,000 events). This is deliberate at R = 10. On the desk the operator can edit the loss table, the watch threshold and the confidence bar, and every change is versioned in the ledger. The CRITICAL alert threshold itself is re-derived from R offline.
 - **The Jev decision model is not offline-validated.** It is a second opinion beside a transparent cost rule.
 - **The end-to-end runs used mock decisions and template text** (§11.3). Live Jev calls and the LLM verifier are shown in the approval screenshot and covered by unit tests, not by a recorded live end-to-end run.
 - **Reconstructed geometry.** The 3D orbits of the dataset events are reconstructions, and the live-sky Pc is a worst-case bound without covariance.

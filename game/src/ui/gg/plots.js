@@ -234,15 +234,15 @@ export function rocPlot(c, o = {}) {
   const pe = c.persistence;
   return figure({
     ...o, title: 'ROC curve', subtitle: `AUC ${c.auc.toFixed(3)} · n = ${fmtN(c.n)}, ${fmtN(c.n_critical)} critical`, cap: srcCap(c),
-    legend: [{ title: 'Predictor', items: [{ label: 'model P(critical)', glyph: 'line', color: GG.accent }, { label: 'persistence', glyph: 'point', color: PERS }] }],
+    legend: [{ title: 'Predictor', items: [{ label: 'model P(critical)', glyph: 'line', color: GG.accent }, { label: 'baseline', glyph: 'point', color: PERS }] }],
     rows: [{
       xs: unit(), ys: unit(), xTitle: 'False positive rate', yTitle: 'True positive rate', xFmt: f2d, yFmt: f2d, h: (W) => W * 0.7,
       draw: (P) => {
         P.seg(0, 0, 1, 1, { color: GG.ref, width: P.s.ref, dash: true });
         P.text(0.72, 0.72, 'chance', { color: GG.dim, rotate: 0, dx: 4, dy: 4, base: 'top' });
         P.step(c.roc.map((r) => [r.fpr, r.tpr]), { color: GG.accent, width: P.s.line });
-        P.points([{ x: pe.fpr, y: pe.tpr, tip: `persistence: FPR ${pe.fpr.toFixed(3)}, TPR ${pe.tpr.toFixed(3)}` }], { color: PERS, r: P.s.r * 1.3, ring: '#0a1019' });
-        P.text(pe.fpr, pe.tpr, 'persistence', { color: PERS, dx: 7, dy: 5, base: 'top' });
+        P.points([{ x: pe.fpr, y: pe.tpr, tip: `baseline: FPR ${pe.fpr.toFixed(3)}, TPR ${pe.tpr.toFixed(3)}` }], { color: PERS, r: P.s.r * 1.3, ring: '#0a1019' });
+        P.text(pe.fpr, pe.tpr, 'baseline', { color: PERS, dx: 7, dy: 5, base: 'top' });
       },
     }],
   });
@@ -252,14 +252,14 @@ export function prPlot(c, o = {}) {
   const pe = c.persistence;
   return figure({
     ...o, title: 'Precision–recall', subtitle: `AP ${c.ap.toFixed(3)} · base rate ${(100 * c.base_rate).toFixed(1)} %`, cap: srcCap(c),
-    legend: [{ title: 'Predictor', items: [{ label: 'model P(critical)', glyph: 'line', color: GG.accent }, { label: 'persistence', glyph: 'point', color: PERS }] }, { title: 'Reference', items: [{ label: 'base rate', glyph: 'dashed', color: GG.ref }] }],
+    legend: [{ title: 'Predictor', items: [{ label: 'model P(critical)', glyph: 'line', color: GG.accent }, { label: 'baseline', glyph: 'point', color: PERS }] }, { title: 'Reference', items: [{ label: 'base rate', glyph: 'dashed', color: GG.ref }] }],
     rows: [{
       xs: unit(), ys: unit(), xTitle: 'Recall', yTitle: 'Precision', xFmt: f2d, yFmt: f2d, h: (W) => W * 0.7,
       draw: (P) => {
         P.hline(c.base_rate, { label: `base rate ${c.base_rate.toFixed(3)}`, side: 'left' });
         P.line(c.pr.map((r) => [r.recall, r.precision]), { color: GG.accent, width: P.s.line });
-        P.points([{ x: pe.recall, y: pe.precision, tip: `persistence: recall ${pe.recall.toFixed(3)}, precision ${pe.precision.toFixed(3)}` }], { color: PERS, r: P.s.r * 1.3, ring: '#0a1019' });
-        P.text(pe.recall, pe.precision, 'persistence', { color: PERS, dx: -7, dy: 5, anchor: 'end', base: 'top' });
+        P.points([{ x: pe.recall, y: pe.precision, tip: `baseline: recall ${pe.recall.toFixed(3)}, precision ${pe.precision.toFixed(3)}` }], { color: PERS, r: P.s.r * 1.3, ring: '#0a1019' });
+        P.text(pe.recall, pe.precision, 'baseline', { color: PERS, dx: -7, dy: 5, anchor: 'end', base: 'top' });
       },
     }],
   });
@@ -302,16 +302,16 @@ export function costPlot(c, o = {}) {
   const fx = cc.floor_max_threshold ? Math.log10(cc.floor_max_threshold) : null;
   return figure({
     ...o, title: `Expected cost vs threshold · R = ${cc.R}`, cap: [ch?.source ? `t*: ${ch.source}` : `t*: lowest cost with recall ≥ ${Math.round(cc.recall_floor * 100)} %`, srcCap(c)],
-    subtitle: ch ? `t* ${ch.threshold.toFixed(3)}: cost ${fmtN(ch.cost)} (${ch.missed} missed, ${fmtN(ch.false_alarms)} false alarms) · persistence ${fmtN(pe.cost)}` : '',
+    subtitle: ch ? `t* ${ch.threshold.toFixed(3)}: cost ${fmtN(ch.cost)} (${ch.missed} missed, ${fmtN(ch.false_alarms)} false alarms) · baseline ${fmtN(pe.cost)}` : '',
     legend: [
-      { title: 'Policy', items: [{ label: 'model, alert if P ≥ t', glyph: 'line', color: GG.accent }, { label: 'persistence', glyph: 'dashed', color: PERS }] },
+      { title: 'Policy', items: [{ label: 'model, alert if P ≥ t', glyph: 'line', color: GG.accent }, { label: 'baseline', glyph: 'dashed', color: PERS }] },
       { title: 'Constraint', items: [{ label: `recall ≥ ${Math.round(cc.recall_floor * 100)} %`, glyph: 'ribbon', color: GG.good, opacity: 0.2 }] },
     ],
     rows: [{
       xs: cscale(-3, 0, { step: 1, expand: 0.03 }), ys, xTitle: 'Alert threshold t on P(critical), log scale', xFmt: pow10, yTitle: `${cc.R}·missed + false alarms`, yFmt: (v) => Math.round(v).toLocaleString('en-US'), h: (W) => W * 0.6,
       draw: (P) => {
         if (fx != null) P.band(P.xs.domain[0], fx, { fill: GG.good, opacity: 0.07 });
-        P.hline(pe.cost, { color: PERS, label: `persistence ${fmtN(pe.cost)}`, opacity: 0.8, side: 'left' });
+        P.hline(pe.cost, { color: PERS, label: `baseline ${fmtN(pe.cost)}`, opacity: 0.8, side: 'left' });
         P.step(pts, { color: GG.accent, width: P.s.line });
         if (ch) {
           P.vline(Math.log10(ch.threshold), { color: GG.text, label: `t* = ${ch.threshold.toFixed(3)}`, labelColor: GG.text });
@@ -377,7 +377,7 @@ export function operatingCurve(d, o = {}) {
     return {
       strip, xs, ys: cscale(Math.min(...ys), Math.max(...ys), { n: 3 }), xLabels: last, xTitle: 'Watch threshold τ on P(critical)', xFmt: f2d, yTitle: title, yFmt: fmt, h: (W) => W * 0.28,
       draw: (P) => {
-        if (fin(base)) P.hline(base, { color: PERS, opacity: 0.8, label: 'persistence', side: 'left' });
+        if (fin(base)) P.hline(base, { color: PERS, opacity: 0.8, label: 'baseline', side: 'left' });
         if (fin(d.tau)) P.vline(+d.tau, { color: GG.warn, dash: false, opacity: 0.9 });
         P.line(vals, { color: GG.accent, width: P.s.line * 0.9 });
         P.points(vals.map((v) => ({ x: v[0], y: v[1], tip: `τ ${v[0].toFixed(2)}: ${title.toLowerCase()} ${fmt ? fmt(v[1]) : v[1]}` })), { color: GG.accent, r: P.s.r * 0.8 });
@@ -386,7 +386,7 @@ export function operatingCurve(d, o = {}) {
   };
   return figure({
     ...o, title: 'Operating curve', subtitle: fin(d.tau) ? `your τ = ${(+d.tau).toFixed(2)}` : '', cap: 'measured out-of-fold (GET /api/eval)',
-    legend: [{ title: 'Policy', items: [{ label: 'model', glyph: 'pointline', color: GG.accent }, ...(d.base ? [{ label: 'persistence', glyph: 'dashed', color: PERS }] : []), { label: 'your τ', glyph: 'line', color: GG.warn }] }],
+    legend: [{ title: 'Policy', items: [{ label: 'model', glyph: 'pointline', color: GG.accent }, ...(d.base ? [{ label: 'baseline', glyph: 'dashed', color: PERS }] : []), { label: 'your τ', glyph: 'line', color: GG.warn }] }],
     rows: [row('r', 'Recall of final critical', 'Recall', d.base?.recall, false, f2d), row('fa', 'False alarms', 'Events', d.base?.false_alarms, true, (v) => Math.round(v).toLocaleString('en-US'))],
   });
 }
