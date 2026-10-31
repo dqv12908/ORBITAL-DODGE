@@ -1,0 +1,24 @@
+{
+ "id": "cov-unknown",
+ "title": "Covariance unknown",
+ "tag": "REFUSAL",
+ "teaches": "13 CDMs carry a default covariance (10 Earth radii): the system refuses to compute a Pc, floors the tier at ELEVATED and blocks automation until a real covariance arrives.",
+ "order": 6,
+ "d0_sim": "2026-10-31T06:00:00Z",
+ "seed": 1729,
+ "cast": [
+  {
+   "event_key": "train:2299",
+   "role": "focal",
+   "tca_sim": "2026-11-02T06:00:00Z"
+  },
+  {
+   "event_key": "train:2759",
+   "role": "contrast",
+   "tca_sim": "2026-11-01T18:00:00Z"
+  }
+ ],
+ "preload_until_sim": "2026-10-31T06:00:00Z",
+ "window_h": 24,
+ "focus": "train:2299"
+}

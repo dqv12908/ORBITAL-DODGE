@@ -1,0 +1,182 @@
+{
+ "id": "ops-day",
+ "title": "Ops day, mission 15",
+ "tag": "TRIAGE",
+ "teaches": "A 24 h duty shift: ~33 live conjunctions for one satellite, a CDM drop every ~8 h per event. Rank the queue, watch the 24 h danger window, approve or reject suggested actions.",
+ "order": 1,
+ "d0_sim": "2026-10-31T06:00:00Z",
+ "seed": 1729,
+ "cast": [
+  {
+   "event_key": "train:11919",
+   "role": "routine",
+   "tca_sim": "2026-10-31T11:03:02Z"
+  },
+  {
+   "event_key": "train:12927",
+   "role": "elevated",
+   "tca_sim": "2026-10-31T12:44:41Z"
+  },
+  {
+   "event_key": "train:11080",
+   "role": "elevated",
+   "tca_sim": "2026-10-31T14:23:54Z"
+  },
+  {
+   "event_key": "train:3704",
+   "role": "routine",
+   "tca_sim": "2026-10-31T16:47:17Z"
+  },
+  {
+   "event_key": "train:1045",
+   "role": "elevated",
+   "tca_sim": "2026-10-31T18:01:27Z"
+  },
+  {
+   "event_key": "train:760",
+   "role": "elevated",
+   "tca_sim": "2026-10-31T19:36:06Z"
+  },
+  {
+   "event_key": "train:2563",
+   "role": "story",
+   "tca_sim": "2026-10-31T20:30:00Z"
+  },
+  {
+   "event_key": "train:11528",
+   "role": "routine",
+   "tca_sim": "2026-10-31T21:52:53Z"
+  },
+  {
+   "event_key": "train:5492",
+   "role": "elevated",
+   "tca_sim": "2026-10-31T22:02:55Z"
+  },
+  {
+   "event_key": "train:2742",
+   "role": "elevated",
+   "tca_sim": "2026-10-31T22:26:29Z"
+  },
+  {
+   "event_key": "train:8767",
+   "role": "story",
+   "tca_sim": "2026-11-01T00:00:00Z"
+  },
+  {
+   "event_key": "train:2108",
+   "role": "elevated",
+   "tca_sim": "2026-11-01T01:15:08Z"
+  },
+  {
+   "event_key": "train:6988",
+   "role": "elevated",
+   "tca_sim": "2026-11-01T02:43:35Z"
+  },
+  {
+   "event_key": "train:9287",
+   "role": "routine",
+   "tca_sim": "2026-11-01T03:38:02Z"
+  },
+  {
+   "event_key": "train:9743",
+   "role": "routine",
+   "tca_sim": "2026-11-01T03:39:09Z"
+  },
+  {
+   "event_key": "train:391",
+   "role": "routine",
+   "tca_sim": "2026-11-01T04:59:24Z"
+  },
+  {
+   "event_key": "train:10729",
+   "role": "routine",
+   "tca_sim": "2026-11-01T06:41:14Z"
+  },
+  {
+   "event_key": "train:1955",
+   "role": "routine",
+   "tca_sim": "2026-11-01T07:21:19Z"
+  },
+  {
+   "event_key": "train:11816",
+   "role": "routine",
+   "tca_sim": "2026-11-01T08:10:21Z"
+  },
+  {
+   "event_key": "train:3086",
+   "role": "routine",
+   "tca_sim": "2026-11-01T11:05:03Z"
+  },
+  {
+   "event_key": "train:4430",
+   "role": "routine",
+   "tca_sim": "2026-11-01T17:47:42Z"
+  },
+  {
+   "event_key": "train:2115",
+   "role": "story",
+   "tca_sim": "2026-11-01T20:24:00Z"
+  },
+  {
+   "event_key": "train:2765",
+   "role": "routine",
+   "tca_sim": "2026-11-01T22:03:23Z"
+  },
+  {
+   "event_key": "train:2684",
+   "role": "routine",
+   "tca_sim": "2026-11-02T01:16:30Z"
+  },
+  {
+   "event_key": "train:8812",
+   "role": "routine",
+   "tca_sim": "2026-11-02T03:24:27Z"
+  },
+  {
+   "event_key": "train:12675",
+   "role": "routine",
+   "tca_sim": "2026-11-02T04:15:57Z"
+  },
+  {
+   "event_key": "train:2525",
+   "role": "routine",
+   "tca_sim": "2026-11-03T06:58:32Z"
+  },
+  {
+   "event_key": "train:5351",
+   "role": "routine",
+   "tca_sim": "2026-11-03T18:16:15Z"
+  },
+  {
+   "event_key": "train:2642",
+   "role": "routine",
+   "tca_sim": "2026-11-04T08:11:50Z"
+  },
+  {
+   "event_key": "train:6464",
+   "role": "routine",
+   "tca_sim": "2026-11-04T14:58:57Z"
+  },
+  {
+   "event_key": "train:148",
+   "role": "routine",
+   "tca_sim": "2026-11-05T16:23:10Z"
+  },
+  {
+   "event_key": "train:12089",
+   "role": "routine",
+   "tca_sim": "2026-11-06T03:43:29Z"
+  },
+  {
+   "event_key": "train:11835",
+   "role": "routine",
+   "tca_sim": "2026-11-06T06:50:26Z"
+  }
+ ],
+ "preload_until_sim": "2026-10-31T06:00:00Z",
+ "window_h": 24,
+ "operator": {
+  "mission_id": 15
+ },
+ "focus": "train:2563"
+}

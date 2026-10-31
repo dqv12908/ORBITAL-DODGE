@@ -1,0 +1,2343 @@
+{
+ "$defs": {
+  "ApprovalRequired": {
+   "additionalProperties": true,
+   "properties": {
+    "approval_id": {
+     "title": "Approval Id",
+     "type": "string"
+    },
+    "decision_id": {
+     "title": "Decision Id",
+     "type": "string"
+    },
+    "mcp_passed": {
+     "title": "Mcp Passed",
+     "type": "boolean"
+    },
+    "options": {
+     "items": {
+      "type": "string"
+     },
+     "title": "Options",
+     "type": "array"
+    },
+    "reasons": {
+     "items": {
+      "type": "string"
+     },
+     "title": "Reasons",
+     "type": "array"
+    },
+    "suggested": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Suggested"
+    },
+    "ttca_h": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Ttca H"
+    }
+   },
+   "required": [
+    "approval_id",
+    "decision_id",
+    "options",
+    "suggested",
+    "ttca_h",
+    "mcp_passed",
+    "reasons"
+   ],
+   "title": "ApprovalRequired",
+   "type": "object"
+  },
+  "CdmReceived": {
+   "additionalProperties": true,
+   "properties": {
+    "c_object_type": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "C Object Type"
+    },
+    "cdm_id": {
+     "title": "Cdm Id",
+     "type": "string"
+    },
+    "cdm_index": {
+     "title": "Cdm Index",
+     "type": "integer"
+    },
+    "created_sim": {
+     "title": "Created Sim",
+     "type": "string"
+    },
+    "flags": {
+     "items": {
+      "type": "string"
+     },
+     "title": "Flags",
+     "type": "array"
+    },
+    "miss_m": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Miss M"
+    },
+    "n_known": {
+     "title": "N Known",
+     "type": "integer"
+    },
+    "rel_speed_ms": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Rel Speed Ms"
+    },
+    "rtn_m": {
+     "items": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "title": "Rtn M",
+     "type": "array"
+    },
+    "source": {
+     "additionalProperties": true,
+     "title": "Source",
+     "type": "object"
+    },
+    "ttca_d": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Ttca D"
+    }
+   },
+   "required": [
+    "cdm_id",
+    "cdm_index",
+    "n_known",
+    "ttca_d",
+    "created_sim",
+    "miss_m",
+    "rel_speed_ms",
+    "rtn_m",
+    "c_object_type",
+    "flags",
+    "source"
+   ],
+   "title": "CdmReceived",
+   "type": "object"
+  },
+  "ClockTick": {
+   "additionalProperties": true,
+   "properties": {
+    "held": {
+     "title": "Held",
+     "type": "boolean"
+    },
+    "hold_reason": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Hold Reason"
+    },
+    "paused": {
+     "title": "Paused",
+     "type": "boolean"
+    },
+    "sim_time": {
+     "title": "Sim Time",
+     "type": "string"
+    },
+    "speed": {
+     "title": "Speed",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "sim_time",
+    "speed",
+    "paused",
+    "held"
+   ],
+   "title": "ClockTick",
+   "type": "object"
+  },
+  "DecisionMade": {
+   "additionalProperties": true,
+   "properties": {
+    "agree": {
+     "anyOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Agree"
+    },
+    "answer": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Answer"
+    },
+    "baseline": {
+     "additionalProperties": true,
+     "title": "Baseline",
+     "type": "object"
+    },
+    "confidence": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Confidence"
+    },
+    "decision_id": {
+     "title": "Decision Id",
+     "type": "string"
+    },
+    "evidence_sufficient_p": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Evidence Sufficient P"
+    },
+    "latency_ms": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Latency Ms"
+    },
+    "probabilities": {
+     "additionalProperties": true,
+     "title": "Probabilities",
+     "type": "object"
+    },
+    "probability_kind": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Probability Kind"
+    },
+    "provider": {
+     "title": "Provider",
+     "type": "string"
+    },
+    "refused": {
+     "title": "Refused",
+     "type": "boolean"
+    }
+   },
+   "required": [
+    "decision_id",
+    "provider",
+    "answer",
+    "probabilities",
+    "confidence",
+    "evidence_sufficient_p",
+    "refused",
+    "latency_ms",
+    "baseline",
+    "agree"
+   ],
+   "title": "DecisionMade",
+   "type": "object"
+  },
+  "DecisionRequested": {
+   "additionalProperties": true,
+   "properties": {
+    "decision_id": {
+     "title": "Decision Id",
+     "type": "string"
+    },
+    "provider_chain": {
+     "items": {
+      "type": "string"
+     },
+     "title": "Provider Chain",
+     "type": "array"
+    },
+    "request_hash": {
+     "title": "Request Hash",
+     "type": "string"
+    }
+   },
+   "required": [
+    "decision_id",
+    "provider_chain",
+    "request_hash"
+   ],
+   "title": "DecisionRequested",
+   "type": "object"
+  },
+  "Env_approval_required": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "title": "At",
+     "type": "string"
+    },
+    "data": {
+     "$ref": "#/$defs/ApprovalRequired"
+    },
+    "event_key": {
+     "anyOf": [
+      {
+       "pattern": "^(train|test|adhoc):[0-9]+$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Event Key"
+    },
+    "ledger_seq": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Ledger Seq"
+    },
+    "seq": {
+     "minimum": 1,
+     "title": "Seq",
+     "type": "integer"
+    },
+    "sim_time": {
+     "title": "Sim Time",
+     "type": "string"
+    },
+    "type": {
+     "const": "approval.required",
+     "title": "Type",
+     "type": "string"
+    },
+    "v": {
+     "const": 1,
+     "title": "V",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "v",
+    "seq",
+    "type",
+    "at",
+    "sim_time",
+    "data"
+   ],
+   "title": "Env_approval_required",
+   "type": "object"
+  },
+  "Env_cdm_received": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "title": "At",
+     "type": "string"
+    },
+    "data": {
+     "$ref": "#/$defs/CdmReceived"
+    },
+    "event_key": {
+     "anyOf": [
+      {
+       "pattern": "^(train|test|adhoc):[0-9]+$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Event Key"
+    },
+    "ledger_seq": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Ledger Seq"
+    },
+    "seq": {
+     "minimum": 1,
+     "title": "Seq",
+     "type": "integer"
+    },
+    "sim_time": {
+     "title": "Sim Time",
+     "type": "string"
+    },
+    "type": {
+     "const": "cdm.received",
+     "title": "Type",
+     "type": "string"
+    },
+    "v": {
+     "const": 1,
+     "title": "V",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "v",
+    "seq",
+    "type",
+    "at",
+    "sim_time",
+    "data"
+   ],
+   "title": "Env_cdm_received",
+   "type": "object"
+  },
+  "Env_clock_tick": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "title": "At",
+     "type": "string"
+    },
+    "data": {
+     "$ref": "#/$defs/ClockTick"
+    },
+    "event_key": {
+     "anyOf": [
+      {
+       "pattern": "^(train|test|adhoc):[0-9]+$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Event Key"
+    },
+    "ledger_seq": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Ledger Seq"
+    },
+    "seq": {
+     "minimum": 1,
+     "title": "Seq",
+     "type": "integer"
+    },
+    "sim_time": {
+     "title": "Sim Time",
+     "type": "string"
+    },
+    "type": {
+     "const": "clock.tick",
+     "title": "Type",
+     "type": "string"
+    },
+    "v": {
+     "const": 1,
+     "title": "V",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "v",
+    "seq",
+    "type",
+    "at",
+    "sim_time",
+    "data"
+   ],
+   "title": "Env_clock_tick",
+   "type": "object"
+  },
+  "Env_decision_made": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "title": "At",
+     "type": "string"
+    },
+    "data": {
+     "$ref": "#/$defs/DecisionMade"
+    },
+    "event_key": {
+     "anyOf": [
+      {
+       "pattern": "^(train|test|adhoc):[0-9]+$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Event Key"
+    },
+    "ledger_seq": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Ledger Seq"
+    },
+    "seq": {
+     "minimum": 1,
+     "title": "Seq",
+     "type": "integer"
+    },
+    "sim_time": {
+     "title": "Sim Time",
+     "type": "string"
+    },
+    "type": {
+     "const": "decision.made",
+     "title": "Type",
+     "type": "string"
+    },
+    "v": {
+     "const": 1,
+     "title": "V",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "v",
+    "seq",
+    "type",
+    "at",
+    "sim_time",
+    "data"
+   ],
+   "title": "Env_decision_made",
+   "type": "object"
+  },
+  "Env_decision_requested": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "title": "At",
+     "type": "string"
+    },
+    "data": {
+     "$ref": "#/$defs/DecisionRequested"
+    },
+    "event_key": {
+     "anyOf": [
+      {
+       "pattern": "^(train|test|adhoc):[0-9]+$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Event Key"
+    },
+    "ledger_seq": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Ledger Seq"
+    },
+    "seq": {
+     "minimum": 1,
+     "title": "Seq",
+     "type": "integer"
+    },
+    "sim_time": {
+     "title": "Sim Time",
+     "type": "string"
+    },
+    "type": {
+     "const": "decision.requested",
+     "title": "Type",
+     "type": "string"
+    },
+    "v": {
+     "const": 1,
+     "title": "V",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "v",
+    "seq",
+    "type",
+    "at",
+    "sim_time",
+    "data"
+   ],
+   "title": "Env_decision_requested",
+   "type": "object"
+  },
+  "Env_explanation_ready": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "title": "At",
+     "type": "string"
+    },
+    "data": {
+     "$ref": "#/$defs/ExplanationReady"
+    },
+    "event_key": {
+     "anyOf": [
+      {
+       "pattern": "^(train|test|adhoc):[0-9]+$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Event Key"
+    },
+    "ledger_seq": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Ledger Seq"
+    },
+    "seq": {
+     "minimum": 1,
+     "title": "Seq",
+     "type": "integer"
+    },
+    "sim_time": {
+     "title": "Sim Time",
+     "type": "string"
+    },
+    "type": {
+     "const": "explanation.ready",
+     "title": "Type",
+     "type": "string"
+    },
+    "v": {
+     "const": 1,
+     "title": "V",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "v",
+    "seq",
+    "type",
+    "at",
+    "sim_time",
+    "data"
+   ],
+   "title": "Env_explanation_ready",
+   "type": "object"
+  },
+  "Env_forecast_updated": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "title": "At",
+     "type": "string"
+    },
+    "data": {
+     "$ref": "#/$defs/ForecastUpdated"
+    },
+    "event_key": {
+     "anyOf": [
+      {
+       "pattern": "^(train|test|adhoc):[0-9]+$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Event Key"
+    },
+    "ledger_seq": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Ledger Seq"
+    },
+    "seq": {
+     "minimum": 1,
+     "title": "Seq",
+     "type": "integer"
+    },
+    "sim_time": {
+     "title": "Sim Time",
+     "type": "string"
+    },
+    "type": {
+     "const": "forecast.updated",
+     "title": "Type",
+     "type": "string"
+    },
+    "v": {
+     "const": 1,
+     "title": "V",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "v",
+    "seq",
+    "type",
+    "at",
+    "sim_time",
+    "data"
+   ],
+   "title": "Env_forecast_updated",
+   "type": "object"
+  },
+  "Env_human_action": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "title": "At",
+     "type": "string"
+    },
+    "data": {
+     "$ref": "#/$defs/HumanAction"
+    },
+    "event_key": {
+     "anyOf": [
+      {
+       "pattern": "^(train|test|adhoc):[0-9]+$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Event Key"
+    },
+    "ledger_seq": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Ledger Seq"
+    },
+    "seq": {
+     "minimum": 1,
+     "title": "Seq",
+     "type": "integer"
+    },
+    "sim_time": {
+     "title": "Sim Time",
+     "type": "string"
+    },
+    "type": {
+     "const": "human.action",
+     "title": "Type",
+     "type": "string"
+    },
+    "v": {
+     "const": 1,
+     "title": "V",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "v",
+    "seq",
+    "type",
+    "at",
+    "sim_time",
+    "data"
+   ],
+   "title": "Env_human_action",
+   "type": "object"
+  },
+  "Env_ledger_appended": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "title": "At",
+     "type": "string"
+    },
+    "data": {
+     "$ref": "#/$defs/LedgerAppended"
+    },
+    "event_key": {
+     "anyOf": [
+      {
+       "pattern": "^(train|test|adhoc):[0-9]+$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Event Key"
+    },
+    "ledger_seq": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Ledger Seq"
+    },
+    "seq": {
+     "minimum": 1,
+     "title": "Seq",
+     "type": "integer"
+    },
+    "sim_time": {
+     "title": "Sim Time",
+     "type": "string"
+    },
+    "type": {
+     "const": "ledger.appended",
+     "title": "Type",
+     "type": "string"
+    },
+    "v": {
+     "const": 1,
+     "title": "V",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "v",
+    "seq",
+    "type",
+    "at",
+    "sim_time",
+    "data"
+   ],
+   "title": "Env_ledger_appended",
+   "type": "object"
+  },
+  "Env_log_entry": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "title": "At",
+     "type": "string"
+    },
+    "data": {
+     "$ref": "#/$defs/LogEntry"
+    },
+    "event_key": {
+     "anyOf": [
+      {
+       "pattern": "^(train|test|adhoc):[0-9]+$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Event Key"
+    },
+    "ledger_seq": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Ledger Seq"
+    },
+    "seq": {
+     "minimum": 1,
+     "title": "Seq",
+     "type": "integer"
+    },
+    "sim_time": {
+     "title": "Sim Time",
+     "type": "string"
+    },
+    "type": {
+     "const": "log.entry",
+     "title": "Type",
+     "type": "string"
+    },
+    "v": {
+     "const": 1,
+     "title": "V",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "v",
+    "seq",
+    "type",
+    "at",
+    "sim_time",
+    "data"
+   ],
+   "title": "Env_log_entry",
+   "type": "object"
+  },
+  "Env_outcome_revealed": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "title": "At",
+     "type": "string"
+    },
+    "data": {
+     "$ref": "#/$defs/OutcomeRevealed"
+    },
+    "event_key": {
+     "anyOf": [
+      {
+       "pattern": "^(train|test|adhoc):[0-9]+$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Event Key"
+    },
+    "ledger_seq": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Ledger Seq"
+    },
+    "seq": {
+     "minimum": 1,
+     "title": "Seq",
+     "type": "integer"
+    },
+    "sim_time": {
+     "title": "Sim Time",
+     "type": "string"
+    },
+    "type": {
+     "const": "outcome.revealed",
+     "title": "Type",
+     "type": "string"
+    },
+    "v": {
+     "const": 1,
+     "title": "V",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "v",
+    "seq",
+    "type",
+    "at",
+    "sim_time",
+    "data"
+   ],
+   "title": "Env_outcome_revealed",
+   "type": "object"
+  },
+  "Env_policy_gated": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "title": "At",
+     "type": "string"
+    },
+    "data": {
+     "$ref": "#/$defs/PolicyGated"
+    },
+    "event_key": {
+     "anyOf": [
+      {
+       "pattern": "^(train|test|adhoc):[0-9]+$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Event Key"
+    },
+    "ledger_seq": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Ledger Seq"
+    },
+    "seq": {
+     "minimum": 1,
+     "title": "Seq",
+     "type": "integer"
+    },
+    "sim_time": {
+     "title": "Sim Time",
+     "type": "string"
+    },
+    "type": {
+     "const": "policy.gated",
+     "title": "Type",
+     "type": "string"
+    },
+    "v": {
+     "const": 1,
+     "title": "V",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "v",
+    "seq",
+    "type",
+    "at",
+    "sim_time",
+    "data"
+   ],
+   "title": "Env_policy_gated",
+   "type": "object"
+  },
+  "Env_policy_updated": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "title": "At",
+     "type": "string"
+    },
+    "data": {
+     "$ref": "#/$defs/PolicyUpdated"
+    },
+    "event_key": {
+     "anyOf": [
+      {
+       "pattern": "^(train|test|adhoc):[0-9]+$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Event Key"
+    },
+    "ledger_seq": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Ledger Seq"
+    },
+    "seq": {
+     "minimum": 1,
+     "title": "Seq",
+     "type": "integer"
+    },
+    "sim_time": {
+     "title": "Sim Time",
+     "type": "string"
+    },
+    "type": {
+     "const": "policy.updated",
+     "title": "Type",
+     "type": "string"
+    },
+    "v": {
+     "const": 1,
+     "title": "V",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "v",
+    "seq",
+    "type",
+    "at",
+    "sim_time",
+    "data"
+   ],
+   "title": "Env_policy_updated",
+   "type": "object"
+  },
+  "Env_policy_verdict": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "title": "At",
+     "type": "string"
+    },
+    "data": {
+     "$ref": "#/$defs/PolicyVerdict"
+    },
+    "event_key": {
+     "anyOf": [
+      {
+       "pattern": "^(train|test|adhoc):[0-9]+$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Event Key"
+    },
+    "ledger_seq": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Ledger Seq"
+    },
+    "seq": {
+     "minimum": 1,
+     "title": "Seq",
+     "type": "integer"
+    },
+    "sim_time": {
+     "title": "Sim Time",
+     "type": "string"
+    },
+    "type": {
+     "const": "policy.verdict",
+     "title": "Type",
+     "type": "string"
+    },
+    "v": {
+     "const": 1,
+     "title": "V",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "v",
+    "seq",
+    "type",
+    "at",
+    "sim_time",
+    "data"
+   ],
+   "title": "Env_policy_verdict",
+   "type": "object"
+  },
+  "Env_risk_assessed": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "title": "At",
+     "type": "string"
+    },
+    "data": {
+     "$ref": "#/$defs/RiskAssessed"
+    },
+    "event_key": {
+     "anyOf": [
+      {
+       "pattern": "^(train|test|adhoc):[0-9]+$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Event Key"
+    },
+    "ledger_seq": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Ledger Seq"
+    },
+    "seq": {
+     "minimum": 1,
+     "title": "Seq",
+     "type": "integer"
+    },
+    "sim_time": {
+     "title": "Sim Time",
+     "type": "string"
+    },
+    "type": {
+     "const": "risk.assessed",
+     "title": "Type",
+     "type": "string"
+    },
+    "v": {
+     "const": 1,
+     "title": "V",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "v",
+    "seq",
+    "type",
+    "at",
+    "sim_time",
+    "data"
+   ],
+   "title": "Env_risk_assessed",
+   "type": "object"
+  },
+  "Env_scenario_loaded": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "title": "At",
+     "type": "string"
+    },
+    "data": {
+     "$ref": "#/$defs/ScenarioLoaded"
+    },
+    "event_key": {
+     "anyOf": [
+      {
+       "pattern": "^(train|test|adhoc):[0-9]+$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Event Key"
+    },
+    "ledger_seq": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Ledger Seq"
+    },
+    "seq": {
+     "minimum": 1,
+     "title": "Seq",
+     "type": "integer"
+    },
+    "sim_time": {
+     "title": "Sim Time",
+     "type": "string"
+    },
+    "type": {
+     "const": "scenario.loaded",
+     "title": "Type",
+     "type": "string"
+    },
+    "v": {
+     "const": 1,
+     "title": "V",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "v",
+    "seq",
+    "type",
+    "at",
+    "sim_time",
+    "data"
+   ],
+   "title": "Env_scenario_loaded",
+   "type": "object"
+  },
+  "Env_state_snapshot": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "title": "At",
+     "type": "string"
+    },
+    "data": {
+     "$ref": "#/$defs/Open"
+    },
+    "event_key": {
+     "anyOf": [
+      {
+       "pattern": "^(train|test|adhoc):[0-9]+$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Event Key"
+    },
+    "ledger_seq": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Ledger Seq"
+    },
+    "seq": {
+     "minimum": 1,
+     "title": "Seq",
+     "type": "integer"
+    },
+    "sim_time": {
+     "title": "Sim Time",
+     "type": "string"
+    },
+    "type": {
+     "const": "state.snapshot",
+     "title": "Type",
+     "type": "string"
+    },
+    "v": {
+     "const": 1,
+     "title": "V",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "v",
+    "seq",
+    "type",
+    "at",
+    "sim_time",
+    "data"
+   ],
+   "title": "Env_state_snapshot",
+   "type": "object"
+  },
+  "Env_system_degraded": {
+   "additionalProperties": false,
+   "properties": {
+    "at": {
+     "title": "At",
+     "type": "string"
+    },
+    "data": {
+     "$ref": "#/$defs/SystemDegraded"
+    },
+    "event_key": {
+     "anyOf": [
+      {
+       "pattern": "^(train|test|adhoc):[0-9]+$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Event Key"
+    },
+    "ledger_seq": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Ledger Seq"
+    },
+    "seq": {
+     "minimum": 1,
+     "title": "Seq",
+     "type": "integer"
+    },
+    "sim_time": {
+     "title": "Sim Time",
+     "type": "string"
+    },
+    "type": {
+     "const": "system.degraded",
+     "title": "Type",
+     "type": "string"
+    },
+    "v": {
+     "const": 1,
+     "title": "V",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "v",
+    "seq",
+    "type",
+    "at",
+    "sim_time",
+    "data"
+   ],
+   "title": "Env_system_degraded",
+   "type": "object"
+  },
+  "ExplanationReady": {
+   "additionalProperties": true,
+   "properties": {
+    "cdm_id": {
+     "title": "Cdm Id",
+     "type": "string"
+    },
+    "rejected_reason": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Rejected Reason"
+    },
+    "source": {
+     "enum": [
+      "template",
+      "llm"
+     ],
+     "title": "Source",
+     "type": "string"
+    },
+    "text": {
+     "title": "Text",
+     "type": "string"
+    },
+    "verified": {
+     "title": "Verified",
+     "type": "boolean"
+    }
+   },
+   "required": [
+    "cdm_id",
+    "source",
+    "verified",
+    "text"
+   ],
+   "title": "ExplanationReady",
+   "type": "object"
+  },
+  "ForecastUpdated": {
+   "additionalProperties": true,
+   "properties": {
+    "baseline": {
+     "anyOf": [
+      {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Baseline"
+    },
+    "calib_bin": {
+     "anyOf": [
+      {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Calib Bin"
+    },
+    "model_version": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Model Version"
+    },
+    "p_critical": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "P Critical"
+    },
+    "p_tiers": {
+     "anyOf": [
+      {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "P Tiers"
+    },
+    "rank": {
+     "title": "Rank",
+     "type": "integer"
+    },
+    "valid": {
+     "title": "Valid",
+     "type": "boolean"
+    },
+    "watch": {
+     "title": "Watch",
+     "type": "boolean"
+    }
+   },
+   "required": [
+    "model_version",
+    "valid",
+    "p_tiers",
+    "p_critical",
+    "calib_bin",
+    "baseline",
+    "watch",
+    "rank"
+   ],
+   "title": "ForecastUpdated",
+   "type": "object"
+  },
+  "HumanAction": {
+   "additionalProperties": true,
+   "properties": {
+    "action": {
+     "title": "Action",
+     "type": "string"
+    },
+    "actor": {
+     "title": "Actor",
+     "type": "string"
+    },
+    "approval_id": {
+     "title": "Approval Id",
+     "type": "string"
+    },
+    "note": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Note"
+    },
+    "wait_sim_min": {
+     "title": "Wait Sim Min",
+     "type": "number"
+    }
+   },
+   "required": [
+    "approval_id",
+    "action",
+    "actor",
+    "note",
+    "wait_sim_min"
+   ],
+   "title": "HumanAction",
+   "type": "object"
+  },
+  "LedgerAppended": {
+   "additionalProperties": true,
+   "properties": {
+    "hash": {
+     "title": "Hash",
+     "type": "string"
+    },
+    "kind": {
+     "title": "Kind",
+     "type": "string"
+    },
+    "seq": {
+     "title": "Seq",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "seq",
+    "hash",
+    "kind"
+   ],
+   "title": "LedgerAppended",
+   "type": "object"
+  },
+  "LogEntry": {
+   "additionalProperties": true,
+   "properties": {
+    "code": {
+     "title": "Code",
+     "type": "string"
+    },
+    "level": {
+     "enum": [
+      "INFO",
+      "CDM",
+      "AGENT",
+      "WARN",
+      "CRIT",
+      "REFUSE",
+      "ERROR"
+     ],
+     "title": "Level",
+     "type": "string"
+    },
+    "msg": {
+     "title": "Msg",
+     "type": "string"
+    }
+   },
+   "required": [
+    "level",
+    "code",
+    "msg"
+   ],
+   "title": "LogEntry",
+   "type": "object"
+  },
+  "Open": {
+   "additionalProperties": true,
+   "properties": {},
+   "title": "Open",
+   "type": "object"
+  },
+  "OutcomeRevealed": {
+   "additionalProperties": true,
+   "properties": {
+    "final": {
+     "anyOf": [
+      {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Final"
+    },
+    "forecast_was": {
+     "anyOf": [
+      {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Forecast Was"
+    },
+    "hidden": {
+     "default": false,
+     "title": "Hidden",
+     "type": "boolean"
+    },
+    "verdict": {
+     "anyOf": [
+      {
+       "enum": [
+        "TP",
+        "FP",
+        "FN",
+        "TN"
+       ],
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Verdict"
+    }
+   },
+   "required": [
+    "final",
+    "forecast_was",
+    "verdict"
+   ],
+   "title": "OutcomeRevealed",
+   "type": "object"
+  },
+  "PcObj": {
+   "additionalProperties": true,
+   "properties": {
+    "dilution": {
+     "anyOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Dilution"
+    },
+    "hbr_m": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Hbr M"
+    },
+    "k_star": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "K Star"
+    },
+    "log10": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Log10"
+    },
+    "log10_pc_max": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Log10 Pc Max"
+    },
+    "mahalanobis": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Mahalanobis"
+    },
+    "method": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Method"
+    },
+    "sigma_plane_m": {
+     "anyOf": [
+      {
+       "items": {
+        "type": "number"
+       },
+       "maxItems": 2,
+       "minItems": 2,
+       "type": "array"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Sigma Plane M"
+    },
+    "status": {
+     "enum": [
+      "OK",
+      "COV_UNKNOWN",
+      "LOW_VREL",
+      "NPD_CLIPPED"
+     ],
+     "title": "Status",
+     "type": "string"
+    },
+    "theta_deg": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Theta Deg"
+    }
+   },
+   "required": [
+    "status"
+   ],
+   "title": "PcObj",
+   "type": "object"
+  },
+  "PolicyGated": {
+   "additionalProperties": true,
+   "properties": {
+    "allowed": {
+     "items": {
+      "enum": [
+       "MONITOR",
+       "REQUEST_TRACKING",
+       "PREPARE_MANOEUVRE"
+      ],
+      "type": "string"
+     },
+     "title": "Allowed",
+     "type": "array"
+    },
+    "blocked": {
+     "title": "Blocked",
+     "type": "boolean"
+    },
+    "must_escalate": {
+     "title": "Must Escalate",
+     "type": "boolean"
+    },
+    "reasons": {
+     "items": {
+      "type": "string"
+     },
+     "title": "Reasons",
+     "type": "array"
+    }
+   },
+   "required": [
+    "allowed",
+    "must_escalate",
+    "blocked",
+    "reasons"
+   ],
+   "title": "PolicyGated",
+   "type": "object"
+  },
+  "PolicyUpdated": {
+   "additionalProperties": true,
+   "properties": {
+    "actor": {
+     "title": "Actor",
+     "type": "string"
+    },
+    "diff": {
+     "additionalProperties": true,
+     "title": "Diff",
+     "type": "object"
+    },
+    "version": {
+     "title": "Version",
+     "type": "string"
+    }
+   },
+   "required": [
+    "version",
+    "diff",
+    "actor"
+   ],
+   "title": "PolicyUpdated",
+   "type": "object"
+  },
+  "PolicyVerdict": {
+   "additionalProperties": true,
+   "properties": {
+    "action": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Action"
+    },
+    "decision_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Decision Id"
+    },
+    "reasons": {
+     "items": {
+      "type": "string"
+     },
+     "title": "Reasons",
+     "type": "array"
+    },
+    "verdict": {
+     "enum": [
+      "AUTO",
+      "ESCALATE",
+      "BLOCK"
+     ],
+     "title": "Verdict",
+     "type": "string"
+    }
+   },
+   "required": [
+    "decision_id",
+    "verdict",
+    "action",
+    "reasons"
+   ],
+   "title": "PolicyVerdict",
+   "type": "object"
+  },
+  "RiskAssessed": {
+   "additionalProperties": true,
+   "properties": {
+    "cdm_id": {
+     "title": "Cdm Id",
+     "type": "string"
+    },
+    "disagree_dex": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Disagree Dex"
+    },
+    "pc": {
+     "$ref": "#/$defs/PcObj"
+    },
+    "reported_log10": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "title": "Reported Log10"
+    },
+    "tier": {
+     "$ref": "#/$defs/TierObj"
+    }
+   },
+   "required": [
+    "cdm_id",
+    "pc",
+    "reported_log10",
+    "tier"
+   ],
+   "title": "RiskAssessed",
+   "type": "object"
+  },
+  "ScenarioLoaded": {
+   "additionalProperties": true,
+   "properties": {
+    "cast": {
+     "items": {
+      "type": "string"
+     },
+     "title": "Cast",
+     "type": "array"
+    },
+    "d0": {
+     "title": "D0",
+     "type": "string"
+    },
+    "id": {
+     "title": "Id",
+     "type": "string"
+    },
+    "preloaded_cdms": {
+     "title": "Preloaded Cdms",
+     "type": "integer"
+    },
+    "seed": {
+     "title": "Seed",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "id",
+    "seed",
+    "d0",
+    "cast",
+    "preloaded_cdms"
+   ],
+   "title": "ScenarioLoaded",
+   "type": "object"
+  },
+  "SystemDegraded": {
+   "additionalProperties": true,
+   "properties": {
+    "component": {
+     "title": "Component",
+     "type": "string"
+    },
+    "fallback": {
+     "title": "Fallback",
+     "type": "string"
+    },
+    "reason": {
+     "title": "Reason",
+     "type": "string"
+    }
+   },
+   "required": [
+    "component",
+    "reason",
+    "fallback"
+   ],
+   "title": "SystemDegraded",
+   "type": "object"
+  },
+  "TierObj": {
+   "additionalProperties": true,
+   "properties": {
+    "citations": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Citations",
+     "type": "array"
+    },
+    "miss_tier": {
+     "enum": [
+      "SAFE",
+      "ELEVATED",
+      "CRITICAL"
+     ],
+     "title": "Miss Tier",
+     "type": "string"
+    },
+    "mode": {
+     "enum": [
+      "BRIEF",
+      "CARA_PC"
+     ],
+     "title": "Mode",
+     "type": "string"
+    },
+    "pc_tier": {
+     "enum": [
+      "SAFE",
+      "ELEVATED",
+      "CRITICAL",
+      "UNKNOWN"
+     ],
+     "title": "Pc Tier",
+     "type": "string"
+    },
+    "reasons": {
+     "items": {
+      "type": "string"
+     },
+     "title": "Reasons",
+     "type": "array"
+    },
+    "rule_ids": {
+     "items": {
+      "type": "string"
+     },
+     "title": "Rule Ids",
+     "type": "array"
+    },
+    "tier": {
+     "enum": [
+      "SAFE",
+      "ELEVATED",
+      "CRITICAL"
+     ],
+     "title": "Tier",
+     "type": "string"
+    }
+   },
+   "required": [
+    "tier",
+    "pc_tier",
+    "miss_tier",
+    "mode",
+    "rule_ids",
+    "reasons"
+   ],
+   "title": "TierObj",
+   "type": "object"
+  }
+ },
+ "$id": "orbitaldodge/sse-envelope/v1",
+ "description": "SSE `data:` payload. Wire: `id: <seq>` + `data: <json>` (no `event:` field; switch on .type). Additive within v1; clients ignore unknown types/fields; on a seq gap call GET /api/state.",
+ "discriminator": {
+  "mapping": {
+   "approval.required": "#/$defs/Env_approval_required",
+   "cdm.received": "#/$defs/Env_cdm_received",
+   "clock.tick": "#/$defs/Env_clock_tick",
+   "decision.made": "#/$defs/Env_decision_made",
+   "decision.requested": "#/$defs/Env_decision_requested",
+   "explanation.ready": "#/$defs/Env_explanation_ready",
+   "forecast.updated": "#/$defs/Env_forecast_updated",
+   "human.action": "#/$defs/Env_human_action",
+   "ledger.appended": "#/$defs/Env_ledger_appended",
+   "log.entry": "#/$defs/Env_log_entry",
+   "outcome.revealed": "#/$defs/Env_outcome_revealed",
+   "policy.gated": "#/$defs/Env_policy_gated",
+   "policy.updated": "#/$defs/Env_policy_updated",
+   "policy.verdict": "#/$defs/Env_policy_verdict",
+   "risk.assessed": "#/$defs/Env_risk_assessed",
+   "scenario.loaded": "#/$defs/Env_scenario_loaded",
+   "state.snapshot": "#/$defs/Env_state_snapshot",
+   "system.degraded": "#/$defs/Env_system_degraded"
+  },
+  "propertyName": "type"
+ },
+ "oneOf": [
+  {
+   "$ref": "#/$defs/Env_state_snapshot"
+  },
+  {
+   "$ref": "#/$defs/Env_clock_tick"
+  },
+  {
+   "$ref": "#/$defs/Env_scenario_loaded"
+  },
+  {
+   "$ref": "#/$defs/Env_cdm_received"
+  },
+  {
+   "$ref": "#/$defs/Env_risk_assessed"
+  },
+  {
+   "$ref": "#/$defs/Env_forecast_updated"
+  },
+  {
+   "$ref": "#/$defs/Env_policy_gated"
+  },
+  {
+   "$ref": "#/$defs/Env_decision_requested"
+  },
+  {
+   "$ref": "#/$defs/Env_decision_made"
+  },
+  {
+   "$ref": "#/$defs/Env_policy_verdict"
+  },
+  {
+   "$ref": "#/$defs/Env_approval_required"
+  },
+  {
+   "$ref": "#/$defs/Env_human_action"
+  },
+  {
+   "$ref": "#/$defs/Env_explanation_ready"
+  },
+  {
+   "$ref": "#/$defs/Env_log_entry"
+  },
+  {
+   "$ref": "#/$defs/Env_outcome_revealed"
+  },
+  {
+   "$ref": "#/$defs/Env_policy_updated"
+  },
+  {
+   "$ref": "#/$defs/Env_ledger_appended"
+  },
+  {
+   "$ref": "#/$defs/Env_system_degraded"
+  }
+ ],
+ "title": "ORBITAL DODGE SSE envelope v1"
+}

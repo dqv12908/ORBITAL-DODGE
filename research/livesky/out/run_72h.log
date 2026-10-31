@@ -1,0 +1,64 @@
+objects screened: 28686 (catalogue 30654), steps 25921 dt=10.0s
+  steps 0-1440: prop 1.3s gpu 1.7s events so far 54881
+  steps 1440-2880: prop 1.1s gpu 1.2s events so far 109724
+  steps 2880-4320: prop 1.4s gpu 1.2s events so far 164021
+  steps 4320-5760: prop 1.1s gpu 1.1s events so far 218396
+  steps 5760-7200: prop 1.2s gpu 1.1s events so far 272779
+  steps 7200-8640: prop 1.2s gpu 1.1s events so far 328410
+  steps 8640-10080: prop 1.2s gpu 1.1s events so far 386504
+  steps 10080-11520: prop 1.1s gpu 1.1s events so far 447465
+  steps 11520-12960: prop 1.2s gpu 1.1s events so far 509795
+  steps 12960-14400: prop 1.2s gpu 1.1s events so far 574582
+  steps 14400-15840: prop 1.2s gpu 1.1s events so far 641662
+  steps 15840-17280: prop 1.2s gpu 1.1s events so far 713672
+  steps 17280-18720: prop 1.2s gpu 1.3s events so far 786427
+  steps 18720-20160: prop 1.2s gpu 1.2s events so far 868297
+  steps 20160-21600: prop 1.3s gpu 1.3s events so far 949683
+  steps 21600-23040: prop 1.1s gpu 1.1s events so far 1030973
+  steps 23040-24480: prop 1.2s gpu 1.3s events so far 1116976
+  steps 24480-25920: prop 1.1s gpu 1.3s events so far 1197601
+  steps 25920-25921: prop 0.0s gpu 0.0s events so far 1197653
+events < 5.0 km: 334820
+{
+ "n_catalogue": 30654,
+ "n_screened": 28686,
+ "gp_epoch_max": "2026-10-30 22:52:55.223616",
+ "gp_epoch_median": "2026-10-30 12:00:02.998944",
+ "gpu": "Tesla PG503-216",
+ "t_propagate_s": 21.5,
+ "t_gpu_screen_s": 21.6,
+ "gpu_peak_mem_gb": 3.43,
+ "n_events": 334820,
+ "t_total_s": 156.0,
+ "socrates_run_window": "2026-10-30T12:00Z to 2026-11-06T11:59Z",
+ "compare_window": "2026-10-31T04:00Z to 2026-11-03T04:00Z",
+ "match_rule": "same NORAD pair and |dTCA| <= 60 s",
+ "n_socrates_events_in_window": 80839,
+ "recall_all_lt5km": 0.2883,
+ "recall_all_lt5km_both_in_catalogue": 0.2971,
+ "recall_lt1km": 0.3385,
+ "recall_lt1km_both_in_catalogue": 0.3489,
+ "n_socrates_lt1km": 3988,
+ "n_socrates_same_elset": 1746,
+ "recall_lt5km_same_elset": 0.9714,
+ "recall_lt1km_same_elset": 0.8804,
+ "median_abs_drange_km_same_elset": 0.0003,
+ "precision_payload_events": 0.0753,
+ "n_payload_events_same_elset": 5150,
+ "precision_payload_events_same_elset": 0.3293,
+ "precision_same_elset_excl_starlink_pairs_and_formation": 0.9096,
+ "starlink_starlink_share_ours_payload": 0.7896,
+ "starlink_starlink_share_socrates": 0.32,
+ "median_abs_dtca_s": 0.1002,
+ "median_abs_drange_km": 0.19,
+ "p90_abs_drange_km": 1.4807,
+ "n_events_window": 334820,
+ "n_pairs_window": 193319,
+ "next24h_lt1km": 4402,
+ "next24h_lt5km": 75820,
+ "next24h_lt1km_excl_low_rel_speed": 2496,
+ "next24h_lt5km_excl_low_rel_speed": 73387,
+ "n_formation_pairs_window": 398,
+ "window_lt1km": 24710,
+ "top_list": "closest encounter per pair, 200 pairs with rel speed >= 0.1 km/s, sorted by min range"
+}

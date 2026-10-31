@@ -1,0 +1,40 @@
+{
+ "id": "blind-test",
+ "title": "Blind test",
+ "tag": "BLIND",
+ "teaches": "Five unseen test events with the highest latest reported risk. Truth is hidden: forecasts only.",
+ "order": 8,
+ "d0_sim": "2026-10-31T06:00:00Z",
+ "seed": 1729,
+ "cast": [
+  {
+   "event_key": "test:891",
+   "role": "blind",
+   "tca_sim": "2026-11-02T12:25:20Z"
+  },
+  {
+   "event_key": "test:1568",
+   "role": "blind",
+   "tca_sim": "2026-11-02T16:40:13Z"
+  },
+  {
+   "event_key": "test:1448",
+   "role": "blind",
+   "tca_sim": "2026-11-02T15:21:49Z"
+  },
+  {
+   "event_key": "test:2059",
+   "role": "blind",
+   "tca_sim": "2026-11-02T19:57:53Z"
+  },
+  {
+   "event_key": "test:2091",
+   "role": "blind",
+   "tca_sim": "2026-11-02T20:19:55Z"
+  }
+ ],
+ "preload_until_sim": "2026-10-31T06:00:00Z",
+ "window_h": 24,
+ "truth_hidden": true,
+ "focus": "test:891"
+}

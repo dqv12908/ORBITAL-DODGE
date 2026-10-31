@@ -1,0 +1,22 @@
+{
+ "id": "late-cdm",
+ "title": "The late CDM",
+ "tag": "LATE",
+ "teaches": "Safe at the 2-day decision point, critical by miss 10.6 h before TCA: nothing at T-2 d foresaw it (10 of 6,040 safe-at-T-2 d events). Physics and rules catch it after the commitment point.",
+ "order": 2,
+ "d0_sim": "2026-10-31T06:00:00Z",
+ "seed": 1729,
+ "cast": [
+  {
+   "event_key": "train:2563",
+   "role": "focal",
+   "tca_sim": "2026-11-02T16:48:00Z"
+  }
+ ],
+ "preload_until_sim": "2026-10-31T06:00:00Z",
+ "window_h": 24,
+ "focus": "train:2563",
+ "alternates": [
+  "train:5253"
+ ]
+}

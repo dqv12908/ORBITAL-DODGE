@@ -1,5 +1,6 @@
 # Dataset (ESA Kelvins via hackathon organisers): not redistributed. Put the CSVs in data/raw/ locally.
-data/
+data/raw/
+data/processed/
 # Organiser brief: kept local
 docs/brief.pdf
 docs/brief.txt
@@ -11,3 +12,12 @@ venv/
 node_modules/
 .env
 .DS_Store
+var/
+server/.venv/
+game/dist/
+.venv-ml/
+.venv-sky/
+research/livesky/cache/
+research/livesky/out/events_all.csv*
+research/livesky/out/socrates_compare.csv
+game/scripts/.cache/

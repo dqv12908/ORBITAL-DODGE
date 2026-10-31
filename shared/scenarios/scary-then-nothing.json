@@ -1,0 +1,24 @@
+{
+ "id": "scary-then-nothing",
+ "title": "Scary, then nothing",
+ "tag": "WAIT",
+ "teaches": "The highest Pc in the training set (3.6e-2 at T-5.2 d) collapses to nothing by T-2.8 d. Commit early or wait for the next CDM?",
+ "order": 4,
+ "d0_sim": "2026-10-31T06:00:00Z",
+ "seed": 1729,
+ "cast": [
+  {
+   "event_key": "train:2427",
+   "role": "focal",
+   "tca_sim": "2026-11-05T13:12:00Z"
+  },
+  {
+   "event_key": "train:7465",
+   "role": "contrast",
+   "tca_sim": "2026-11-02T13:12:00Z"
+  }
+ ],
+ "preload_until_sim": "2026-10-31T06:00:00Z",
+ "window_h": 24,
+ "focus": "train:2427"
+}

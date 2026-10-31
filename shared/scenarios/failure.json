@@ -1,0 +1,25 @@
+{
+ "id": "failure",
+ "title": "Where we fail",
+ "tag": "FAILURE CASE",
+ "teaches": "train:4200: ESA reports Pc 1e-5 at 57 km, our physics says 1e-478 (we cannot reproduce ESA's covariance scaling). train:11180: the forecaster gave it under 1 % at T-2 d and it ended CRITICAL. How the analyst knows, and why the ML never suppresses a rule tier.",
+ "order": 7,
+ "d0_sim": "2026-10-31T06:00:00Z",
+ "seed": 1729,
+ "cast": [
+  {
+   "event_key": "train:4200",
+   "role": "focal",
+   "tca_sim": "2026-11-07T04:48:00Z"
+  },
+  {
+   "event_key": "train:11180",
+   "role": "missed_critical",
+   "tca_sim": "2026-11-03T08:24:00Z"
+  }
+ ],
+ "preload_until_sim": "2026-10-31T06:00:00Z",
+ "window_h": 24,
+ "focus": "train:4200",
+ "missed_critical": "train:11180"
+}

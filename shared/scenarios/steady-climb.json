@@ -1,0 +1,19 @@
+{
+ "id": "steady-climb",
+ "title": "Steady climb",
+ "tag": "ESCALATE",
+ "teaches": "Pc climbs from 1e-9 to 2e-3 while the miss shrinks to 40 m: the full pipeline, an early PREPARE suggestion and the dive.",
+ "order": 3,
+ "d0_sim": "2026-10-31T06:00:00Z",
+ "seed": 1729,
+ "cast": [
+  {
+   "event_key": "train:8767",
+   "role": "focal",
+   "tca_sim": "2026-11-03T22:48:00Z"
+  }
+ ],
+ "preload_until_sim": "2026-10-31T06:00:00Z",
+ "window_h": 24,
+ "focus": "train:8767"
+}

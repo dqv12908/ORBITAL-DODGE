@@ -1,0 +1,24 @@
+{
+ "id": "rules-disagree",
+ "title": "Rules disagree",
+ "tag": "RULES",
+ "teaches": "Miss 76 m but Pc 6e-19 (critical by the miss screen, safe by probability) next to Pc 1.2e-4 at 3.9 km (critical by Pc only). Flip the tier-mode knob.",
+ "order": 5,
+ "d0_sim": "2026-10-31T06:00:00Z",
+ "seed": 1729,
+ "cast": [
+  {
+   "event_key": "train:8756",
+   "role": "focal",
+   "tca_sim": "2026-11-01T06:00:00Z"
+  },
+  {
+   "event_key": "train:9361",
+   "role": "contrast",
+   "tca_sim": "2026-11-01T10:48:00Z"
+  }
+ ],
+ "preload_until_sim": "2026-10-31T06:00:00Z",
+ "window_h": 24,
+ "focus": "train:8756"
+}
