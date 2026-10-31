@@ -7,6 +7,8 @@ time, so the ledger content-hash sequence is deterministic for a given scenario 
 """
 from __future__ import annotations
 
+import math
+
 import asyncio
 import time
 from dataclasses import dataclass, field
@@ -318,9 +320,16 @@ class Sim:
             return env
 
         split, eid = key.split(":", 1)
+        # per-axis 1-sigma of target, chaser and combined (sqrt(t^2 + c^2), correlations ignored); default
+        # covariances (>= 1e7 m, the 10-Earth-radii sentinel) are not sigmas and are sent as None
+        sig_t = [fnum(row.get(f"t_sigma_{a}")) for a in "rtn"]
+        sig_c = [fnum(row.get(f"c_sigma_{a}")) for a in "rtn"]
+        sig_comb = [math.sqrt(a * a + b * b) if (a is not None and b is not None and a < 1e7 and b < 1e7) else None
+                    for a, b in zip(sig_t, sig_c)]
         put("cdm.received", {"cdm_id": cdm_id, "cdm_index": idx, "n_known": n_known, "n_total": len(ev.rows),
                              "ttca_d": ttca, "created_sim": iso(at), "miss_m": miss,
                              "rel_speed_ms": fnum(row.get("relative_speed")), "rtn_m": rtn,
+                             "sigma_t_m": sig_t, "sigma_c_m": sig_c, "sigma_comb_m": sig_comb,
                              "c_object_type": row.get("c_object_type"), "flags": flags, "preloaded": preload,
                              "source": {"split": split, "event_id": int(eid) if eid.isdigit() else eid, "row": idx}},
             actor="engine")

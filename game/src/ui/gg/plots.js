@@ -62,8 +62,8 @@ export function riskEvolution(d, o = {}) {
       h: (W) => W * 0.5,
       draw: (P) => {
         common(P, true); fan(P, q, (v) => v);
-        P.hline(-4, { color: GG.bad, label: '10⁻⁴ critical', opacity: 0.85, side: 'left' });
-        P.hline(-6, { color: GG.warn, label: '10⁻⁶ elevated', opacity: 0.85, side: 'left' });
+        P.hline(-4, { color: GG.bad, label: '10⁻⁴ critical', opacity: 0.85 });
+        P.hline(-6, { color: GG.warn, label: '10⁻⁶ elevated', opacity: 0.85 });
         P.line(pcVals.map((p) => [p.ttca, p.log10]), { color: GG.accent });
         P.points(pts.filter((p) => fin(p.reported)).map((p) => ({ x: p.ttca, y: p.reported, tip: `ESA reported ${sciC(p.reported)} at T−${p.ttca.toFixed(2)} d` })), { hollow: true, color: GG.muted, r: P.s.r * 1.7 });
         P.points(pcVals.map((p) => ({ x: p.ttca, y: p.log10, tip: `Pc ${sciC(p.log10)} at T−${p.ttca.toFixed(2)} d` })), { color: GG.accent, ring: '#0a1019' });
@@ -75,8 +75,8 @@ export function riskEvolution(d, o = {}) {
       h: (W) => W * 0.36,
       draw: (P) => {
         common(P, false); fan(P, mq, lm);
-        P.hline(0, { color: GG.bad, label: '1 km', opacity: 0.85, side: 'left' });
-        P.hline(Math.log10(5), { color: GG.warn, label: '5 km', opacity: 0.85, side: 'left' });
+        P.hline(0, { color: GG.bad, label: '1 km', opacity: 0.85 });
+        P.hline(Math.log10(5), { color: GG.warn, label: '5 km', opacity: 0.85 });
         const mv = pts.filter((p) => fin(lm(p.miss_m)));
         P.line(mv.map((p) => [p.ttca, lm(p.miss_m)]), { color: GG.accent });
         P.points(mv.map((p) => ({ x: p.ttca, y: lm(p.miss_m), tip: `miss ${fmtM(p.miss_m)} at T−${p.ttca.toFixed(2)} d` })), { color: GG.accent, ring: '#0a1019' });
@@ -116,6 +116,8 @@ export function rtnPlot(d, o = {}) {
       draw: (P) => {
         const c = H3[k], cw = 3.2 * P.s.k / P.w * (xs.domain[1] - xs.domain[0]);
         P.hline(0, { opacity: 0.7 }); P.vline(2, { opacity: 0.7 });
+        const sv = vals.filter((v) => v.sg != null).sort((a, b) => b.x - a.x);
+        if (sv.length >= 2) P.area(sv.map((v) => [v.x, v.y - v.sg, v.y + v.sg]), { fill: c, opacity: 0.16 });  // ±1σ band
         for (const v of vals.filter((v) => v.sg != null)) {
           P.seg(v.x, v.y - v.sg, v.x, v.y + v.sg, { color: c, width: P.s.ref, opacity: 0.75 });
           P.seg(v.x - cw, v.y - v.sg, v.x + cw, v.y - v.sg, { color: c, width: P.s.ref, opacity: 0.75 });
@@ -129,7 +131,7 @@ export function rtnPlot(d, o = {}) {
   const legend = [{ title: 'Component', items: ['R', 'T', 'N'].map((l, i) => ({ label: l, glyph: anySigma ? 'errorbar' : 'pointline', color: H3[i] })) }];
   return figure({
     ...o, title: 'Relative position (RTN)', subtitle: 'chaser relative to target, per released CDM', legend, rows,
-    cap: anySigma ? 'bars ±1σ, target + chaser combined √(σt² + σc²) · dashed: 2 d cut' : 'no sigmas available · dashed: 2 d cut',
+    cap: anySigma ? 'shaded band and bars: ±1σ, target + chaser combined √(σt² + σc²) from the CDM · dashed: 2 d cut' : 'σ not usable for these CDMs (default covariance) · dashed: 2 d cut',
   });
 }
 

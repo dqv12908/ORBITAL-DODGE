@@ -35,13 +35,14 @@ export class GgRtn {
       api('GET', `/conjunctions/${encodeURIComponent(e.key)}/rtn`).then((r) => {
         const m = new Map((r?.cdms || []).map((c) => [c.cdm_index, c]));
         this.sig.set(tag, m); this.loading = null; this.set(e);
-      }).catch(() => { this.sig.set(tag, new Map()); this.loading = null; this.set(e); });
+      }).catch(() => { this.loading = null; });
     }
     const sm = this.sig.get(tag) || new Map();
     const rows = cdms.map((c) => {
       const x = sm.get(c.cdm_index);
       const rtn = x?.rtn_m || c.rtn_m;
-      return { ttca_d: r3(c.ttca_d ?? x?.ttca_d), rtn_m: rtn ? rtn.map(r3) : null, sigma_comb_m: x?.sigma_comb_m ? x.sigma_comb_m.map(r3) : null };
+      const sg = c.sigma_comb_m || x?.sigma_comb_m;  // sent with cdm.received; the /rtn fetch is a fallback
+      return { ttca_d: r3(c.ttca_d ?? x?.ttca_d), rtn_m: rtn ? rtn.map(r3) : null, sigma_comb_m: sg ? sg.map((v) => (v == null ? null : r3(v))) : null };
     }).filter((c) => c.rtn_m && c.ttca_d != null);
     this.card.draw('rtnPlot', [{ key: e.key, cdms: rows }]);
   }
