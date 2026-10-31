@@ -1,0 +1,67 @@
+{
+ "model_version": "conformal-1.0",
+ "rule": "alert if p_critical >= tau (class-conditional split conformal on critical events; guarantee: P(alert | final CRITICAL) >= target, marginal over exchangeable events)",
+ "calibration": "by-mission out-of-fold scores of the 551 final-critical eligible train events",
+ "thresholds": {
+  "futures_mc": {
+   "recall_0.95": {
+    "tau": 0.06709999591112137,
+    "mondrian_by_latest_tier": {
+     "SAFE": 0.0,
+     "ELEVATED": 0.009099999442696571,
+     "CRITICAL": 0.5352999567985535
+    },
+    "n_cal_critical": 551
+   },
+   "recall_0.90": {
+    "tau": 0.2092999964952469,
+    "mondrian_by_latest_tier": {
+     "SAFE": 0.00019999999494757503,
+     "ELEVATED": 0.01589999906718731,
+     "CRITICAL": 0.6083999872207642
+    },
+    "n_cal_critical": 551
+   }
+  },
+  "lgbm_A13": {
+   "recall_0.95": {
+    "tau": 0.039569286817927,
+    "mondrian_by_latest_tier": {
+     "SAFE": 0.0,
+     "ELEVATED": 0.009678405232611972,
+     "CRITICAL": 0.5037223905760316
+    },
+    "n_cal_critical": 551
+   },
+   "recall_0.90": {
+    "tau": 0.145299511919162,
+    "mondrian_by_latest_tier": {
+     "SAFE": 0.0007315861531994287,
+     "ELEVATED": 0.026169675705416055,
+     "CRITICAL": 0.6318403738809841
+    },
+    "n_cal_critical": 551
+   }
+  },
+  "hgb_A13": {
+   "recall_0.95": {
+    "tau": 5.144895409673945e-05,
+    "mondrian_by_latest_tier": {
+     "SAFE": 0.0,
+     "ELEVATED": 4.520704140644375e-06,
+     "CRITICAL": 0.26353168633616125
+    },
+    "n_cal_critical": 551
+   },
+   "recall_0.90": {
+    "tau": 0.001975678921597,
+    "mondrian_by_latest_tier": {
+     "SAFE": 2.594900948740266e-09,
+     "ELEVATED": 1.4282618760082981e-05,
+     "CRITICAL": 0.8023706436081258
+    },
+    "n_cal_critical": 551
+   }
+  }
+ }
+}

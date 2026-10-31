@@ -1,0 +1,90 @@
+{
+ "cost_assumptions": {
+  "prep_crit": 5.0,
+  "prep_safe": 8.0,
+  "late": 10.0,
+  "track": 1.0,
+  "miss": 100.0,
+  "mcp_d": 1.0
+ },
+ "folds": [],
+ "policies": {
+  "dp_real": {
+   "mean_loss": 0.9932473170143494,
+   "ci95": [
+    0.9289702158446883,
+    1.065398528879778
+   ],
+   "missed_crit": 3,
+   "prepares": 1164,
+   "prepares_noncrit": 616,
+   "prepares_late": 26,
+   "tracking_requests": 9
+  },
+  "dp_real_sim": {
+   "mean_loss": 0.858917159049801,
+   "ci95": [
+    0.810915832629929,
+    0.9130712649222236
+   ],
+   "missed_crit": 0,
+   "prepares": 1052,
+   "prepares_noncrit": 501,
+   "prepares_late": 36,
+   "tracking_requests": 0
+  },
+  "brief_rule": {
+   "mean_loss": 3.896056915470879,
+   "ci95": [
+    3.7655794043168935,
+    4.0318521644760645
+   ],
+   "missed_crit": 0,
+   "prepares": 1201,
+   "prepares_noncrit": 650,
+   "prepares_late": 19,
+   "tracking_requests": 24165
+  },
+  "prepare_if_critical": {
+   "mean_loss": 1.0385867599180032,
+   "ci95": [
+    0.9877547329072712,
+    1.0959875798866514
+   ],
+   "missed_crit": 0,
+   "prepares": 1252,
+   "prepares_noncrit": 701,
+   "prepares_late": 25,
+   "tracking_requests": 0
+  },
+  "oneshot_4_4": {
+   "mean_loss": 3.896056915470879,
+   "ci95": [
+    3.7568581936573016,
+    4.036187145785603
+   ],
+   "missed_crit": 0,
+   "prepares": 1201,
+   "prepares_noncrit": 650,
+   "prepares_late": 19,
+   "tracking_requests": 24165
+  },
+  "oracle": {
+   "mean_loss": 0.3322078861690582,
+   "ci95": [
+    0.30628240684914987,
+    0.3605450379838418
+   ],
+   "note": "perfect foresight: prepare at first CDM iff final critical (lower bound)"
+  },
+  "never": {
+   "mean_loss": 6.644157723381165,
+   "ci95": [
+    6.08947304955987,
+    7.175027131315567
+   ]
+  }
+ },
+ "n_heldout_events": 8293,
+ "n_crit": 551
+}

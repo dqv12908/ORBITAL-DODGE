@@ -1,0 +1,9 @@
+[58s] features {'A13': (8293, 84), 'ALL': (8293, 233)} crit 551
+[58s] persistence done
+[155s] HGB done
+[I 2026-10-31 03:59:06,165] A new study created in memory with name: no-name-47f47422-52e0-4530-8658-b7a906b886e5
+[368s] A13 best logloss 0.1899 {'learning_rate': 0.010154707157749885, 'num_leaves': 19, 'min_data_in_leaf': 82, 'feature_fraction': 0.3902844474414949, 'bagging_fraction': 0.8637583914186086, 'lambda_l2': 2.917637665673069, 'n_estimators': 436, 'bagging_freq': 1}
+[851s] ALL best logloss 0.1814 {'learning_rate': 0.02234161411358251, 'num_leaves': 46, 'min_data_in_leaf': 113, 'feature_fraction': 0.3663858758604592, 'bagging_fraction': 0.9973148587744586, 'lambda_l2': 0.05108037256564331, 'n_estimators': 175, 'bagging_freq': 1}
+[1513s] lgbm A13 done
+[1795s] lgbm ALL done
+[1795s] saved
