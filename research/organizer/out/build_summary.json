@@ -1,0 +1,34 @@
+{
+ "n_usable": 11942,
+ "tiers_safe_elev_crit": [
+  8946,
+  2162,
+  834
+ ],
+ "label_mismatches_vs_organizer": 0,
+ "subpop_counts": {
+  "final_lt1d": 8293,
+  "final_1to2d": 599,
+  "final_ge2d": 3050
+ },
+ "subpop_crit": {
+  "final_lt1d": 551,
+  "final_1to2d": 39,
+  "final_ge2d": 244
+ },
+ "persistence_exact_on_ge2d": true,
+ "n_missions": 19,
+ "n_test": 2167,
+ "test_missions_seen_in_train": true,
+ "test_latest_ttca_quantiles": [
+  2.0,
+  2.095,
+  2.187,
+  2.287,
+  6.873
+ ],
+ "n_features": {
+  "A13": 84,
+  "ALL": 233
+ }
+}

@@ -1,0 +1,50 @@
+{
+ "model": "lgbm_all",
+ "train_pop": "organizer",
+ "n_train": 11942,
+ "threshold": 0.06339413568291255,
+ "threshold_info": {
+  "inner_recall": 0.9544364508393285,
+  "inner_cost_per_1000": 71.67978563054766
+ },
+ "params": {
+  "learning_rate": 0.02234161411358251,
+  "num_leaves": 46,
+  "min_data_in_leaf": 113,
+  "feature_fraction": 0.3663858758604592,
+  "bagging_fraction": 0.9973148587744586,
+  "lambda_l2": 0.05108037256564331,
+  "n_estimators": 175,
+  "bagging_freq": 1
+ },
+ "feature_set": "ALL",
+ "n_features": 233,
+ "top_features_gain": {
+  "last_miss_distance": 104767.5,
+  "last_log_miss": 50650.0,
+  "min_miss_distance": 28363.1,
+  "min_log_miss": 21721.5,
+  "max_miss_distance": 18471.7,
+  "max_log_miss": 17976.1,
+  "last_risk": 8554.1,
+  "dall_log_miss": 6294.6,
+  "dall_miss_distance": 4558.9,
+  "min_risk": 4542.5,
+  "last_relative_position_n": 2831.4,
+  "last_relative_position_t": 2733.7,
+  "slope_miss_distance": 2311.3,
+  "last_max_risk_estimate": 2189.6,
+  "last_max_risk_scaling": 2059.1
+ },
+ "test_pred_counts": {
+  "Safe": 1512,
+  "Elevated": 480,
+  "Critical": 175
+ },
+ "test_alerts": 287,
+ "test_persistence_counts": {
+  "Safe": 1481,
+  "Elevated": 500,
+  "Critical": 186
+ }
+}
