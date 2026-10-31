@@ -1,0 +1,186 @@
+{
+ "split": "mission",
+ "wall_s": 395.18933844566345,
+ "fits": [
+  {
+   "split": "mission",
+   "fold": 0,
+   "target": "crit",
+   "fit_s": 49.8,
+   "interactions": [
+    "last_relative_speed & last_relative_position_n",
+    "last_relative_position_t & last_c_sigma_r",
+    "last_relative_position_t & last_sig_r_comb",
+    "last_relative_position_t & max_miss_distance",
+    "last_relative_position_t & min_relative_position_r",
+    "last_relative_position_t & min_c_sigma_r",
+    "last_relative_position_t & max_log_miss",
+    "last_relative_position_t & min_sig_r_comb",
+    "last_relative_position_n & max_relative_speed",
+    "max_relative_position_r & max_relative_position_t"
+   ]
+  },
+  {
+   "split": "mission",
+   "fold": 0,
+   "target": "ge",
+   "fit_s": 76.5,
+   "interactions": [
+    "last_miss_distance & first_ttca",
+    "last_miss_distance & d1_miss_distance",
+    "last_miss_distance & d1_relative_position_t",
+    "last_miss_distance & std_relative_position_t",
+    "last_miss_distance & d1_log_miss",
+    "last_log_miss & first_ttca",
+    "last_log_miss & d1_miss_distance",
+    "last_log_miss & d1_relative_position_t",
+    "last_log_miss & std_relative_position_t",
+    "last_log_miss & d1_log_miss"
+   ]
+  },
+  {
+   "split": "mission",
+   "fold": 1,
+   "target": "crit",
+   "fit_s": 42.4,
+   "interactions": [
+    "last_relative_position_t & last_c_sigma_r",
+    "last_relative_position_t & last_sig_r_comb",
+    "last_relative_position_t & max_miss_distance",
+    "last_relative_position_t & min_c_sigma_r",
+    "last_relative_position_t & max_log_miss",
+    "last_relative_position_t & min_sig_r_comb",
+    "last_relative_position_t & max_sig_r_comb",
+    "last_relative_position_t & max_r_over_sig",
+    "max_miss_distance & max_relative_position_t",
+    "max_relative_position_t & max_log_miss"
+   ]
+  },
+  {
+   "split": "mission",
+   "fold": 1,
+   "target": "ge",
+   "fit_s": 55.4,
+   "interactions": [
+    "last_miss_distance & last_c_sigma_r",
+    "last_miss_distance & d1_miss_distance",
+    "last_miss_distance & min_c_sigma_r",
+    "last_miss_distance & d1_log_miss",
+    "last_miss_distance & min_sig_r_comb",
+    "last_c_sigma_r & last_log_miss",
+    "last_log_miss & d1_miss_distance",
+    "last_log_miss & min_c_sigma_r",
+    "last_log_miss & d1_log_miss",
+    "last_log_miss & min_sig_r_comb"
+   ]
+  },
+  {
+   "split": "mission",
+   "fold": 2,
+   "target": "crit",
+   "fit_s": 44.3,
+   "interactions": [
+    "last_miss_distance & min_miss_distance",
+    "last_miss_distance & min_log_miss",
+    "last_relative_position_t & last_F10",
+    "last_F10 & min_relative_position_r",
+    "last_F10 & min_relative_position_t",
+    "last_log_miss & min_miss_distance",
+    "last_log_miss & min_log_miss",
+    "max_miss_distance & min_log_miss",
+    "min_relative_position_r & min_relative_position_t",
+    "min_log_miss & max_log_miss"
+   ]
+  },
+  {
+   "split": "mission",
+   "fold": 2,
+   "target": "ge",
+   "fit_s": 33.7,
+   "interactions": [
+    "last_miss_distance & d1_miss_distance",
+    "last_miss_distance & d1_relative_position_t",
+    "last_miss_distance & slope_relative_position_t",
+    "last_miss_distance & d1_log_miss",
+    "last_log_miss & d1_miss_distance",
+    "last_log_miss & d1_relative_position_t",
+    "last_log_miss & std_relative_position_t",
+    "last_log_miss & slope_relative_position_t",
+    "last_log_miss & d1_log_miss",
+    "d1_relative_position_r & min_relative_position_t"
+   ]
+  },
+  {
+   "split": "mission",
+   "fold": 3,
+   "target": "crit",
+   "fit_s": 28.1,
+   "interactions": [
+    "last_relative_position_r & last_F10",
+    "last_relative_position_t & last_c_sigma_r",
+    "last_relative_position_t & last_sig_r_comb",
+    "last_relative_position_t & max_miss_distance",
+    "last_relative_position_t & min_c_sigma_r",
+    "last_relative_position_t & max_log_miss",
+    "last_relative_position_t & min_sig_r_comb",
+    "last_relative_position_t & max_r_over_sig",
+    "last_F10 & min_relative_position_r",
+    "min_relative_position_t & max_r_over_sig"
+   ]
+  },
+  {
+   "split": "mission",
+   "fold": 3,
+   "target": "ge",
+   "fit_s": 35.2,
+   "interactions": [
+    "last_miss_distance & dall_r_over_sig",
+    "last_relative_position_t & last_sig_r_comb",
+    "last_relative_position_t & min_sig_r_comb",
+    "last_log_miss & dall_r_over_sig",
+    "last_sig_r_comb & min_relative_position_t",
+    "last_sig_r_comb & max_relative_position_n",
+    "last_sig_r_comb & max_log_miss",
+    "min_miss_distance & min_sig_r_comb",
+    "min_relative_position_t & min_sig_r_comb",
+    "min_log_miss & min_sig_r_comb"
+   ]
+  },
+  {
+   "split": "mission",
+   "fold": 4,
+   "target": "crit",
+   "fit_s": 27.0,
+   "interactions": [
+    "last_time_to_tca & last_relative_speed",
+    "last_time_to_tca & last_relative_position_t",
+    "last_time_to_tca & min_relative_speed",
+    "last_time_to_tca & max_relative_speed",
+    "last_time_to_tca & min_relative_position_t",
+    "last_relative_speed & max_relative_position_n",
+    "last_relative_position_n & dall_relative_position_r",
+    "min_relative_speed & max_relative_position_n",
+    "max_relative_speed & max_relative_position_n",
+    "dall_relative_position_r & min_relative_position_n"
+   ]
+  },
+  {
+   "split": "mission",
+   "fold": 4,
+   "target": "ge",
+   "fit_s": 22.2,
+   "interactions": [
+    "last_miss_distance & last_c_sigma_r",
+    "last_miss_distance & d1_miss_distance",
+    "last_miss_distance & min_c_sigma_r",
+    "last_miss_distance & min_sig_r_comb",
+    "last_miss_distance & max_r_over_sig",
+    "last_c_sigma_r & last_log_miss",
+    "last_log_miss & d1_miss_distance",
+    "last_log_miss & min_c_sigma_r",
+    "last_log_miss & min_sig_r_comb",
+    "last_log_miss & max_r_over_sig"
+   ]
+  }
+ ]
+}

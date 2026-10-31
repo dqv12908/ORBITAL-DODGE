@@ -74,6 +74,8 @@ class Sim:
                          "refusals": 0, "llm_verified": 0, "llm_rejected": 0, "degraded": 0}
         self.decisions_log: list[dict] = []
         self.outcomes: list[dict] = []
+        self._preempt = False  # a scenario load is waiting: stop advancing, cancel the in-flight AI call
+        self._ai_task: asyncio.Task | None = None
         bus.sim_time_fn = lambda: iso(self.sim_time)
         bus.snapshot_fn = self.state
         bus.ledger_refs_fn = self._refs
@@ -123,19 +125,46 @@ class Sim:
         sc = next((s for s in self.catalogue if s["id"] == sid), None)
         if sc is None:
             raise KeyError(sid)
+        # pre-empt the running pipeline: the realtime loop stops between CDMs and an in-flight AI call is cancelled
+        self._preempt = True
+        if self._ai_task is not None and not self._ai_task.done():
+            self._ai_task.cancel()
         try:
             await asyncio.wait_for(self.lock.acquire(), timeout=wait_s)
         except asyncio.TimeoutError:
+            self._preempt = False
             raise SimBusy("pipeline busy (AI call in flight); retry shortly")
         try:
+            self._preempt = False
             await self._load(sc, seed)
         finally:
             self.lock.release()
         return self.state()
 
+    def _prepare(self, sc: dict, seed: int) -> tuple[dict, list, list]:
+        """CPU/IO part of a scenario load (runs in a worker thread): resolve the cast, fetch rows + meta once,
+        build the release schedule, batch the live forecasts."""
+        r = resolve(sc, self.engine, seed)
+        evs, sched = [], []
+        for c in r["cast"]:
+            rows = self.engine.event_rows(c["event_key"])
+            tca = parse_ts(c["tca_sim"])
+            ev = EventState(c["event_key"], c.get("role", "focal"), tca, rows, self.engine.event_meta(c["event_key"]))
+            evs.append(ev)
+            for i, row in enumerate(rows):
+                t = tca - days(fnum(row.get("time_to_tca")) or 0.0)
+                if t > tca:
+                    t = tca
+                sched.append((t, 0, ev.key, i))
+            sched.append((tca, 1, ev.key, -1))
+        sched.sort(key=lambda x: (x[0], x[1], x[2], x[3]))
+        self.engine._load_bakeoff()
+        self.engine.prepare_forecasts([e.key for e in evs], (r.get("policy") or {}).get("tau_watch", self.policy["tau_watch"]))
+        return r, evs, sched
+
     async def _load(self, sc: dict, seed: int | None) -> None:
         seed = int(seed if seed is not None else (sc.get("seed") or self.s.seed))
-        r = resolve(sc, self.engine, seed)
+        r, evs, sched = await asyncio.to_thread(self._prepare, sc, seed)
         self.scenario = r
         self.run_id = uid(f"run:{r['id']}:{seed}")
         self.approvals.reset()
@@ -150,21 +179,7 @@ class Sim:
         self.policy_version = pol.policy_version(self.policy)
         self.sim_time = parse_ts(r["d0_sim"])
         self.paused = True
-        sched = []
-        for c in r["cast"]:
-            rows = self.engine.event_rows(c["event_key"])
-            tca = parse_ts(c["tca_sim"])
-            ev = EventState(c["event_key"], c.get("role", "focal"), tca, rows, self.engine.event_meta(c["event_key"]))
-            self.events[ev.key] = ev
-            for i, row in enumerate(rows):
-                t = tca - days(fnum(row.get("time_to_tca")) or 0.0)
-                if t > tca:
-                    t = tca
-                sched.append((t, 0, ev.key, i))
-            sched.append((tca, 1, ev.key, -1))
-        sched.sort(key=lambda x: (x[0], x[1], x[2], x[3]))
-        self.engine._load_bakeoff()
-        await asyncio.to_thread(self.engine.prepare_forecasts, list(self.events), self.policy["tau_watch"])
+        self.events = {ev.key: ev for ev in evs}
         self.schedule = sched
         self.ptr = 0
         preload_until = parse_ts(r.get("preload_until_sim") or r["d0_sim"])
@@ -177,12 +192,18 @@ class Sim:
         self.logline("INFO", "SCN", f"Scenario {r['id']} loaded · {len(r['cast'])} events · seed {seed}")
         for deg in self.engine.degraded:
             self.degraded(deg["component"], deg["reason"], deg["fallback"])
-        # preload history silently (rules only, no decisions or approvals)
-        while self.ptr < len(self.schedule) and self.schedule[self.ptr][0] <= preload_until:
-            t, kind, key, idx = self.schedule[self.ptr]
-            self.ptr += 1
-            if kind == 0:
-                await self._cdm(self.events[key], idx, t, preload=True)
+        # preload history silently (physics + rules + forecast only: no decisions, no LLM, no approvals), in one
+        # ledger transaction, yielding to the event loop every few CDMs so the API stays responsive
+        n = 0
+        with self.ledger.transaction():
+            while self.ptr < len(self.schedule) and self.schedule[self.ptr][0] <= preload_until:
+                t, kind, key, idx = self.schedule[self.ptr]
+                self.ptr += 1
+                if kind == 0:
+                    await self._cdm(self.events[key], idx, t, preload=True)
+                    n += 1
+                    if n % 25 == 0:
+                        await asyncio.sleep(0)
         if preload_until > self.sim_time:
             self.sim_time = preload_until
 
@@ -222,6 +243,8 @@ class Sim:
 
     async def _advance_to(self, target: datetime, *, ignore_holds: bool = False) -> None:
         while self.ptr < len(self.schedule) and self.schedule[self.ptr][0] <= target:
+            if self._preempt:
+                return
             if self.held and not ignore_holds:
                 return
             t, kind, key, idx = self.schedule[self.ptr]
@@ -232,6 +255,9 @@ class Sim:
                 await self._cdm(ev, idx, t)
             else:
                 await self._outcome(ev, t)
+            await asyncio.sleep(0)  # let API requests in between CDMs
+        if self._preempt:
+            return
         if not (self.held and not ignore_holds):
             self.sim_time = max(self.sim_time, target)
 
@@ -332,7 +358,9 @@ class Sim:
                                          "p_tiers": fc.get("p_tiers"), "p_critical": fc.get("p_critical"),
                                          "calib_bin": fc.get("calib_bin"), "baseline": fc.get("baseline"),
                                          "watch": watch, "rank": self._rank(key, fc),
-                                         "fallback": bool(fc.get("fallback"))}, actor="ml")
+                                         "fallback": bool(fc.get("fallback")),
+                                         **{k: fc[k] for k in ("alert_threshold", "cost_ratio_R", "alert") if k in fc}},
+                actor="ml")
                 if not preload:
                     self.logline("WARN" if watch else "INFO", "FCST",
                                  f"{key} chance this ends CRITICAL {fmt_pct(fc.get('p_critical'))} · persistence "
@@ -363,12 +391,22 @@ class Sim:
             put("explanation.ready", {"cdm_id": cdm_id, "source": "template", "verified": True,
                                       "headline": tpl["headline"], "text": tpl["text"]}, actor="llm")
             return
-        # flagged: hold the clock while the AI layers work
+        # flagged: hold the clock while the AI layers work (as a task, so a scenario load can cancel it)
         self.holds["ai"] = time.monotonic()
+        task = asyncio.ensure_future(self._decide(ev, idx, at, rec, facts, g, fc, tier, put))
+        self._ai_task = task
         try:
-            await self._decide(ev, idx, at, rec, facts, g, fc, tier, put)
+            await asyncio.wait({task})
+        except asyncio.CancelledError:
+            task.cancel()
+            raise
         finally:
+            self._ai_task = None
             self.holds.pop("ai", None)
+        if task.cancelled():
+            log.info("ai_call_cancelled", event_key=key, cdm_index=idx)
+            return
+        task.result()
 
     def _rank(self, key: str, fc: dict) -> int:
         p = fc.get("p_critical") or 0.0
@@ -540,20 +578,35 @@ class Sim:
             self._rerun_rules()
         return {"policy": new, "version": self.policy_version, "diff": diff}
 
-    def _rerun_rules(self) -> None:
-        """Tier mode changed: rules re-run server-side on every released CDM; markers re-colour."""
+    def _rerun_rules(self) -> int:
+        """Tier mode changed: rules re-run server-side on every released CDM of the current scenario; one
+        risk.assessed (rerun=True) per event carries its latest CDM's new tier so the markers re-colour."""
+        mode = self.policy["tier_mode"]
+        n_changed = 0
         for ev in self.events.values():
+            last = None
             for rec in ev.released:
-                if "pc" not in rec:
+                if "pc" not in rec or "row" not in rec:
                     continue
-                tier, src = self.engine.assess(rec["row"], rec["pc"], self.policy["tier_mode"])
+                old = (rec.get("tier") or {}).get("tier")
+                tier, src = self.engine.assess(rec["row"], rec["pc"], mode)
                 rec["tier"] = tier
-            if ev.released and "tier" in ev.released[-1]:
-                rec = ev.released[-1]
-                self.emit("risk.assessed", {"cdm_id": rec["cdm_id"], "cdm_index": rec["cdm_index"], "pc": rec["pc"],
-                                            "reported_log10": rec.get("reported_log10"),
-                                            "disagree_dex": None, "tier": rec["tier"],
-                                            "rerun": True, "source": {"rules": src}}, ev.key, actor="engine")
+                rec["rules_src"] = src
+                last = rec
+                if rec is ev.released[-1] and old != tier["tier"]:
+                    n_changed += 1
+            if last is not None:
+                pc = last["pc"]
+                reported = last.get("reported_log10")
+                disagree = abs(pc["log10"] - reported) if (pc.get("log10") is not None and reported is not None) else None
+                self.emit("risk.assessed", {"cdm_id": last["cdm_id"], "cdm_index": last["cdm_index"], "pc": pc,
+                                            "reported_log10": reported, "disagree_dex": disagree, "tier": last["tier"],
+                                            "rerun": True, "tier_mode": mode,
+                                            "source": {"pc": "unchanged", "rules": last.get("rules_src")}},
+                          ev.key, actor="engine")
+        self.logline("INFO", "TIER", f"Tier mode {mode}: rules re-run on {sum(len(e.released) for e in self.events.values())} "
+                                     f"released CDMs · {n_changed} event tier{'s' if n_changed != 1 else ''} changed")
+        return n_changed
 
     # ------------------------------------------------------------------ views
     def event_summary(self, ev: EventState) -> dict:

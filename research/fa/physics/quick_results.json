@@ -1,0 +1,26 @@
+{
+ "lgbm_all_phys": {
+  "8020": {
+   "recall": 0.9354,
+   "FA": 80.6,
+   "cost_per_1000": 77.2708
+  },
+  "mission": {
+   "recall": 0.9508,
+   "FA": 438,
+   "cost_per_1000": 71.01
+  }
+ },
+ "lgbm_all_phys_fut": {
+  "8020": {
+   "recall": 0.939,
+   "FA": 95.8,
+   "cost_per_1000": 81.1218
+  },
+  "mission": {
+   "recall": 0.9424,
+   "FA": 401,
+   "cost_per_1000": 73.77
+  }
+ }
+}

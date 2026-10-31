@@ -61,7 +61,8 @@ async def conjunction(event_key: str, request: Request):
 @router.get("/conjunctions/{event_key}/geometry")
 async def geometry(event_key: str, request: Request):
     sim, ev = _event(request, _key(event_key))
-    g = sim.engine.geometry(ev.key) or {}
+    import asyncio
+    g = await asyncio.to_thread(sim.engine.geometry, ev.key) or {}
     released = {r["cdm_index"] for r in ev.released}
     planes = g.pop("encounter_plane", None)
     if planes is None:

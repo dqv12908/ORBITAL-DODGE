@@ -1,0 +1,41 @@
+{
+ "name": "tabpfn",
+ "fs": "A13",
+ "split": "event",
+ "device": "cuda:1",
+ "gpu_name": "Tesla V100-SXM2-16GB",
+ "n_estimators": 8,
+ "total_secs": 611.2,
+ "folds": [
+  {
+   "fold": 0,
+   "n_train": 6634,
+   "n_test": 1659,
+   "secs": 108.7
+  },
+  {
+   "fold": 1,
+   "n_train": 6634,
+   "n_test": 1659,
+   "secs": 45.3
+  },
+  {
+   "fold": 2,
+   "n_train": 6634,
+   "n_test": 1659,
+   "secs": 93.5
+  },
+  {
+   "fold": 3,
+   "n_train": 6635,
+   "n_test": 1658,
+   "secs": 247.1
+  },
+  {
+   "fold": 4,
+   "n_train": 6635,
+   "n_test": 1658,
+   "secs": 116.0
+  }
+ ]
+}

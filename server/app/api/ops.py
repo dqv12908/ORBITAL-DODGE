@@ -111,7 +111,8 @@ async def ledger(request: Request, after: int = 0, limit: int = 200, event_key: 
 
 @router.get("/ledger/verify")
 async def ledger_verify(request: Request):
-    return jresp(ctx(request).ledger.verify())
+    import asyncio
+    return jresp(await asyncio.to_thread(ctx(request).ledger.verify))
 
 
 @router.get("/ledger.jsonl")

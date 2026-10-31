@@ -1,0 +1,41 @@
+{
+ "name": "tabpfn",
+ "fs": "A13",
+ "split": "mission",
+ "device": "cuda:3",
+ "gpu_name": "NVIDIA GeForce RTX 2060",
+ "n_estimators": 8,
+ "total_secs": 727.0,
+ "folds": [
+  {
+   "fold": 0,
+   "n_train": 6653,
+   "n_test": 1640,
+   "secs": 134.3
+  },
+  {
+   "fold": 1,
+   "n_train": 6655,
+   "n_test": 1638,
+   "secs": 101.5
+  },
+  {
+   "fold": 2,
+   "n_train": 6653,
+   "n_test": 1640,
+   "secs": 260.1
+  },
+  {
+   "fold": 3,
+   "n_train": 6629,
+   "n_test": 1664,
+   "secs": 126.3
+  },
+  {
+   "fold": 4,
+   "n_train": 6582,
+   "n_test": 1711,
+   "secs": 104.8
+  }
+ ]
+}

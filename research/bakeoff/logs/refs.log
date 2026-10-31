@@ -1,0 +1,6 @@
+event A13 best iters [99, 128, 114, 103, 106]
+event ALL best iters [98, 136, 100, 111, 122]
+event done in 58.6 s
+mission A13 best iters [88, 99, 99, 125, 108]
+mission ALL best iters [111, 107, 103, 131, 101]
+mission done in 56.8 s

@@ -278,7 +278,14 @@ class Engine:
         self.lock = threading.RLock()
         self.df = None
         self.by_event: dict[str, np.ndarray] = {}
-        self.pc_rows: dict[tuple[str, int], dict] = {}
+        self.pc_rows_n = 0
+        self._pcr: dict[str, np.ndarray] = {}
+        self._pcr_idx: dict[str, np.ndarray] = {}
+        self._rows_cache: dict[str, list[dict]] = {}
+        self._geo_cache: dict[str, dict] = {}
+        self.pred_sources: dict[str, dict] = {}
+        self._pred_mtimes: dict[str, float] = {}
+        self.oof: dict[str, dict] = {}
         self.events_meta: dict[str, dict] = {}
         self.geometry_rows: dict[str, dict] = {}
         self.forecaster = None
@@ -303,10 +310,12 @@ class Engine:
             self._load_events()
             self._load_geometry()
             self._load_forecaster()
+            self._load_oof()
             self._load_bakeoff()
+            self._warm_geometry()
             self.loaded = True
-            log.info("engine_loaded", data=self.data_source, events=len(self.by_event), pc_rows=len(self.pc_rows),
-                     forecaster=self.forecaster_version)
+            log.info("engine_loaded", data=self.data_source, events=len(self.by_event), pc_rows=self.pc_rows_n,
+                     forecaster=self.forecaster_version, forecast_sources=list(self.pred_sources))
 
     def _degrade(self, component: str, reason: str, fallback: str) -> None:
         self.degraded.append({"component": component, "reason": reason, "fallback": fallback})
@@ -377,19 +386,37 @@ class Engine:
         self._degrade("engine.data", "data/processed/cdm_clean.parquet missing", "raw CSV cleaned by backend adapter")
         return df
 
+    PC_COLS = ("event_key", "cdm_index", "pc_status", "log10_pc", "hbr_m", "sigma_x", "sigma_y", "theta_deg",
+               "mahalanobis", "k_star", "log10_pc_max", "miss_x", "miss_y")
+
     def _load_pc_rows(self) -> None:
+        """pc_rows.parquet kept columnar (numpy per column) + event_key -> row positions; one dict per lookup."""
         import pandas as pd
         p = self.s.processed_dir / "pc_rows.parquet"
-        self.pc_rows = {}
+        self._pcr, self._pcr_idx, self.pc_rows_n = {}, {}, 0
         if not p.exists():
             self._degrade("engine.pc_rows", "pc_rows.parquet missing", "live Pc per CDM")
             return
         try:
-            d = pd.read_parquet(p)
-            for rec in d.to_dict("records"):
-                self.pc_rows[(rec["event_key"], int(rec["cdm_index"]))] = rec
+            import pyarrow.parquet as pq
+            names = set(pq.read_schema(p).names)
+            d = pd.read_parquet(p, columns=[c for c in self.PC_COLS if c in names])
+            d = d.sort_values(["event_key", "cdm_index"], kind="stable").reset_index(drop=True)
+            self._pcr = {c: d[c].to_numpy() for c in d.columns if c != "event_key"}
+            self._pcr_idx = {k: np.asarray(v) for k, v in d.groupby("event_key", sort=False).indices.items()}
+            self.pc_rows_n = len(d)
         except Exception as e:
             self._degrade("engine.pc_rows", f"unreadable: {e}", "live Pc per CDM")
+
+    def _pc_rec(self, key: str, cdm_index: int) -> dict | None:
+        pos = self._pcr_idx.get(key)
+        if pos is None:
+            return None
+        hit = np.nonzero(self._pcr["cdm_index"][pos] == int(cdm_index))[0]
+        if not len(hit):
+            return None
+        i = int(pos[hit[0]])
+        return {c: (a[i].item() if hasattr(a[i], "item") else a[i]) for c, a in self._pcr.items()}
 
     def _load_events(self) -> None:
         import pandas as pd
@@ -447,18 +474,27 @@ class Engine:
         return key in self.by_event
 
     def event_rows(self, key: str) -> list[dict]:
-        idx = self.by_event.get(key)
-        if idx is None:
-            return []
-        recs = self.df.iloc[idx].to_dict("records")
-        recs.sort(key=lambda r: int(r.get("cdm_index", 0)))
-        return recs
+        """CDM rows of one event (dicts of Python scalars), built once per event and cached. Treat as read-only."""
+        recs = self._rows_cache.get(key)
+        if recs is None:
+            idx = self.by_event.get(key)
+            if idx is None:
+                return []
+            sub = self.df.iloc[idx]
+            cols = list(sub.columns)
+            vals = [sub[c].tolist() for c in cols]
+            recs = [dict(zip(cols, t)) for t in zip(*vals)]
+            recs.sort(key=lambda r: int(r.get("cdm_index", 0)))
+            if len(self._rows_cache) > 4096:
+                self._rows_cache.clear()
+            self._rows_cache[key] = recs
+        return list(recs)
 
     def event_keys(self) -> list[str]:
         return list(self.by_event.keys())
 
     def pc_for(self, key: str, cdm_index: int, row: dict) -> tuple[dict, str]:
-        rec = self.pc_rows.get((key, int(cdm_index)))
+        rec = self._pc_rec(key, int(cdm_index))
         if rec is not None:
             return self._pc_from_rec(rec), "precomputed"
         mod = self.mods.get("riskengine.pc")
@@ -545,34 +581,143 @@ class Engine:
         return t
 
     # ---- forecast sources --------------------------------------------------
-    def _load_bakeoff(self) -> None:
-        """registry/forecaster_bakeoff predictions (per event), preferred at the T-2 d CDM when present."""
-        import pandas as pd
-        base = self.s.repo_dir / "registry" / "forecaster_bakeoff"
-        cands = [base / "predictions.parquet"]
+    # Honest forecast at the T-2 d CDM, in order of preference (first that has the event wins):
+    #   0. registry/forecaster_organizer (served: organizer-population LightGBM, held-out-mission OOF + test)
+    #   1. registry/forecaster_cost   (by-mission nested outer-test predictions; carries alert threshold + cost ratio R)
+    #   2. registry/forecaster_bakeoff
+    #   3. tier_forecaster out-of-fold (events.parquet p_* with p_source oof_by_event, else tier_forecaster oof.parquet)
+    # The live model is used only for events it never trained on (never for train:*); otherwise persistence-empirical.
+    PRED_SOURCES = ("forecaster_organizer", "forecaster_cost", "forecaster_bakeoff")
+    PRED_LABEL = {"forecaster_organizer": "forecaster_organizer (held-out mission, organizer labels)",
+                  "forecaster_cost": "forecaster_cost (by-mission nested outer-test)",
+                  "forecaster_bakeoff": "forecaster_bakeoff (held-out)"}
+
+    def _pred_dir(self, base: Path) -> Path | None:
         if (base / "CURRENT").exists():
-            cands.insert(0, base / (base / "CURRENT").read_text().strip() / "predictions.parquet")
-        for p in cands:
-            if p.exists():
-                try:
-                    mt = p.stat().st_mtime
-                    if getattr(self, "_bakeoff_mtime", None) == mt:
-                        return
-                    d = pd.read_parquet(p)
-                    self.bakeoff = {r["event_key"]: r for r in d.to_dict("records")}
-                    self._bakeoff_mtime = mt
-                    card = p.parent / "model_card.json"
-                    name = None
-                    if card.exists():
-                        import json
-                        c = json.loads(card.read_text())
-                        name = c.get("name") or c.get("model") or c.get("winner")
-                    self.bakeoff_name = name
-                    log.info("bakeoff_loaded", n=len(self.bakeoff), model=name)
-                except Exception as e:
-                    self._degrade("model.bakeoff", f"unreadable: {e}", "tier_forecaster")
+            d = base / (base / "CURRENT").read_text().strip()
+            if (d / "predictions.parquet").exists():
+                return d
+        if (base / "1.0.0" / "predictions.parquet").exists():
+            return base / "1.0.0"
+        vers = sorted([d for d in base.glob("*") if d.is_dir() and (d / "predictions.parquet").exists()])
+        if vers:
+            return vers[-1]
+        if (base / "predictions.parquet").exists():
+            return base
+        return None
+
+    @staticmethod
+    def _first(d: dict, keys: tuple[str, ...]):
+        for k in keys:
+            if k in d and d[k] is not None:
+                v = d[k]
+                if isinstance(v, dict):  # e.g. {"value": 0.1}
+                    v = v.get("value", v.get("chosen"))
+                return v
+        return None
+
+    def _load_pred_source(self, name: str) -> None:
+        import json
+
+        import pandas as pd
+        base = self.s.repo_dir / "registry" / name
+        d = self._pred_dir(base) if base.exists() else None
+        if d is None:
+            self.pred_sources.pop(name, None)
+            self._pred_mtimes.pop(name, None)
+            return
+        p = d / "predictions.parquet"
+        try:
+            mt = p.stat().st_mtime
+            if self._pred_mtimes.get(name) == mt and name in self.pred_sources:
                 return
-        self.bakeoff = {}
+            df = pd.read_parquet(p)
+            if "event_key" not in df.columns:
+                if {"split", "event_id"} <= set(df.columns):
+                    df["event_key"] = df["split"].astype(str) + ":" + df["event_id"].astype(int).astype(str)
+                else:
+                    raise ValueError("predictions.parquet has no event_key")
+            card = {}
+            for cp in (d / "model_card.json", base / "model_card.json"):
+                if cp.exists():
+                    card = json.loads(cp.read_text())
+                    break
+            thr = self._first(card, ("alert_threshold", "threshold", "tau_alert", "tau", "decision_threshold"))
+            R = self._first(card, ("cost_ratio_R", "cost_ratio", "R"))
+            model = self._first(card, ("served_model", "winner", "model_name", "model", "name"))
+            preds = {}
+            for r in df.to_dict("records"):
+                preds[str(r["event_key"])] = r
+            self.pred_sources[name] = {"preds": preds, "model": model, "version": d.name if d != base else None,
+                                       "alert_threshold": fnum(thr), "cost_ratio_R": fnum(R), "dir": str(d)}
+            self._pred_mtimes[name] = mt
+            log.info("forecast_source_loaded", source=name, n=len(preds), model=model)
+        except Exception as e:
+            self.pred_sources.pop(name, None)
+            self._degrade(f"model.{name}", f"unreadable: {e}", "next forecast source")
+
+    def _load_bakeoff(self) -> None:
+        """(Re)load registry prediction sources (cheap when unchanged: mtime check). Name kept for callers."""
+        for name in self.PRED_SOURCES:
+            self._load_pred_source(name)
+        bo = self.pred_sources.get("forecaster_bakeoff") or {}
+        self.bakeoff = bo.get("preds") or {}
+        self.bakeoff_name = bo.get("model")
+
+    def _load_oof(self) -> None:
+        """tier_forecaster out-of-fold predictions (by event) as a fallback when events.parquet lacks them."""
+        import pandas as pd
+        self.oof = {}
+        if not self.forecaster_version:
+            cur = self.s.repo_dir / "registry" / "tier_forecaster" / "CURRENT"
+            ver = cur.read_text().strip() if cur.exists() else None
+        else:
+            ver = self.forecaster_version
+        if not ver:
+            return
+        p = self.s.repo_dir / "registry" / "tier_forecaster" / ver / "oof.parquet"
+        if not p.exists():
+            return
+        try:
+            cols = ["event_key", "p_safe_event", "p_elevated_event", "p_critical_event"]
+            d = pd.read_parquet(p, columns=cols)
+            for r in d.to_dict("records"):
+                self.oof[r["event_key"]] = {"p_safe": r["p_safe_event"], "p_elevated": r["p_elevated_event"],
+                                            "p_critical": r["p_critical_event"]}
+        except Exception as e:
+            self._degrade("model.oof", f"unreadable: {e}", "events.parquet only")
+
+    @staticmethod
+    def _probs_from(rec: dict) -> dict:
+        pc = fnum(rec.get("p_critical_calibrated"))
+        for k in ("p_critical", "p_crit", "p_critical_event", "p"):
+            if pc is None:
+                pc = fnum(rec.get(k))
+        return {"p_safe": fnum(rec.get("p_safe", rec.get("p_safe_event"))),
+                "p_elevated": fnum(rec.get("p_elevated", rec.get("p_elevated_event"))), "p_critical": pc}
+
+    def _served_source(self, key: str, k: int) -> tuple[str, dict | None]:
+        """Which forecast is honest to show at CDM k of `key`.
+
+        At the T-2 d CDM: forecaster_cost -> forecaster_bakeoff -> tier_forecaster OOF. Elsewhere on training events
+        (or any event the model trained on): persistence-empirical. The in-sample model is never served for train:*.
+        """
+        meta = self.events_meta.get(key) or {}
+        ge2 = fnum(meta.get("latest_ge2_cdm_index"))
+        at_t2 = ge2 is not None and int(ge2) == k
+        if at_t2:
+            for name in self.PRED_SOURCES:
+                src = self.pred_sources.get(name)
+                rec = (src or {}).get("preds", {}).get(key)
+                if rec is not None and self._probs_from(rec)["p_critical"] is not None:
+                    return name, rec
+            if meta.get("p_source") == "oof_by_event" and fnum(meta.get("p_critical")) is not None:
+                return "oof", meta
+            if key in self.oof and fnum(self.oof[key].get("p_critical")) is not None:
+                return "oof", self.oof[key]
+        if key.startswith("train:") or meta.get("p_source") == "oof_by_event" or key in self.oof:
+            return "persistence", None  # in-sample model values on training events would be overfit
+        return "model", None
 
     def prepare_forecasts(self, keys: list[str], tau_watch: float = 0.20) -> None:
         """Batch the live model over every CDM prefix that needs it (one feature build + one predict call)."""
@@ -605,20 +750,6 @@ class Engine:
         except Exception as e:
             log.warning("prepare_forecasts_failed", error=str(e)[:200])
 
-    def _served_source(self, key: str, k: int) -> tuple[str, dict | None]:
-        """Which forecast is honest to show at CDM k: bakeoff/OOF at the T-2 d CDM of train events, the model elsewhere."""
-        meta = self.events_meta.get(key) or {}
-        ge2 = fnum(meta.get("latest_ge2_cdm_index"))
-        at_t2 = ge2 is not None and int(ge2) == k
-        bo = (getattr(self, "bakeoff", None) or {}).get(key)
-        if bo is not None and at_t2:
-            return "bakeoff", bo
-        if meta.get("p_source") == "oof_by_event":
-            if at_t2 and fnum(meta.get("p_critical")) is not None:
-                return "oof", meta
-            return "persistence", None  # in-sample model values on training events would be overfit
-        return "model", None
-
     def forecast(self, key: str, rows: list[dict], tier_now: str, tau_watch: float = 0.20) -> dict:
         """Forecast at the latest released CDM (only valid for ttca in [2, 7] d). Never raises."""
         ttca_now = fnum(rows[-1].get("time_to_tca")) if rows else None
@@ -629,20 +760,26 @@ class Engine:
         pers = brief_tier(fnum(last.get("risk")), fnum(last.get("miss_distance")))
         base = {"persistence_tier": pers, "p_critical_empirical": P_CRIT_EMPIRICAL.get(pers, 0.053)}
         k = int(rows[-1].get("cdm_index", len(rows) - 1))
-        src, rec = self._served_source(key, k) if self.forecaster is not None or key in (getattr(self, "bakeoff", None) or {}) \
-            else ("persistence", None)
+        src, rec = self._served_source(key, k)
+        if src == "model" and self.forecaster is None:
+            src, rec = "persistence", None
         probs = None
-        model, p_source = None, None
+        model, p_source, extra = None, None, {}
         try:
-            if src == "bakeoff":
-                pc = fnum(rec.get("p_critical_calibrated"))
-                pc = pc if pc is not None else fnum(rec.get("p_critical"))
-                probs = {"p_safe": fnum(rec.get("p_safe")), "p_elevated": fnum(rec.get("p_elevated")), "p_critical": pc}
-                model = f"forecaster_bakeoff:{rec.get('model') or getattr(self, 'bakeoff_name', None) or 'winner'}"
-                p_source = f"bakeoff ({rec.get('split') or 'n/a'})"
+            if src in self.PRED_SOURCES:
+                info = self.pred_sources.get(src) or {}
+                probs = self._probs_from(rec)
+                model = f"{src}:{rec.get('model') or info.get('model') or info.get('version') or 'winner'}"
+                p_source = str(rec.get("p_source") or self.PRED_LABEL.get(src, src))
+                if src == "forecaster_bakeoff" and rec.get("split") and not rec.get("p_source"):
+                    p_source = f"forecaster_bakeoff ({rec.get('split')})"
+                thr = fnum(rec.get("alert_threshold", rec.get("threshold"))) or info.get("alert_threshold")
+                R = fnum(rec.get("cost_ratio_R", rec.get("R"))) or info.get("cost_ratio_R")
+                if src in ("forecaster_cost", "forecaster_organizer"):
+                    extra = {"alert_threshold": thr, "cost_ratio_R": R,
+                             "alert": None if thr is None or probs["p_critical"] is None else bool(probs["p_critical"] >= thr)}
             elif src == "oof":
-                probs = {"p_safe": fnum(rec.get("p_safe")), "p_elevated": fnum(rec.get("p_elevated")),
-                         "p_critical": fnum(rec.get("p_critical"))}
+                probs = self._probs_from(rec)
                 model, p_source = f"tier_forecaster:{self.forecaster_version}", "oof_by_event (out-of-fold)"
             elif src == "model":
                 probs = self.fc_cache.get((key, k))
@@ -663,7 +800,7 @@ class Engine:
             rest = 1 - p
             split = {"SAFE": (0.93, 0.07), "ELEVATED": (0.35, 0.65)}.get(pers, (0.3, 0.7))
             note = ("ML value is only shown out-of-fold at the T−2 d CDM of training events"
-                    if src == "persistence" and self.forecaster is not None else "forecast model unavailable")
+                    if src == "persistence" else "forecast model unavailable")
             return {"valid": True, "p_tiers": {"SAFE": rest * split[0], "ELEVATED": rest * split[1], "CRITICAL": p},
                     "p_critical": p, "calib_bin": None, "baseline": base,
                     "watch": bool(p >= tau_watch and pers != "CRITICAL"), "model": "persistence-empirical",
@@ -671,14 +808,14 @@ class Engine:
                     "note": note}
         p = float(probs["p_critical"])
         cb = None
-        if self.forecaster is not None:
+        if self.forecaster is not None and src in ("oof", "model"):  # reliability bins belong to tier_forecaster
             try:
                 cb = self.forecaster.calib_bin(p)
             except Exception:
                 cb = None
         return {"valid": True, "p_tiers": {"SAFE": probs.get("p_safe"), "ELEVATED": probs.get("p_elevated"), "CRITICAL": p},
                 "p_critical": p, "calib_bin": cb, "baseline": base, "watch": bool(p >= tau_watch and pers != "CRITICAL"),
-                "model": model, "model_version": model, "p_source": p_source, "fallback": False}
+                "model": model, "model_version": model, "p_source": p_source, "fallback": False, **extra}
 
     def final_outcome(self, key: str) -> dict | None:
         if key.startswith("test:") or key.startswith("adhoc:"):
@@ -700,9 +837,51 @@ class Engine:
         return {"event_key": key, "mission_id": fnum(first.get("mission_id")), "n_cdm": len(rows),
                 "c_object_type": first.get("c_object_type"), "first_ttca_d": fnum(first.get("time_to_tca")),
                 "last_ttca_d": fnum(rows[-1].get("time_to_tca")) if rows else None,
-                "p_critical_oof": fnum(meta.get("p_critical"))}
+                "p_critical_oof": fnum(meta.get("p_critical")), "forecast_t2": self._t2_summary(key, meta)}
+
+    def _t2_summary(self, key: str, meta: dict) -> dict | None:
+        """The honest value served at this event's T-2 d CDM (same chain as forecast.updated)."""
+        ge2 = fnum(meta.get("latest_ge2_cdm_index"))
+        if ge2 is None:
+            return None
+        try:
+            src, rec = self._served_source(key, int(ge2))
+            if rec is None:
+                return {"source": src, "p_critical": None}
+            out = {"source": src, "p_critical": self._probs_from(rec)["p_critical"]}
+            if src in self.PRED_SOURCES:
+                info = self.pred_sources.get(src) or {}
+                out["model"] = f"{src}:{rec.get('model') or info.get('model') or 'winner'}"
+                if src in ("forecaster_cost", "forecaster_organizer"):
+                    out.update(alert_threshold=info.get("alert_threshold"), cost_ratio_R=info.get("cost_ratio_R"))
+            else:
+                out["model"] = f"tier_forecaster:{self.forecaster_version}"
+            return out
+        except Exception:
+            return None
+
+    def _warm_geometry(self) -> None:
+        """Load riskengine.orbits' lazy parquet caches at boot, not on the first request."""
+        mod = self.mods.get("riskengine.orbits")
+        if mod is None or not hasattr(mod, "geometry") or not self.by_event:
+            return
+        try:
+            self.geometry(next(iter(self.by_event)))
+        except Exception:
+            pass
 
     def geometry(self, key: str) -> dict:
+        """Cached per event; returns a shallow copy (callers may pop keys)."""
+        g = self._geo_cache.get(key)
+        if g is None:
+            g = self._geometry(key)
+            if g:
+                if len(self._geo_cache) > 2048:
+                    self._geo_cache.clear()
+                self._geo_cache[key] = g
+        return dict(g)
+
+    def _geometry(self, key: str) -> dict:
         mod = self.mods.get("riskengine.orbits")
         if mod is not None and hasattr(mod, "geometry"):
             try:
@@ -735,6 +914,10 @@ class Engine:
         return [keys[i] for i in sorted(pick)]
 
     def status(self) -> dict:
-        return {"data_source": self.data_source, "n_events": len(self.by_event), "pc_rows": len(self.pc_rows),
+        return {"data_source": self.data_source, "n_events": len(self.by_event), "pc_rows": self.pc_rows_n,
                 "riskengine": {m.split(".")[1]: bool(v) for m, v in self.mods.items()},
-                "forecaster": self.forecaster_version, "model_sha_ok": self.model_sha_ok, "degraded": self.degraded}
+                "forecaster": self.forecaster_version, "model_sha_ok": self.model_sha_ok, "degraded": self.degraded,
+                "forecast_sources": [{"name": k, "model": v.get("model"), "n": len(v.get("preds") or {}),
+                                      "alert_threshold": v.get("alert_threshold"), "cost_ratio_R": v.get("cost_ratio_R")}
+                                     for k, v in self.pred_sources.items()] + ([{"name": "tier_forecaster_oof",
+                                                                                "n": len(self.oof)}] if self.oof else [])}

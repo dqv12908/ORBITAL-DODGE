@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         log.exception("boot_scenario_failed", error=str(e))
     try:
-        ctx.ledger.verify()
+        await asyncio.to_thread(ctx.ledger.verify)
     except Exception:
         pass
     task = asyncio.create_task(ctx.sim.run(), name="simloop")
@@ -53,6 +53,8 @@ errors.install(app)
 app.include_router(ops.router)
 app.include_router(sim.router)
 app.include_router(data.router)
+from app.api import curves as _curves  # noqa: E402  (ggplot-style stats curves, additive)
+app.include_router(_curves.router)
 
 
 @app.api_route("/api/{rest:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"], include_in_schema=False)

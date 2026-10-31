@@ -1,0 +1,5 @@
+[1s] wrote persistence (119420, 11)
+[1s] QUICK persistence {"8020": {"recall": 0.8892, "FA": 197.4, "cost_per_1000": 158.8}, "mission": {"recall": 0.9017, "FA": 586.0, "cost_per_1000": 117.7}}
+[1s] current_lgbm_all fits 60
+[129s] wrote current_lgbm_all (119420, 11)
+[130s] QUICK current_lgbm_all {"8020": {"recall": 0.9366, "FA": 89.4, "cost_per_1000": 80.1}, "mission": {"recall": 0.9484, "FA": 439.0, "cost_per_1000": 72.8}}

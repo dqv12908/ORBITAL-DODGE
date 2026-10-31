@@ -1,0 +1,2 @@
+{'tag': 'g64x2_lr5e4', 'split': 'event', 'cfg': {'arch': 'gru', 'layers': 2, 'hidden': 64, 'dropout': 0.2, 'in_dropout': 0.1, 'lr': 0.0005, 'weight_decay': 0.01, 'batch': 256, 'max_epochs': 200, 'patience': 20, 'class_weight_power': 0.5, 'n_seeds': 5, 'clip': 6.0}, 'mean_val_wce': 0.280052, 'mean_val_auc': 0.9810040000000001, 'mean_val_ap': 0.864896, 'mean_best_epoch': 15.44, 'runtime_s': 170.76180958747864}
+done tune 170.8 s

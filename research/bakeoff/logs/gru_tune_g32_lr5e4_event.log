@@ -1,0 +1,2 @@
+{'tag': 'g32_lr5e4', 'split': 'event', 'cfg': {'arch': 'gru', 'layers': 1, 'hidden': 32, 'dropout': 0.2, 'in_dropout': 0.1, 'lr': 0.0005, 'weight_decay': 0.01, 'batch': 256, 'max_epochs': 200, 'patience': 20, 'class_weight_power': 0.5, 'n_seeds': 5, 'clip': 6.0}, 'mean_val_wce': 0.27829600000000004, 'mean_val_auc': 0.9808759999999999, 'mean_val_ap': 0.8694719999999999, 'mean_best_epoch': 23.08, 'runtime_s': 149.3050355911255}
+done tune 149.3 s

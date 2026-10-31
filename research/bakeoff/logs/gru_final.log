@@ -1,0 +1,2 @@
+final [{'seed': 0, 'best_epoch': 8, 'val_wce': 0.2416, 'n_inner_val': 1218, 'crit_inner_val': 83}, {'seed': 1, 'best_epoch': 9, 'val_wce': 0.3024, 'n_inner_val': 1393, 'crit_inner_val': 66}, {'seed': 2, 'best_epoch': 10, 'val_wce': 0.2354, 'n_inner_val': 3105, 'crit_inner_val': 221}, {'seed': 3, 'best_epoch': 11, 'val_wce': 0.2589, 'n_inner_val': 1544, 'crit_inner_val': 157}, {'seed': 4, 'best_epoch': 7, 'val_wce': 0.2881, 'n_inner_val': 1432, 'crit_inner_val': 93}] 29.6 s
+done final 29.6 s

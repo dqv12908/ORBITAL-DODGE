@@ -1,0 +1,2 @@
+{"fold": 3, "true_auc": 0.994225662466806, "true_secs": 49.7, "repro_maxabsdiff_vs_oof": 0.003170345684371967, "stored_fold_auc": 0.994225662466806}
+{"fold": 3, "true_auc": 0.994225662466806, "true_secs": 49.7, "repro_maxabsdiff_vs_oof": 0.003170345684371967, "stored_fold_auc": 0.994225662466806, "shuffled_auc": 0.6584213797389682, "shuffled_secs": 80.2}

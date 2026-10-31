@@ -1,0 +1,7 @@
+{
+ "refit_variant": "same params, n_estimators=best_iteration, fitted on all 8293 events (audit/final recipe); NOT served",
+ "pearson_p_critical_test": 0.9949349458607019,
+ "alerts_served": 191,
+ "alerts_refit": 189,
+ "alerts_both": 184
+}

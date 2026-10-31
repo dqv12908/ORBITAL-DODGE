@@ -69,10 +69,15 @@ Keys are `SecretStr`; `/api/health` shows only `ok | down | unconfigured | confi
 
 ## Honesty notes the UI should keep
 
-- Forecast source per CDM (`forecast.updated.data.p_source`): **out-of-fold** value at the T−2 d CDM of training events;
-  live model only for events it never trained on (test split, non-eligible); otherwise persistence-empirical.
-  In-sample model values on training events are never shown (they are overfit: train:2563 in-sample 0.88 vs OOF 0.005).
-  `registry/forecaster_bakeoff/predictions.parquet` is preferred at the T−2 d CDM when present (`model` names it).
+- Forecast source per CDM (`forecast.updated.data.{model, p_source}`), at the T−2 d CDM, first that has the event:
+  `registry/forecaster_cost` (by-mission nested outer-test; also sends `alert_threshold`, `cost_ratio_R`, `alert`) →
+  `registry/forecaster_bakeoff` → tier_forecaster **out-of-fold** (events.parquet `oof_by_event`, else `oof.parquet`).
+  The live model only for events it never trained on (test split / ad-hoc); every other CDM of a `train:*` event shows
+  persistence-empirical. In-sample model values on training events are never shown (train:2563 in-sample 0.88 vs OOF
+  0.005); `tests/test_perf_honesty.py` guards this. `/api/conjunctions/{key}.meta.forecast_t2` = the value served at T−2 d.
+- Scenario load pre-empts the pipeline (in-flight AI call cancelled); CPU work (cast rows, batch forecasts) runs in a
+  worker thread; preload is one ledger transaction with no AI calls. Tier-mode flip re-runs rules on every released CDM
+  and emits one `risk.assessed` (`rerun: true`) per event.
 - `decision.made.probability_kind`: `vote share (n=5)` for Jev (no native probabilities; routed model + upstream
   provider of every sample in `routed`), `mock: softmax(-E[loss]/2) of the cost rule` in mock mode. Never a collision probability.
 - Explanations: template first (always), then `source: "llm"` only if the verifier passed.

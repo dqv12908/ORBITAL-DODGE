@@ -105,6 +105,7 @@ class Explainer:
                 log.warning("anthropic_init_failed", error=str(e))
                 self.status = "down"
         self.cache_dir: Path = settings.cache_root / "llm"
+        self.sem = asyncio.Semaphore(2)  # bounded concurrency for outbound LLM calls
 
     def template(self, facts: dict) -> dict:
         t = explain_template(facts)
@@ -135,13 +136,14 @@ class Explainer:
                 return {"status": "disabled", "reason": "LLM not configured (template only)"}
             self.stats["calls"] += 1
             try:
-                resp = await asyncio.wait_for(self.client.messages.create(
-                    model=self.s.llm_model,
-                    max_tokens=2000,
-                    system=[{"type": "text", "text": SYSTEM, "cache_control": {"type": "ephemeral"}}],
-                    output_config={"effort": "low", "format": {"type": "json_schema", "schema": SCHEMA}},
-                    messages=[{"role": "user", "content": user}],
-                ), timeout=self.s.llm_timeout_s + 1)
+                async with self.sem:
+                    resp = await asyncio.wait_for(self.client.messages.create(
+                        model=self.s.llm_model,
+                        max_tokens=2000,
+                        system=[{"type": "text", "text": SYSTEM, "cache_control": {"type": "ephemeral"}}],
+                        output_config={"effort": "low", "format": {"type": "json_schema", "schema": SCHEMA}},
+                        messages=[{"role": "user", "content": user}],
+                    ), timeout=self.s.llm_timeout_s + 1)
                 if resp.stop_reason == "refusal":
                     return {"status": "rejected", "reason": "model refusal", "latency_ms": int((time.monotonic() - t0) * 1000)}
                 txt = next((b.text for b in resp.content if b.type == "text"), "")

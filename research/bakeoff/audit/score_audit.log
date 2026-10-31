@@ -1,0 +1,23 @@
+# Bake-off leaderboard (leaderboard_audit.md)
+
+8293 eligible events, 551 critical. Bootstrap B=1000 over events (seed 20261031, same resamples for every model, so deltas are paired). PRIMARY = critical recall at <= the tier-persistence false-alarm count on the split (recomputed inside each bootstrap resample).
+
+## Split: by-mission  (false-alarm budget = 113)
+
+| model | PRIMARY [95% CI] | dPRIMARY vs persistence [95% CI] | AUC [95% CI] | AP | Brier [95% CI] | ECE | ECE iso | macro-F1 | @0.5 rec/prec/FA | @0.10 rec/prec/FA | gate |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| lgbm_all_s0 | 0.842 [0.808, 0.876] | 0.022 [0.000, 0.041] | 0.985 [0.980, 0.990] | 0.889 | 0.018 [0.016, 0.020] | 0.005 | 0.005 | 0.882 | 0.791/0.855/74 | 0.898/0.667/247 | PRIMARY within 0.01 & AUC CI lo > persistence AUC |
+| lgbm_all_s3 | 0.842 [0.811, 0.873] | 0.022 [0.002, 0.040] | 0.985 [0.979, 0.990] | 0.887 | 0.018 [0.016, 0.020] | 0.003 | 0.003 | 0.880 | 0.786/0.852/75 | 0.902/0.672/243 | dPRIMARY CI lo > 0 |
+| lgbm_all_s7 | 0.838 [0.803, 0.873] | 0.018 [-0.009, 0.043] | 0.985 [0.981, 0.989] | 0.891 | 0.018 [0.016, 0.021] | 0.008 | 0.003 | 0.875 | 0.762/0.866/65 | 0.897/0.700/212 | PRIMARY within 0.01 & AUC CI lo > persistence AUC |
+| lgbm_all_s1 | 0.835 [0.799, 0.868] | 0.015 [-0.011, 0.035] | 0.985 [0.980, 0.990] | 0.895 | 0.017 [0.015, 0.020] | 0.004 | 0.005 | 0.883 | 0.779/0.876/61 | 0.900/0.685/228 | PRIMARY within 0.01 & AUC CI lo > persistence AUC |
+| lgbm_all_s4 | 0.835 [0.804, 0.867] | 0.015 [-0.006, 0.035] | 0.983 [0.977, 0.989] | 0.886 | 0.018 [0.016, 0.020] | 0.005 | 0.004 | 0.878 | 0.780/0.851/75 | 0.902/0.674/240 | PRIMARY within 0.01 & AUC CI lo > persistence AUC |
+| lgbm_all_s2 | 0.828 [0.792, 0.862] | 0.007 [-0.019, 0.036] | 0.985 [0.978, 0.990] | 0.889 | 0.018 [0.016, 0.020] | 0.004 | 0.004 | 0.875 | 0.773/0.864/67 | 0.909/0.652/267 | PRIMARY within 0.01 & AUC CI lo > persistence AUC |
+| persistence | 0.820 [0.789, 0.852] | 0.000 [0.000, 0.000] | 0.958 [0.947, 0.967] | 0.699 | 0.022 [0.020, 0.025] | 0.001 | 0.002 | 0.868 | 0.820/0.800/113 | 0.820/0.800/113 | n/a (reference) |
+
+## Pre-registered decision (by-mission split)
+
+- Highest by-mission PRIMARY (excluding persistence): **lgbm_all_s0**
+- Gate: PASS (PRIMARY within 0.01 & AUC CI lo > persistence AUC)
+- Calibration (ECE after cross-fitted isotonic <= 0.03): ok
+- Verdict: serve lgbm_all_s0
+

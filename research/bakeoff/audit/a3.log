@@ -1,0 +1,114 @@
+{
+ "repro_mission_maxabsdiff": 0.0,
+ "repro_mission_secs": 13.8,
+ "repro_event_maxabsdiff": 0.0,
+ "repro_event_secs": 18.3,
+ "shuffle_mission_auc_true_labels": [
+  0.4533863420164178,
+  0.46936759495546243,
+  0.5060332754940291
+ ],
+ "shuffle_event_auc_true_labels": [
+  0.5210157807063647,
+  0.5524394715041017,
+  0.522424998394221
+ ],
+ "shuffle_within_mission_mission_split_auc": 0.670867087904334,
+ "budget": 113,
+ "rescore_persistence_mission": {
+  "primary": 0.8203,
+  "tp": 452,
+  "fa": 113,
+  "auc": 0.9577
+ },
+ "rescore_persistence_event": {
+  "primary": 0.8203,
+  "tp": 452,
+  "fa": 113,
+  "auc": 0.958
+ },
+ "rescore_lgbm_all_mission": {
+  "primary": 0.8421,
+  "tp": 464,
+  "fa": 113,
+  "auc": 0.9854
+ },
+ "rescore_lgbm_all_event": {
+  "primary": 0.8203,
+  "tp": 452,
+  "fa": 113,
+  "auc": 0.9844
+ },
+ "rescore_tabpfn_mission": {
+  "primary": 0.8385,
+  "tp": 462,
+  "fa": 113,
+  "auc": 0.9839
+ },
+ "rescore_tabpfn_event": {
+  "primary": 0.833,
+  "tp": 459,
+  "fa": 113,
+  "auc": 0.9842
+ },
+ "rescore_lgbm_a13_mission": {
+  "primary": 0.8312,
+  "tp": 458,
+  "fa": 113,
+  "auc": 0.9832
+ },
+ "rescore_lgbm_a13_event": {
+  "primary": 0.8221,
+  "tp": 453,
+  "fa": 113,
+  "auc": 0.9845
+ },
+ "rescore_futures_mission": {
+  "primary": 0.8312,
+  "tp": 458,
+  "fa": 113,
+  "auc": 0.9824
+ },
+ "rescore_futures_event": {
+  "primary": 0.8312,
+  "tp": 458,
+  "fa": 113,
+  "auc": 0.9833
+ },
+ "rescore_gru_mission": {
+  "primary": 0.8312,
+  "tp": 458,
+  "fa": 113,
+  "auc": 0.9833
+ },
+ "rescore_gru_event": {
+  "primary": 0.824,
+  "tp": 454,
+  "fa": 113,
+  "auc": 0.9819
+ },
+ "rescore_ebm_mission": {
+  "primary": 0.8312,
+  "tp": 458,
+  "fa": 113,
+  "auc": 0.9798
+ },
+ "rescore_ebm_event": {
+  "primary": 0.824,
+  "tp": 454,
+  "fa": 113,
+  "auc": 0.9804
+ },
+ "rescore_hgb_a13_mission": {
+  "primary": 0.824,
+  "tp": 454,
+  "fa": 113,
+  "auc": 0.9827
+ },
+ "rescore_hgb_a13_event": {
+  "primary": 0.8131,
+  "tp": 448,
+  "fa": 113,
+  "auc": 0.9813
+ }
+}

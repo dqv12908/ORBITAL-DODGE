@@ -1,0 +1,186 @@
+{
+ "split": "event",
+ "wall_s": 366.91199374198914,
+ "fits": [
+  {
+   "split": "event",
+   "fold": 0,
+   "target": "crit",
+   "fit_s": 44.8,
+   "interactions": [
+    "last_time_to_tca & dall_t_sigma_r",
+    "last_relative_position_r & last_F10",
+    "last_relative_position_t & min_c_sigma_r",
+    "last_relative_position_t & min_sig_r_comb",
+    "last_t_sigma_r & dall_relative_position_r",
+    "last_t_sigma_r & d1_c_sigma_r",
+    "last_F10 & slope_relative_position_r",
+    "last_F10 & min_c_sigma_r",
+    "last_F10 & min_sig_r_comb",
+    "max_r_over_sig & std_r_over_sig"
+   ]
+  },
+  {
+   "split": "event",
+   "fold": 0,
+   "target": "ge",
+   "fit_s": 34.0,
+   "interactions": [
+    "last_miss_distance & last_c_sigma_r",
+    "last_miss_distance & d1_miss_distance",
+    "last_miss_distance & min_c_sigma_r",
+    "last_miss_distance & d1_log_miss",
+    "last_miss_distance & min_sig_r_comb",
+    "last_c_sigma_r & last_log_miss",
+    "last_log_miss & d1_miss_distance",
+    "last_log_miss & min_c_sigma_r",
+    "last_log_miss & d1_log_miss",
+    "last_log_miss & min_sig_r_comb"
+   ]
+  },
+  {
+   "split": "event",
+   "fold": 1,
+   "target": "crit",
+   "fit_s": 36.1,
+   "interactions": [
+    "last_relative_position_t & last_c_sigma_r",
+    "last_relative_position_t & last_sig_r_comb",
+    "last_relative_position_t & last_r_over_sig",
+    "last_relative_position_t & min_c_sigma_r",
+    "last_relative_position_t & min_sig_r_comb",
+    "last_relative_position_t & max_r_over_sig",
+    "last_t_sigma_r & max_t_sigma_r",
+    "last_log_miss & min_log_miss",
+    "last_r_over_sig & max_relative_position_t",
+    "max_relative_position_t & max_r_over_sig"
+   ]
+  },
+  {
+   "split": "event",
+   "fold": 1,
+   "target": "ge",
+   "fit_s": 34.7,
+   "interactions": [
+    "last_miss_distance & d1_miss_distance",
+    "last_miss_distance & d1_relative_position_t",
+    "last_miss_distance & d1_log_miss",
+    "last_miss_distance & max_r_over_sig",
+    "last_log_miss & d1_miss_distance",
+    "last_log_miss & d1_relative_position_t",
+    "last_log_miss & d1_log_miss",
+    "last_log_miss & max_r_over_sig",
+    "min_miss_distance & d1_log_miss",
+    "d1_log_miss & min_log_miss"
+   ]
+  },
+  {
+   "split": "event",
+   "fold": 2,
+   "target": "crit",
+   "fit_s": 31.4,
+   "interactions": [
+    "last_time_to_tca & dall_t_sigma_r",
+    "last_relative_position_r & last_F10",
+    "last_relative_position_t & last_F10",
+    "last_F10 & min_relative_position_r",
+    "last_F10 & min_relative_position_t",
+    "last_F10 & min_relative_position_n",
+    "last_F10 & min_c_sigma_r",
+    "last_F10 & min_log_miss",
+    "last_F10 & min_sig_r_comb",
+    "dall_r_over_sig & max_r_over_sig"
+   ]
+  },
+  {
+   "split": "event",
+   "fold": 2,
+   "target": "ge",
+   "fit_s": 29.4,
+   "interactions": [
+    "last_miss_distance & last_c_sigma_r",
+    "last_miss_distance & d1_miss_distance",
+    "last_miss_distance & d1_relative_position_t",
+    "last_miss_distance & min_c_sigma_r",
+    "last_miss_distance & d1_log_miss",
+    "last_c_sigma_r & last_log_miss",
+    "last_log_miss & d1_miss_distance",
+    "last_log_miss & d1_relative_position_t",
+    "last_log_miss & min_c_sigma_r",
+    "last_log_miss & d1_log_miss"
+   ]
+  },
+  {
+   "split": "event",
+   "fold": 3,
+   "target": "crit",
+   "fit_s": 25.9,
+   "interactions": [
+    "last_relative_position_t & last_c_sigma_r",
+    "last_relative_position_t & last_sig_r_comb",
+    "last_relative_position_t & min_c_sigma_r",
+    "last_relative_position_t & min_sig_r_comb",
+    "last_relative_position_n & min_relative_position_n",
+    "last_max_risk_estimate & last_F10",
+    "last_F10 & min_relative_position_t",
+    "last_F10 & std_relative_position_t",
+    "last_F10 & max_max_risk_estimate",
+    "last_log_miss & min_relative_position_n"
+   ]
+  },
+  {
+   "split": "event",
+   "fold": 3,
+   "target": "ge",
+   "fit_s": 24.7,
+   "interactions": [
+    "last_miss_distance & min_c_sigma_r",
+    "last_relative_position_t & first_ttca",
+    "last_log_miss & min_c_sigma_r",
+    "first_ttca & min_relative_position_t",
+    "first_ttca & max_relative_position_t",
+    "dall_miss_distance & dall_log_miss",
+    "min_miss_distance & min_c_sigma_r",
+    "min_relative_position_t & max_c_sigma_r",
+    "min_relative_position_t & max_sig_r_comb",
+    "min_c_sigma_r & min_log_miss"
+   ]
+  },
+  {
+   "split": "event",
+   "fold": 4,
+   "target": "crit",
+   "fit_s": 23.5,
+   "interactions": [
+    "last_time_to_tca & d1_c_sigma_r",
+    "last_time_to_tca & dall_t_sigma_r",
+    "last_time_to_tca & d1_sig_r_comb",
+    "last_F10 & min_relative_position_t",
+    "last_F10 & max_max_risk_estimate",
+    "min_relative_position_n & d1_c_sigma_r",
+    "min_relative_position_n & d1_sig_r_comb",
+    "max_relative_position_n & min_max_risk_estimate",
+    "dall_r_over_sig & max_r_over_sig",
+    "max_r_over_sig & std_r_over_sig"
+   ]
+  },
+  {
+   "split": "event",
+   "fold": 4,
+   "target": "ge",
+   "fit_s": 21.5,
+   "interactions": [
+    "last_miss_distance & d1_miss_distance",
+    "last_miss_distance & min_c_sigma_r",
+    "last_miss_distance & d1_log_miss",
+    "last_log_miss & d1_miss_distance",
+    "last_log_miss & std_relative_position_t",
+    "last_log_miss & min_c_sigma_r",
+    "last_log_miss & d1_log_miss",
+    "min_miss_distance & d1_log_miss",
+    "dall_max_risk_estimate & dall_r_over_sig",
+    "d1_log_miss & min_log_miss"
+   ]
+  }
+ ]
+}

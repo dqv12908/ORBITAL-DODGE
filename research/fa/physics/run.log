@@ -1,0 +1,9 @@
+[34s] phys (11942, 49) nan frac latest pc 0.02487020599564562
+[39s] fan start check: start_ok frac 1.0 start_ttca<2: 0
+[39s] fut (11942, 22)
+[39s] jobs 20
+[455s] wrote /root/orbital-dodge/research/fa/cands/lgbm_all_phys.parquet (119420, 14)
+[455s] wrote /root/orbital-dodge/research/fa/cands/lgbm_all_phys_fut.parquet (119420, 14)
+[456s] lgbm_all_phys {'8020': {'recall': 0.9354, 'FA': 80.6, 'cost_per_1000': 77.2708}, 'mission': {'recall': 0.9508, 'FA': 438, 'cost_per_1000': 71.01}}
+[456s] lgbm_all_phys_fut {'8020': {'recall': 0.939, 'FA': 95.8, 'cost_per_1000': 81.1218}, 'mission': {'recall': 0.9424, 'FA': 401, 'cost_per_1000': 73.77}}
+[462s] {'last_miss_distance': 76366.0, 'last_log_miss': 46480.0, 'ph_last_ptier': 38202.0, 'fu_pelev': 32983.0, 'fu_miss_p25_0.5': 32606.0, 'fu_miss_p25_1.0': 20079.0, 'last_risk': 7768.0, 'fu_pcrit': 5214.0, 'fu_miss_p75_0.5': 4450.0, 'fu_miss_p50_1.0': 3480.0, 'fu_miss_p05_0.5': 3426.0, 'fu_miss_p50_0.5': 2969.0, 'min_risk': 2729.0, 'fu_miss_p05_1.0': 2438.0, 'last_time_to_tca': 2017.0, 'fu_miss_p75_1.0': 1884.0, 'ph_last_esc': 1555.0, 'std_relative_position_t': 1358.0, 'ph_last_pctier': 1290.0, 'min_log_miss': 1264.0}

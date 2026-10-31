@@ -1,0 +1,209 @@
+{
+ "boot_seed": 20261031,
+ "B": 1000,
+ "n_events": 8293,
+ "n_critical": 551,
+ "splits": {
+  "event": {
+   "fa_budget": 113.0,
+   "models": {
+    "persistence": {
+     "primary": 0.8203266787658802,
+     "primary_ci": [
+      0.7886765498652292,
+      0.8515371929232143
+     ],
+     "primary_threshold": 0.778021978021978,
+     "primary_false_alarms": 113.0,
+     "primary_alerts": 565.0,
+     "auc": 0.9580114547139815,
+     "auc_ci": [
+      0.9483450570335781,
+      0.9669365161600297
+     ],
+     "ap": 0.6736333219742079,
+     "brier": 0.022469383279066064,
+     "brier_ci": [
+      0.01998748276840242,
+      0.02508219026305702
+     ],
+     "ece": 0.005054457639399964,
+     "ece_iso": 0.005235022116738985,
+     "brier_iso": 0.022511395132258614,
+     "macro_f1": 0.8684027937283084,
+     "at_0_50": {
+      "recall": 0.8203266787658802,
+      "precision": 0.8,
+      "false_alarms": 113,
+      "alerts": 565
+     },
+     "at_0_10": {
+      "recall": 0.8203266787658802,
+      "precision": 0.8,
+      "false_alarms": 113,
+      "alerts": 565
+     },
+     "delta_primary_vs_persistence": 0.0,
+     "delta_primary_ci": [
+      0.0,
+      0.0
+     ],
+     "p_delta_le_0": 1.0,
+     "gate_pass": false,
+     "gate_reason": "n/a (reference)",
+     "calibration_ok": true
+    },
+    "gru": {
+     "primary": 0.8239564428312159,
+     "primary_ci": [
+      0.7942292024013722,
+      0.8632505044646632
+     ],
+     "primary_threshold": 0.3425686853358541,
+     "primary_false_alarms": 113.0,
+     "primary_alerts": 567.0,
+     "auc": 0.9819217401863453,
+     "auc_ci": [
+      0.9754900017992489,
+      0.9871744562656166
+     ],
+     "ap": 0.8713089516248352,
+     "brier": 0.018814575653748448,
+     "brier_ci": [
+      0.016685725023127203,
+      0.021194715419621386
+     ],
+     "ece": 0.002575441497845118,
+     "ece_iso": 0.0035801755347972383,
+     "brier_iso": 0.019297607182638475,
+     "macro_f1": 0.8723675592414505,
+     "at_0_50": {
+      "recall": 0.7894736842105263,
+      "precision": 0.838150289017341,
+      "false_alarms": 84,
+      "alerts": 519
+     },
+     "at_0_10": {
+      "recall": 0.9056261343012704,
+      "precision": 0.6292559899117276,
+      "false_alarms": 294,
+      "alerts": 793
+     },
+     "delta_primary_vs_persistence": 0.003629764065335772,
+     "delta_primary_ci": [
+      -0.013555142842470998,
+      0.030035335689045928
+     ],
+     "p_delta_le_0": 0.288,
+     "gate_pass": true,
+     "gate_reason": "PRIMARY within 0.01 & AUC CI lo > persistence AUC",
+     "calibration_ok": true
+    }
+   }
+  },
+  "mission": {
+   "fa_budget": 113.0,
+   "models": {
+    "persistence": {
+     "primary": 0.8203266787658802,
+     "primary_ci": [
+      0.7886765498652292,
+      0.8515371929232143
+     ],
+     "primary_threshold": 0.7961432506887053,
+     "primary_false_alarms": 113.0,
+     "primary_alerts": 565.0,
+     "auc": 0.9576500958075802,
+     "auc_ci": [
+      0.9472714254824648,
+      0.9670063777546746
+     ],
+     "ap": 0.6994219344399911,
+     "brier": 0.022310837064707455,
+     "brier_ci": [
+      0.019851825917425344,
+      0.02487848853880489
+     ],
+     "ece": 0.0014343187862524884,
+     "ece_iso": 0.0015608878189306804,
+     "brier_iso": 0.022333428731620638,
+     "macro_f1": 0.8684027937283084,
+     "at_0_50": {
+      "recall": 0.8203266787658802,
+      "precision": 0.8,
+      "false_alarms": 113,
+      "alerts": 565
+     },
+     "at_0_10": {
+      "recall": 0.8203266787658802,
+      "precision": 0.8,
+      "false_alarms": 113,
+      "alerts": 565
+     },
+     "delta_primary_vs_persistence": 0.0,
+     "delta_primary_ci": [
+      0.0,
+      0.0
+     ],
+     "p_delta_le_0": 1.0,
+     "gate_pass": false,
+     "gate_reason": "n/a (reference)",
+     "calibration_ok": true
+    },
+    "gru": {
+     "primary": 0.8312159709618875,
+     "primary_ci": [
+      0.7957352252811252,
+      0.8650543270774881
+     ],
+     "primary_threshold": 0.38686626861344076,
+     "primary_false_alarms": 113.0,
+     "primary_alerts": 571.0,
+     "auc": 0.9833139624017955,
+     "auc_ci": [
+      0.9769357682770748,
+      0.9883400793577325
+     ],
+     "ap": 0.8772153706273536,
+     "brier": 0.018718873534356608,
+     "brier_ci": [
+      0.016580764798942906,
+      0.021074957322004473
+     ],
+     "ece": 0.003404081960781631,
+     "ece_iso": 0.003250930583643708,
+     "brier_iso": 0.019038168348402,
+     "macro_f1": 0.8733311489386382,
+     "at_0_50": {
+      "recall": 0.8039927404718693,
+      "precision": 0.8295880149812734,
+      "false_alarms": 91,
+      "alerts": 534
+     },
+     "at_0_10": {
+      "recall": 0.9092558983666061,
+      "precision": 0.6162361623616236,
+      "false_alarms": 312,
+      "alerts": 813
+     },
+     "delta_primary_vs_persistence": 0.010889292196007316,
+     "delta_primary_ci": [
+      -0.012263549349401003,
+      0.03171915235380885
+     ],
+     "p_delta_le_0": 0.223,
+     "gate_pass": true,
+     "gate_reason": "PRIMARY within 0.01 & AUC CI lo > persistence AUC",
+     "calibration_ok": true
+    }
+   }
+  }
+ },
+ "decision": {
+  "winner": "gru",
+  "serve": true,
+  "gate_reason": "PRIMARY within 0.01 & AUC CI lo > persistence AUC",
+  "calibration_warning": false,
+  "verdict": "serve gru"
+ }
+}

@@ -1,0 +1,112 @@
+{
+ "boot_seed": 20261031,
+ "B": 1000,
+ "n_events": 8293,
+ "n_critical": 551,
+ "splits": {
+  "mission": {
+   "fa_budget": 113.0,
+   "models": {
+    "persistence": {
+     "primary": 0.8203266787658802,
+     "primary_ci": [
+      0.7886765498652292,
+      0.8515371929232143
+     ],
+     "primary_threshold": 0.7961432506887053,
+     "primary_false_alarms": 113.0,
+     "primary_alerts": 565.0,
+     "auc": 0.9576500958075802,
+     "auc_ci": [
+      0.9472714254824648,
+      0.9670063777546746
+     ],
+     "ap": 0.6994219344399911,
+     "brier": 0.022310837064707455,
+     "brier_ci": [
+      0.019851825917425344,
+      0.02487848853880489
+     ],
+     "ece": 0.0014343187862524884,
+     "ece_iso": 0.0015608878189306804,
+     "brier_iso": 0.022333428731620638,
+     "macro_f1": 0.8684027937283084,
+     "at_0_50": {
+      "recall": 0.8203266787658802,
+      "precision": 0.8,
+      "false_alarms": 113,
+      "alerts": 565
+     },
+     "at_0_10": {
+      "recall": 0.8203266787658802,
+      "precision": 0.8,
+      "false_alarms": 113,
+      "alerts": 565
+     },
+     "delta_primary_vs_persistence": 0.0,
+     "delta_primary_ci": [
+      0.0,
+      0.0
+     ],
+     "p_delta_le_0": 1.0,
+     "gate_pass": false,
+     "gate_reason": "n/a (reference)",
+     "calibration_ok": true
+    },
+    "tabpfn_all": {
+     "primary": 0.8439201451905626,
+     "primary_ci": [
+      0.8121544340423748,
+      0.8778219955184191
+     ],
+     "primary_threshold": 0.3505079241601954,
+     "primary_false_alarms": 113.0,
+     "primary_alerts": 578.0,
+     "auc": 0.9843808092282835,
+     "auc_ci": [
+      0.9783429737462901,
+      0.9892687103782807
+     ],
+     "ap": 0.8861292963281209,
+     "brier": 0.01797434207670689,
+     "brier_ci": [
+      0.015952579272017785,
+      0.020243604731285066
+     ],
+     "ece": 0.0036298606370222327,
+     "ece_iso": 0.004805410357124169,
+     "brier_iso": 0.018143778785109983,
+     "macro_f1": 0.8810462939532008,
+     "at_0_50": {
+      "recall": 0.8021778584392014,
+      "precision": 0.8435114503816794,
+      "false_alarms": 82,
+      "alerts": 524
+     },
+     "at_0_10": {
+      "recall": 0.9201451905626135,
+      "precision": 0.6021377672209026,
+      "false_alarms": 335,
+      "alerts": 842
+     },
+     "delta_primary_vs_persistence": 0.023593466424682408,
+     "delta_primary_ci": [
+      0.0,
+      0.045864262731175845
+     ],
+     "p_delta_le_0": 0.026,
+     "gate_pass": true,
+     "gate_reason": "PRIMARY within 0.01 & AUC CI lo > persistence AUC",
+     "calibration_ok": true
+    }
+   }
+  }
+ },
+ "decision": {
+  "winner": "tabpfn_all",
+  "serve": true,
+  "gate_reason": "PRIMARY within 0.01 & AUC CI lo > persistence AUC",
+  "calibration_warning": false,
+  "verdict": "serve tabpfn_all"
+ }
+}

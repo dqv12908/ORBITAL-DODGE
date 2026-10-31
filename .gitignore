@@ -23,3 +23,10 @@ research/livesky/out/socrates_compare.csv
 game/scripts/.cache/
 registry/futures/fans/
 research/organizer/organizer/
+research/fa/physics/fans/
+research/fa/physics/*.parquet
+research/fa/ens/*.parquet
+research/bakeoff/data/
+research/bakeoff/oof/
+research/bakeoff/models/*/final/
+research/bakeoff/.venv/

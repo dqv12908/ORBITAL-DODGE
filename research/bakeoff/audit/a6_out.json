@@ -1,0 +1,10 @@
+{
+ "shuf_seed11_auc": 0.3779535566981186,
+ "shuf_seed12_auc": 0.6713147635459631,
+ "spearman_between_shuffles": 0.014082307758568731,
+ "isolation_forest_outlier_auc": 0.333160065540426,
+ "spearman_shuf_vs_outlier": 0.19083408171346394,
+ "spearman_shuf_vs_last_max_risk_estimate": -0.05190543258414023,
+ "spearman_shuf_vs_last_log_miss": -0.014540962584999834,
+ "spearman_shuf_vs_n_cdm": -0.1597921016840155
+}

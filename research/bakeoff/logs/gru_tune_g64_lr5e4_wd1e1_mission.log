@@ -1,0 +1,2 @@
+{'tag': 'g64_lr5e4_wd1e1', 'split': 'mission', 'cfg': {'arch': 'gru', 'layers': 1, 'hidden': 64, 'dropout': 0.3, 'in_dropout': 0.1, 'lr': 0.0005, 'weight_decay': 0.1, 'batch': 256, 'max_epochs': 200, 'patience': 20, 'class_weight_power': 0.5, 'n_seeds': 5, 'clip': 6.0}, 'mean_val_wce': 0.31307199999999996, 'mean_val_auc': 0.974992, 'mean_val_ap': 0.8377120000000001, 'mean_best_epoch': 18.76, 'runtime_s': 119.10378456115723}
+done tune 119.1 s

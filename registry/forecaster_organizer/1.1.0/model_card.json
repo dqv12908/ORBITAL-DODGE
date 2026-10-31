@@ -1,0 +1,1079 @@
+{
+ "name": "forecaster_organizer",
+ "version": "1.1.0",
+ "created": "2026-10-31T05:51:53",
+ "previous_version": "1.0.0",
+ "task": "Predict each event's final_tier (organizer definition) from CDMs with time_to_tca >= 2 d; CRITICAL alert at R=10",
+ "model": "LightGBM multiclass (same params as 1.0.0) on ALL features (233) + 52 physics Pc features (ph_*) from pc_rows.parquet",
+ "candidate_name": "lgbm_all_phys",
+ "training_population": "organizer usable_for_training (11,942)",
+ "params": {
+  "learning_rate": 0.02234161411358251,
+  "num_leaves": 46,
+  "min_data_in_leaf": 113,
+  "feature_fraction": 0.3663858758604592,
+  "bagging_fraction": 0.9973148587744586,
+  "lambda_l2": 0.05108037256564331,
+  "n_estimators": 175,
+  "bagging_freq": 1
+ },
+ "n_features": 282,
+ "feature_groups": {
+  "ALL": 233,
+  "physics_ph": 49
+ },
+ "physics_features": [
+  "ph_last_log10_pc",
+  "ph_last_log10_pc_max",
+  "ph_last_lmah",
+  "ph_last_lks",
+  "ph_last_lsx",
+  "ph_last_lsy",
+  "ph_last_lsr",
+  "ph_last_gap_pcmax",
+  "ph_last_status_ok",
+  "ph_last_ptier",
+  "ph_last_pctier",
+  "ph_last_dd",
+  "ph_last_esc",
+  "ph_last_npd",
+  "ph_d_log10_pc",
+  "ph_d_log10_pc_max",
+  "ph_d_lmah",
+  "ph_d_lks",
+  "ph_d_lsx",
+  "ph_d_lsy",
+  "ph_d_lsr",
+  "ph_d_gap_pcmax",
+  "ph_min_log10_pc",
+  "ph_min_log10_pc_max",
+  "ph_min_lmah",
+  "ph_min_lks",
+  "ph_min_lsx",
+  "ph_min_lsy",
+  "ph_min_lsr",
+  "ph_min_gap_pcmax",
+  "ph_max_log10_pc",
+  "ph_max_log10_pc_max",
+  "ph_max_lmah",
+  "ph_max_lks",
+  "ph_max_lsx",
+  "ph_max_lsy",
+  "ph_max_lsr",
+  "ph_max_gap_pcmax",
+  "ph_mean_status_ok",
+  "ph_mean_ptier",
+  "ph_mean_esc",
+  "ph_sl_log10_pc",
+  "ph_sl_log10_pc_max",
+  "ph_sl_lmah",
+  "ph_sl_lks",
+  "ph_sl_lsx",
+  "ph_sl_lsy",
+  "ph_sl_lsr",
+  "ph_sl_gap_pcmax"
+ ],
+ "top_features_gain": {
+  "last_miss_distance": 82678.1,
+  "ph_last_ptier": 55375.7,
+  "last_log_miss": 51154.2,
+  "ph_mean_ptier": 18431.1,
+  "min_miss_distance": 17938.4,
+  "max_miss_distance": 11099.3,
+  "min_log_miss": 10681.9,
+  "last_risk": 7491.5,
+  "dall_miss_distance": 3875.3,
+  "max_log_miss": 3420.8,
+  "ph_last_esc": 2948.3,
+  "dall_log_miss": 2535.0,
+  "ph_mean_esc": 2415.9,
+  "last_relative_position_n": 2355.4,
+  "min_risk": 2291.4,
+  "last_max_risk_scaling": 1952.1,
+  "ph_last_lsx": 1861.0,
+  "slope_log_miss": 1847.0,
+  "last_time_to_tca": 1814.4,
+  "std_relative_position_t": 1736.2
+ },
+ "strategy": "alert if p_critical >= threshold; threshold = argmin 10*missed + FA subject to recall >= 0.90 on out-of-fold predictions",
+ "R": 10,
+ "recall_floor": 0.9,
+ "alert_threshold": 0.06100051096138922,
+ "threshold_info": {
+  "inner_recall": 0.9532374100719424,
+  "inner_cost_per_1000": 72.68464243845251
+ },
+ "threshold_source": "by-event 5-fold OOF (KFold shuffle rs=7) over all 11,942 training events (same rule as 1.0.0)",
+ "test": {
+  "n": 2167,
+  "alerts": 286,
+  "pred_counts": {
+   "Safe": 1503,
+   "Elevated": 489,
+   "Critical": 175
+  },
+  "alerts_1.0.0": 287,
+  "alert_agreement_with_1.0.0": 0.9921550530687586
+ },
+ "evaluation": {
+  "protocol": "organizer.py splits: 80/20 by event (5 seeds; mean per test set ~2,389) and GroupKFold(5) by mission (totals over 11,942). Outer cut-off chosen on inner OOF of each outer-training set. CIs: 80/20 event bootstrap within each seed's test set; by-mission = MISSION-level bootstrap (whole missions resampled; fixes audit item 2). B=500, paired differences vs current 1.0.0.",
+  "results": {
+   "all": {
+    "8020": {
+     "lgbm_all_phys": {
+      "recall": 0.9354,
+      "false_alarms": 80.6,
+      "missed": 10.4,
+      "cost_per_1000": 77.2708,
+      "n": 2389.0,
+      "recall_ci95": [
+       0.92,
+       0.9518
+      ],
+      "d_recall_vs_current": -0.0012,
+      "d_recall_vs_current_ci95": [
+       -0.0093,
+       0.0071
+      ],
+      "false_alarms_ci95": [
+       73.2,
+       88.305
+      ],
+      "d_false_alarms_vs_current": -8.8,
+      "d_false_alarms_vs_current_ci95": [
+       -13.105,
+       -4.6
+      ],
+      "missed_ci95": [
+       7.8,
+       13.2
+      ],
+      "d_missed_vs_current": 0.2,
+      "d_missed_vs_current_ci95": [
+       -1.0,
+       1.4
+      ],
+      "cost_per_1000_ci95": [
+       65.0879,
+       89.0477
+      ],
+      "d_cost_per_1000_vs_current": -2.8464,
+      "d_cost_per_1000_vs_current_ci95": [
+       -8.6668,
+       2.9301
+      ]
+     },
+     "current_lgbm_all": {
+      "recall": 0.9366,
+      "false_alarms": 89.4,
+      "missed": 10.2,
+      "cost_per_1000": 80.1172,
+      "n": 2389.0,
+      "recall_ci95": [
+       0.9201,
+       0.9521
+      ],
+      "false_alarms_ci95": [
+       81.695,
+       97.4
+      ],
+      "missed_ci95": [
+       7.6,
+       13.105
+      ],
+      "cost_per_1000_ci95": [
+       68.8552,
+       92.3001
+      ]
+     },
+     "persistence": {
+      "recall": 0.8892,
+      "false_alarms": 197.4,
+      "missed": 18.2,
+      "cost_per_1000": 158.8112,
+      "n": 2389.0,
+      "recall_ci95": [
+       0.8707,
+       0.9116
+      ],
+      "d_recall_vs_current": -0.0474,
+      "d_recall_vs_current_ci95": [
+       -0.0627,
+       -0.0304
+      ],
+      "false_alarms_ci95": [
+       186.79,
+       208.305
+      ],
+      "d_false_alarms_vs_current": 108.0,
+      "d_false_alarms_vs_current_ci95": [
+       98.2,
+       120.0
+      ],
+      "missed_ci95": [
+       14.495,
+       21.8
+      ],
+      "d_missed_vs_current": 8.0,
+      "d_missed_vs_current_ci95": [
+       5.095,
+       10.6
+      ],
+      "cost_per_1000_ci95": [
+       142.3106,
+       173.7338
+      ],
+      "d_cost_per_1000_vs_current": 78.694,
+      "d_cost_per_1000_vs_current_ci95": [
+       66.2558,
+       90.5546
+      ]
+     }
+    },
+    "mission": {
+     "lgbm_all_phys": {
+      "recall": 0.9508,
+      "false_alarms": 438.0,
+      "missed": 41.0,
+      "cost_per_1000": 71.0099,
+      "n": 11942.0,
+      "recall_ci95": [
+       0.9235,
+       0.9717
+      ],
+      "d_recall_vs_current": 0.0024,
+      "d_recall_vs_current_ci95": [
+       -0.0062,
+       0.0111
+      ],
+      "false_alarms_ci95": [
+       261.475,
+       702.05
+      ],
+      "d_false_alarms_vs_current": -1.0,
+      "d_false_alarms_vs_current_ci95": [
+       -44.0,
+       37.0
+      ],
+      "missed_ci95": [
+       20.475,
+       67.525
+      ],
+      "d_missed_vs_current": -2.0,
+      "d_missed_vs_current_ci95": [
+       -10.0,
+       4.0
+      ],
+      "cost_per_1000_ci95": [
+       56.7553,
+       93.0727
+      ],
+      "d_cost_per_1000_vs_current": -1.7585,
+      "d_cost_per_1000_vs_current_ci95": [
+       -7.2941,
+       2.9026
+      ]
+     },
+     "current_lgbm_all": {
+      "recall": 0.9484,
+      "false_alarms": 439.0,
+      "missed": 43.0,
+      "cost_per_1000": 72.7684,
+      "n": 11942.0,
+      "recall_ci95": [
+       0.9203,
+       0.9707
+      ],
+      "false_alarms_ci95": [
+       256.425,
+       692.1
+      ],
+      "missed_ci95": [
+       21.0,
+       70.0
+      ],
+      "cost_per_1000_ci95": [
+       55.5726,
+       98.8371
+      ]
+     },
+     "persistence": {
+      "recall": 0.9017,
+      "false_alarms": 586.0,
+      "missed": 82.0,
+      "cost_per_1000": 117.7357,
+      "n": 11942.0,
+      "recall_ci95": [
+       0.8353,
+       0.9494
+      ],
+      "d_recall_vs_current": -0.0468,
+      "d_recall_vs_current_ci95": [
+       -0.0927,
+       -0.0077
+      ],
+      "false_alarms_ci95": [
+       95.475,
+       1473.1
+      ],
+      "d_false_alarms_vs_current": 147.0,
+      "d_false_alarms_vs_current_ci95": [
+       -308.575,
+       868.925
+      ],
+      "missed_ci95": [
+       44.475,
+       130.525
+      ],
+      "d_missed_vs_current": 39.0,
+      "d_missed_vs_current_ci95": [
+       7.95,
+       70.0
+      ],
+      "cost_per_1000_ci95": [
+       79.3834,
+       169.7015
+      ],
+      "d_cost_per_1000_vs_current": 44.9673,
+      "d_cost_per_1000_vs_current_ci95": [
+       21.6201,
+       76.8888
+      ]
+     }
+    }
+   },
+   "final_lt1d": {
+    "8020": {
+     "lgbm_all_phys": {
+      "recall": 0.9157,
+      "false_alarms": 62.4,
+      "missed": 9.0,
+      "cost_per_1000": 91.3534,
+      "n": 1667.4,
+      "recall_ci95": [
+       0.8907,
+       0.9377
+      ],
+      "d_recall_vs_current": -0.0017,
+      "d_recall_vs_current_ci95": [
+       -0.0134,
+       0.0105
+      ],
+      "false_alarms_ci95": [
+       56.0,
+       69.105
+      ],
+      "d_false_alarms_vs_current": -7.4,
+      "d_false_alarms_vs_current_ci95": [
+       -10.8,
+       -3.8
+      ],
+      "missed_ci95": [
+       6.695,
+       11.6
+      ],
+      "d_missed_vs_current": 0.2,
+      "d_missed_vs_current_ci95": [
+       -1.0,
+       1.505
+      ],
+      "cost_per_1000_ci95": [
+       76.5528,
+       106.7085
+      ],
+      "d_cost_per_1000_vs_current": -3.2152,
+      "d_cost_per_1000_vs_current_ci95": [
+       -10.998,
+       4.9069
+      ]
+     },
+     "current_lgbm_all": {
+      "recall": 0.9174,
+      "false_alarms": 69.8,
+      "missed": 8.8,
+      "cost_per_1000": 94.5686,
+      "n": 1667.4,
+      "recall_ci95": [
+       0.8945,
+       0.9408
+      ],
+      "false_alarms_ci95": [
+       62.4,
+       76.705
+      ],
+      "missed_ci95": [
+       6.4,
+       11.305
+      ],
+      "cost_per_1000_ci95": [
+       79.1486,
+       110.7133
+      ]
+     },
+     "persistence": {
+      "recall": 0.8558,
+      "false_alarms": 151.4,
+      "missed": 15.8,
+      "cost_per_1000": 185.6838,
+      "n": 1667.4,
+      "recall_ci95": [
+       0.827,
+       0.8835
+      ],
+      "d_recall_vs_current": -0.0615,
+      "d_recall_vs_current_ci95": [
+       -0.085,
+       -0.0402
+      ],
+      "false_alarms_ci95": [
+       141.99,
+       160.81
+      ],
+      "d_false_alarms_vs_current": 81.6,
+      "d_false_alarms_vs_current_ci95": [
+       72.295,
+       90.0
+      ],
+      "missed_ci95": [
+       12.4,
+       19.4
+      ],
+      "d_missed_vs_current": 7.0,
+      "d_missed_vs_current_ci95": [
+       4.8,
+       9.4
+      ],
+      "cost_per_1000_ci95": [
+       165.321,
+       207.1519
+      ],
+      "d_cost_per_1000_vs_current": 91.1152,
+      "d_cost_per_1000_vs_current_ci95": [
+       75.4338,
+       108.0514
+      ]
+     }
+    },
+    "mission": {
+     "lgbm_all_phys": {
+      "recall": 0.9328,
+      "false_alarms": 336.0,
+      "missed": 37.0,
+      "cost_per_1000": 85.132,
+      "n": 8293.0,
+      "recall_ci95": [
+       0.9,
+       0.9572
+      ],
+      "d_recall_vs_current": 0.0018,
+      "d_recall_vs_current_ci95": [
+       -0.0121,
+       0.0131
+      ],
+      "false_alarms_ci95": [
+       159.95,
+       556.525
+      ],
+      "d_false_alarms_vs_current": 1.0,
+      "d_false_alarms_vs_current_ci95": [
+       -33.0,
+       34.0
+      ],
+      "missed_ci95": [
+       15.0,
+       63.0
+      ],
+      "d_missed_vs_current": -1.0,
+      "d_missed_vs_current_ci95": [
+       -8.0,
+       5.0
+      ],
+      "cost_per_1000_ci95": [
+       66.1609,
+       105.0488
+      ],
+      "d_cost_per_1000_vs_current": -1.0853,
+      "d_cost_per_1000_vs_current_ci95": [
+       -7.7978,
+       6.1365
+      ]
+     },
+     "current_lgbm_all": {
+      "recall": 0.931,
+      "false_alarms": 335.0,
+      "missed": 38.0,
+      "cost_per_1000": 86.2173,
+      "n": 8293.0,
+      "recall_ci95": [
+       0.904,
+       0.9565
+      ],
+      "false_alarms_ci95": [
+       161.475,
+       559.0
+      ],
+      "missed_ci95": [
+       15.475,
+       65.0
+      ],
+      "cost_per_1000_ci95": [
+       64.9449,
+       108.7257
+      ]
+     },
+     "persistence": {
+      "recall": 0.8675,
+      "false_alarms": 450.0,
+      "missed": 73.0,
+      "cost_per_1000": 142.2887,
+      "n": 8293.0,
+      "recall_ci95": [
+       0.7953,
+       0.9327
+      ],
+      "d_recall_vs_current": -0.0635,
+      "d_recall_vs_current_ci95": [
+       -0.1186,
+       -0.0103
+      ],
+      "false_alarms_ci95": [
+       66.0,
+       1219.15
+      ],
+      "d_false_alarms_vs_current": 115.0,
+      "d_false_alarms_vs_current_ci95": [
+       -243.0,
+       649.3
+      ],
+      "missed_ci95": [
+       34.475,
+       118.0
+      ],
+      "d_missed_vs_current": 35.0,
+      "d_missed_vs_current_ci95": [
+       6.475,
+       65.0
+      ],
+      "cost_per_1000_ci95": [
+       102.2489,
+       198.8646
+      ],
+      "d_cost_per_1000_vs_current": 56.0714,
+      "d_cost_per_1000_vs_current_ci95": [
+       30.7255,
+       95.8106
+      ]
+     }
+    }
+   },
+   "final_1to2d": {
+    "8020": {
+     "lgbm_all_phys": {
+      "recall": 0.8678,
+      "false_alarms": 4.0,
+      "missed": 1.4,
+      "cost_per_1000": 149.1979,
+      "n": 121.2,
+      "recall_ci95": [
+       0.7453,
+       0.9507
+      ],
+      "d_recall_vs_current": 0.0,
+      "d_recall_vs_current_ci95": [
+       0.0,
+       0.0
+      ],
+      "false_alarms_ci95": [
+       2.4,
+       6.0
+      ],
+      "d_false_alarms_vs_current": -0.6,
+      "d_false_alarms_vs_current_ci95": [
+       -1.4,
+       0.0
+      ],
+      "missed_ci95": [
+       0.4,
+       2.6
+      ],
+      "d_missed_vs_current": 0.0,
+      "d_missed_vs_current_ci95": [
+       0.0,
+       0.0
+      ],
+      "cost_per_1000_ci95": [
+       73.4705,
+       246.3585
+      ],
+      "d_cost_per_1000_vs_current": -4.5455,
+      "d_cost_per_1000_vs_current_ci95": [
+       -10.6061,
+       0.0
+      ]
+     },
+     "current_lgbm_all": {
+      "recall": 0.8678,
+      "false_alarms": 4.6,
+      "missed": 1.4,
+      "cost_per_1000": 153.7434,
+      "n": 121.2,
+      "recall_ci95": [
+       0.7453,
+       0.9507
+      ],
+      "false_alarms_ci95": [
+       3.0,
+       6.6
+      ],
+      "missed_ci95": [
+       0.4,
+       2.6
+      ],
+      "cost_per_1000_ci95": [
+       81.2819,
+       249.5597
+      ]
+     },
+     "persistence": {
+      "recall": 0.7881,
+      "false_alarms": 7.8,
+      "missed": 2.4,
+      "cost_per_1000": 259.7325,
+      "n": 121.2,
+      "recall_ci95": [
+       0.6669,
+       0.8875
+      ],
+      "d_recall_vs_current": -0.0797,
+      "d_recall_vs_current_ci95": [
+       -0.1722,
+       0.0046
+      ],
+      "false_alarms_ci95": [
+       5.8,
+       10.2
+      ],
+      "d_false_alarms_vs_current": 3.2,
+      "d_false_alarms_vs_current_ci95": [
+       1.6,
+       5.105
+      ],
+      "missed_ci95": [
+       1.2,
+       3.8
+      ],
+      "d_missed_vs_current": 1.0,
+      "d_missed_vs_current_ci95": [
+       0.0,
+       2.0
+      ],
+      "cost_per_1000_ci95": [
+       153.5423,
+       370.3025
+      ],
+      "d_cost_per_1000_vs_current": 105.9891,
+      "d_cost_per_1000_vs_current_ci95": [
+       24.3052,
+       195.1529
+      ]
+     }
+    },
+    "mission": {
+     "lgbm_all_phys": {
+      "recall": 0.9231,
+      "false_alarms": 25.0,
+      "missed": 3.0,
+      "cost_per_1000": 91.8197,
+      "n": 599.0,
+      "recall_ci95": [
+       0.8462,
+       1.0
+      ],
+      "d_recall_vs_current": 0.0256,
+      "d_recall_vs_current_ci95": [
+       0.0,
+       0.1176
+      ],
+      "false_alarms_ci95": [
+       12.0,
+       41.525
+      ],
+      "d_false_alarms_vs_current": 2.0,
+      "d_false_alarms_vs_current_ci95": [
+       -3.0,
+       7.0
+      ],
+      "missed_ci95": [
+       0.0,
+       8.0
+      ],
+      "d_missed_vs_current": -1.0,
+      "d_missed_vs_current_ci95": [
+       -3.0,
+       0.0
+      ],
+      "cost_per_1000_ci95": [
+       31.4449,
+       171.15
+      ],
+      "d_cost_per_1000_vs_current": -13.3556,
+      "d_cost_per_1000_vs_current_ci95": [
+       -78.5958,
+       8.5036
+      ]
+     },
+     "current_lgbm_all": {
+      "recall": 0.8974,
+      "false_alarms": 23.0,
+      "missed": 4.0,
+      "cost_per_1000": 105.1753,
+      "n": 599.0,
+      "recall_ci95": [
+       0.7875,
+       1.0
+      ],
+      "false_alarms_ci95": [
+       12.0,
+       37.525
+      ],
+      "missed_ci95": [
+       0.0,
+       9.525
+      ],
+      "cost_per_1000_ci95": [
+       41.6878,
+       190.1092
+      ]
+     },
+     "persistence": {
+      "recall": 0.7692,
+      "false_alarms": 28.0,
+      "missed": 9.0,
+      "cost_per_1000": 196.995,
+      "n": 599.0,
+      "recall_ci95": [
+       0.6316,
+       0.8629
+      ],
+      "d_recall_vs_current": -0.1282,
+      "d_recall_vs_current_ci95": [
+       -0.3125,
+       0.0247
+      ],
+      "false_alarms_ci95": [
+       7.0,
+       65.05
+      ],
+      "d_false_alarms_vs_current": 5.0,
+      "d_false_alarms_vs_current_ci95": [
+       -11.0,
+       31.0
+      ],
+      "missed_ci95": [
+       3.0,
+       16.0
+      ],
+      "d_missed_vs_current": 5.0,
+      "d_missed_vs_current_ci95": [
+       -1.0,
+       11.0
+      ],
+      "cost_per_1000_ci95": [
+       83.1856,
+       398.1418
+      ],
+      "d_cost_per_1000_vs_current": 91.8197,
+      "d_cost_per_1000_vs_current_ci95": [
+       -2.9162,
+       254.5303
+      ]
+     }
+    }
+   },
+   "final_ge2d": {
+    "8020": {
+     "lgbm_all_phys": {
+      "recall": 1.0,
+      "false_alarms": 14.2,
+      "missed": 0.0,
+      "cost_per_1000": 23.5826,
+      "n": 600.4,
+      "recall_ci95": [
+       1.0,
+       1.0
+      ],
+      "d_recall_vs_current": 0.0,
+      "d_recall_vs_current_ci95": [
+       0.0,
+       0.0
+      ],
+      "false_alarms_ci95": [
+       11.0,
+       17.505
+      ],
+      "d_false_alarms_vs_current": -0.8,
+      "d_false_alarms_vs_current_ci95": [
+       -2.6,
+       0.8
+      ],
+      "missed_ci95": [
+       0.0,
+       0.0
+      ],
+      "d_missed_vs_current": 0.0,
+      "d_missed_vs_current_ci95": [
+       0.0,
+       0.0
+      ],
+      "cost_per_1000_ci95": [
+       18.3534,
+       29.1049
+      ],
+      "d_cost_per_1000_vs_current": -1.4009,
+      "d_cost_per_1000_vs_current_ci95": [
+       -4.4517,
+       1.3182
+      ]
+     },
+     "current_lgbm_all": {
+      "recall": 1.0,
+      "false_alarms": 15.0,
+      "missed": 0.0,
+      "cost_per_1000": 24.9835,
+      "n": 600.4,
+      "recall_ci95": [
+       1.0,
+       1.0
+      ],
+      "false_alarms_ci95": [
+       11.6,
+       18.6
+      ],
+      "missed_ci95": [
+       0.0,
+       0.0
+      ],
+      "cost_per_1000_ci95": [
+       19.3605,
+       30.9145
+      ]
+     },
+     "persistence": {
+      "recall": 1.0,
+      "false_alarms": 38.2,
+      "missed": 0.0,
+      "cost_per_1000": 62.8342,
+      "n": 600.4,
+      "recall_ci95": [
+       1.0,
+       1.0
+      ],
+      "d_recall_vs_current": 0.0,
+      "d_recall_vs_current_ci95": [
+       0.0,
+       0.0
+      ],
+      "false_alarms_ci95": [
+       33.295,
+       43.2
+      ],
+      "d_false_alarms_vs_current": 23.2,
+      "d_false_alarms_vs_current_ci95": [
+       18.295,
+       28.905
+      ],
+      "missed_ci95": [
+       0.0,
+       0.0
+      ],
+      "d_missed_vs_current": 0.0,
+      "d_missed_vs_current_ci95": [
+       0.0,
+       0.0
+      ],
+      "cost_per_1000_ci95": [
+       54.8031,
+       71.1635
+      ],
+      "d_cost_per_1000_vs_current": 37.8507,
+      "d_cost_per_1000_vs_current_ci95": [
+       29.7713,
+       47.1613
+      ]
+     }
+    },
+    "mission": {
+     "lgbm_all_phys": {
+      "recall": 0.9959,
+      "false_alarms": 77.0,
+      "missed": 1.0,
+      "cost_per_1000": 28.5246,
+      "n": 3050.0,
+      "recall_ci95": [
+       0.9808,
+       1.0
+      ],
+      "d_recall_vs_current": 0.0,
+      "d_recall_vs_current_ci95": [
+       0.0,
+       0.0
+      ],
+      "false_alarms_ci95": [
+       40.475,
+       122.05
+      ],
+      "d_false_alarms_vs_current": -4.0,
+      "d_false_alarms_vs_current_ci95": [
+       -10.525,
+       1.0
+      ],
+      "missed_ci95": [
+       0.0,
+       3.0
+      ],
+      "d_missed_vs_current": 0.0,
+      "d_missed_vs_current_ci95": [
+       0.0,
+       0.0
+      ],
+      "cost_per_1000_ci95": [
+       15.1737,
+       56.5357
+      ],
+      "d_cost_per_1000_vs_current": -1.3115,
+      "d_cost_per_1000_vs_current_ci95": [
+       -3.5324,
+       0.2464
+      ]
+     },
+     "current_lgbm_all": {
+      "recall": 0.9959,
+      "false_alarms": 81.0,
+      "missed": 1.0,
+      "cost_per_1000": 29.8361,
+      "n": 3050.0,
+      "recall_ci95": [
+       0.9808,
+       1.0
+      ],
+      "false_alarms_ci95": [
+       42.0,
+       130.525
+      ],
+      "missed_ci95": [
+       0.0,
+       3.0
+      ],
+      "cost_per_1000_ci95": [
+       15.6368,
+       58.1836
+      ]
+     },
+     "persistence": {
+      "recall": 1.0,
+      "false_alarms": 108.0,
+      "missed": 0.0,
+      "cost_per_1000": 35.4098,
+      "n": 3050.0,
+      "recall_ci95": [
+       1.0,
+       1.0
+      ],
+      "d_recall_vs_current": 0.0041,
+      "d_recall_vs_current_ci95": [
+       0.0,
+       0.0192
+      ],
+      "false_alarms_ci95": [
+       0.0,
+       321.0
+      ],
+      "d_false_alarms_vs_current": 27.0,
+      "d_false_alarms_vs_current_ci95": [
+       -79.05,
+       201.625
+      ],
+      "missed_ci95": [
+       0.0,
+       0.0
+      ],
+      "d_missed_vs_current": -1.0,
+      "d_missed_vs_current_ci95": [
+       -3.0,
+       0.0
+      ],
+      "cost_per_1000_ci95": [
+       0.0,
+       81.4278
+      ],
+      "d_cost_per_1000_vs_current": 5.5738,
+      "d_cost_per_1000_vs_current_ci95": [
+       -46.864,
+       45.6926
+      ]
+     }
+    }
+   }
+  },
+  "v1_0_0_card_metrics_all": {
+   "event80_20": {
+    "n": 2389.0,
+    "n_crit": 159.2,
+    "recall": 0.9366,
+    "missed": 10.2,
+    "false_alarms": 89.4,
+    "alerts": 238.4,
+    "precision": 0.6261,
+    "cost": 191.4,
+    "cost_per_1000": 80.1172,
+    "fa_per_1000": 37.4215,
+    "macro_f1": 0.8952,
+    "recall_safe": 0.9768,
+    "recall_elevated": 0.8655,
+    "recall_critical_tier": 0.8392,
+    "auc_crit": 0.988
+   },
+   "mission": {
+    "n": 11942.0,
+    "n_crit": 834.0,
+    "recall": 0.9484,
+    "missed": 43.0,
+    "false_alarms": 439.0,
+    "alerts": 1230.0,
+    "precision": 0.6431,
+    "cost": 869.0,
+    "cost_per_1000": 72.7684,
+    "fa_per_1000": 36.761,
+    "macro_f1": 0.8929,
+    "recall_safe": 0.9745,
+    "recall_elevated": 0.852,
+    "recall_critical_tier": 0.8477,
+    "auc_crit": 0.9882
+   }
+  }
+ },
+ "selection": "Best of 15 candidates in research/fa/select (selected on the same by-mission data reported here, so the reported gain is optimistically biased).",
+ "audit": {
+  "ok": true,
+  "leakage_found": false,
+  "summary": "No leakage found. The improvement over 1.0.0 is NOT statistically significant: all difference CIs include 0 or are small; ranking quality at the current model's recall is not better (FA at matched recall 82.6 vs 81.0 on 80/20; 442 vs 423 by mission). The 80/20 FA reduction mostly comes from where the inner-chosen cut-off lands, and varies by seed (s0: 71 vs 113 FA; s3: 92 vs 79).",
+  "open_items": [
+   "Provenance of pc_rows.parquet (per-message tier/pc_tier/escalate/rule_ids columns) not confirmed: no .py in /root/orbital-dodge creates it. Rules look like fixed physics thresholds, not label-fit; ph_last_ptier is a top-3 gain feature.",
+   "Earlier select.py CIs used an event bootstrap for the by-mission split (too narrow); this card uses a mission bootstrap."
+  ]
+ },
+ "known_limits": [
+  "Treat 1.1.0 as on-par with 1.0.0, not a proven false-alarm reduction; keep 1.0.0 available for rollback.",
+  "Depends on an extra input (pc_rows.parquet physics Pc pipeline) that must be available at inference time for every event.",
+  "final_lt1d sub-population carries most misses; recall there is below the 0.90 floor in some splits.",
+  "Threshold chosen on by-event OOF; by-mission generalisation is somewhat worse.",
+  "Never trained/evaluated on the Kelvins Zenodo release."
+ ],
+ "files": [
+  "predictions_test.parquet",
+  "oof_organizer.parquet",
+  "model.txt",
+  "feature_names.json",
+  "model_card.json"
+ ]
+}

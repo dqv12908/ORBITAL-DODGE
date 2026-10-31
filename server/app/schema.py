@@ -84,6 +84,11 @@ class ForecastUpdated(Open):
     baseline: dict | None
     watch: bool
     rank: int
+    model: str | None = None
+    p_source: str | None = None
+    alert_threshold: float | None = None
+    cost_ratio_R: float | None = None
+    alert: bool | None = None
 
 
 class PolicyGated(Open):

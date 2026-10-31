@@ -1,0 +1,46 @@
+critical events missed by every model: 68
+        event_key  event_id  mission_id  latest_tier  latest_ttca  n_cdm_ge2d  p_crit_lgbm_all
+3946   train:6262      6262           3            1     2.021215          16         0.037368
+3164   train:4973      4973           2            1     2.105350          16         0.014736
+638     train:993       993           3            1     2.199921          15         0.015330
+2012   train:3181      3181           4            1     2.181716          15         0.018752
+6669  train:10594     10594           4            1     2.101239          15         0.048480
+6202   train:9846      9846           5            1     2.099533          15         0.091724
+5955   train:9443      9443           7            1     2.126303          15         0.063968
+7547  train:11943     11943          15            1     2.292438          15         0.017018
+3381   train:5317      5317          15            1     2.204699          15         0.015009
+3505   train:5514      5514          15            1     2.085372          15         0.028713
+       time_to_tca    risk  max_risk_estimate  miss_distance  relative_speed c_object_type  t_sigma_r  c_sigma_r      tier  input_to_model
+61840        6.985 -18.276             -4.427         1715.0         14853.0        DEBRIS      3.694     32.695  elevated            True
+61841        6.833 -18.155             -4.427         1720.0         14853.0        DEBRIS      3.717     32.695  elevated            True
+61842        6.390 -18.049             -4.421         1703.0         14853.0        DEBRIS      3.393     32.696  elevated            True
+61843        6.088 -18.182             -4.425         1706.0         14853.0        DEBRIS      3.761     32.695  elevated            True
+61844        5.990 -18.159             -4.424         1707.0         14853.0        DEBRIS      3.792     32.695  elevated            True
+61845        5.468 -17.990             -4.420         1694.0         14853.0        DEBRIS      3.301     32.695  elevated            True
+61846        5.076 -17.734             -4.411         1684.0         14853.0        DEBRIS      3.107     32.695  elevated            True
+61847        4.681 -17.537             -4.405         1679.0         14853.0        DEBRIS      2.792     32.695  elevated            True
+61848        4.432 -17.612             -4.407         1681.0         14853.0        DEBRIS      2.669     32.695  elevated            True
+61849        4.139 -17.678             -4.409         1682.0         14853.0        DEBRIS      2.695     32.695  elevated            True
+61850        3.717 -17.664             -4.408         1681.0         14853.0        DEBRIS      2.642     32.695  elevated            True
+61851        3.467 -17.946             -4.416         1686.0         14853.0        DEBRIS      2.562     32.695  elevated            True
+61852        3.138 -17.890             -4.414         1686.0         14853.0        DEBRIS      2.415     32.695  elevated            True
+61853        2.804 -17.948             -4.416         1688.0         14853.0        DEBRIS      2.369     32.695  elevated            True
+61854        2.386 -18.022             -4.418         1689.0         14853.0        DEBRIS      2.539     32.695  elevated            True
+61855        2.105 -17.944             -4.416         1690.0         14853.0        DEBRIS      2.298     32.695  elevated            True
+61856        1.675 -17.875             -4.414         1688.0         14853.0        DEBRIS      2.243     32.695  elevated           False
+61857        1.510 -17.937             -4.415         1689.0         14853.0        DEBRIS      2.144     32.695  elevated           False
+61858        1.084 -17.990             -4.417         1691.0         14853.0        DEBRIS      2.157     32.695  elevated           False
+61859        0.809 -13.862             -4.459          814.0         14853.0        DEBRIS      2.236     53.440  critical           False
+61860        0.390 -13.904             -4.461          815.0         14853.0        DEBRIS      2.112     53.440  critical           False
+61861        0.127 -13.924             -4.462          815.0         14853.0        DEBRIS      2.110     53.440  critical           False
+{
+"ebm": 0.02817494794933124,
+"futures": 0.008899999782443047,
+"gru": 0.03781464049481781,
+"hgb_a13": 7.138592216783801e-06,
+"lgbm_a13": 0.014082842237954852,
+"lgbm_all": 0.014736489903326983,
+"persistence": 0.05395417590539542,
+"tabpfn": 0.02441840975458839
+}
+exported ['leaderboard.json', 'predictions.parquet', 'model', 'model_card.json'] {'test': 2167, 'train_oof_mission': 8293}

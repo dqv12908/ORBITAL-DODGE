@@ -1,0 +1,33 @@
+Traceback (most recent call last):
+  File "/root/orbital-dodge/research/bakeoff/logs/tabpfn_check.py", line 7, in <module>
+    m.fit(X[:500], y[:500]); p = m.predict_proba(X[500:])
+    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/root/orbital-dodge/research/bakeoff/.venv/lib/python3.12/site-packages/tabpfn/classifier.py", line 986, in fit
+    byte_size = self._initialize_model_variables()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/orbital-dodge/research/bakeoff/.venv/lib/python3.12/site-packages/tabpfn/classifier.py", line 733, in _initialize_model_variables
+    return initialize_model_variables_helper(self, self.estimator_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/orbital-dodge/research/bakeoff/.venv/lib/python3.12/site-packages/tabpfn/base.py", line 528, in initialize_model_variables_helper
+    initialize_tabpfn_model(
+  File "/root/orbital-dodge/research/bakeoff/.venv/lib/python3.12/site-packages/tabpfn/base.py", line 205, in initialize_tabpfn_model
+    load_model_criterion_config(
+  File "/root/orbital-dodge/research/bakeoff/.venv/lib/python3.12/site-packages/tabpfn/model_loading.py", line 759, in load_model_criterion_config
+    raise res[0]
+  File "/root/orbital-dodge/research/bakeoff/.venv/lib/python3.12/site-packages/tabpfn/model_loading.py", line 569, in _download_model
+    ensure_license_accepted(hf_repo_id=_HF_REPOS[version])
+  File "/root/orbital-dodge/research/bakeoff/.venv/lib/python3.12/site-packages/tabpfn/browser_auth.py", line 621, in ensure_license_accepted
+    raise TabPFNLicenseError(
+tabpfn.errors.TabPFNLicenseError: TabPFN requires a one-time license acceptance to download
+model weights for local inference, but no interactive terminal
+is available.
+
+To authenticate in a non-interactive environment:
+  1. Open https://ux.priorlabs.ai in a browser and log in (or register)
+  2. Accept the license on the Licenses tab
+  3. Copy your API Key from https://ux.priorlabs.ai/account
+  4. Set the environment variable: export TABPFN_TOKEN="<your-api-key>"
+     or in Python (before calling .fit()): import os; os.environ["TABPFN_TOKEN"] = "<your-api-key>"

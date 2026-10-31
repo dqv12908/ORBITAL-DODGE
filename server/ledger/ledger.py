@@ -7,6 +7,7 @@ BEFORE UPDATE / DELETE triggers abort, so rows can only be appended.
 """
 from __future__ import annotations
 
+import contextlib
 import sqlite3
 import threading
 from pathlib import Path
@@ -80,6 +81,22 @@ class Ledger:
         self._verified: bool | None = None
 
     # ------------------------------------------------------------------
+    @contextlib.contextmanager
+    def transaction(self):
+        """Group many appends into one SQLite transaction (scenario preload). Rows appended before an error are
+        committed, so the in-memory head always matches the table."""
+        with self._lock:
+            started = not self.conn.in_transaction
+            if started:
+                self.conn.execute("BEGIN")
+        try:
+            yield self
+        finally:
+            if started:
+                with self._lock:
+                    if self.conn.in_transaction:
+                        self.conn.execute("COMMIT")
+
     def append(self, kind: str, payload: Any, *, event_key: str | None = None, actor: str | None = "system",
                sim_time: str | None = None, refs: dict | None = None, type_: str | None = None) -> dict:
         refs = refs or {}

@@ -223,5 +223,7 @@
   "Sub-populations by final-message ttca: final_lt1d 8,293 (551 crit; = Kelvins-eligible set), final_1to2d 599 (39 crit), final_ge2d 3,050 (244 crit). On final_ge2d the final message IS the latest input, so persistence (latest >= 2 d tier) is exact by construction (recall 1, 0 FA, macro-F1 1). Any skill claimed on the full organizer population is diluted/inflated by this 26 % slice; the forecasting problem lives in final_lt1d and final_1to2d.",
   "No 'is this the final message' feature (unknowable at prediction time). The models do see last_time_to_tca, which is legitimate. Test events all have their latest message at 2.0-6.9 d (median 2.19 d), i.e. they look like truncated events."
  ],
- "source": "research/organizer/organizer.py"
+ "source": "research/organizer/organizer.py",
+ "served_model": "LightGBM (ALL features), organizer-trained",
+ "cost_ratio_R": 10
 }
