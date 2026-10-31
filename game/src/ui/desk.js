@@ -1,5 +1,6 @@
 // Analyst desk: the analyst owns the policy. Every change → PUT /api/policy (Idempotency-Key) → policy.updated + ledger row.
 import { S, on, esc } from '../store.js';
+import { PlotCard } from './gg/card.js';
 
 /** Find an operating curve and the persistence point in an /api/eval payload (shape-tolerant). */
 function findCurve(ev) {
@@ -66,6 +67,7 @@ export class Desk {
             <div class="dk-top"><span>WATCH THRESHOLD τ</span><b class="dk-tau-v"></b></div>
             <input type="range" class="dk-tau" min="0.05" max="0.50" step="0.01">
             <small class="dk-tau-read">Loading operating curve…</small>
+            <div class="dk-gg"></div>
           </div>
           <div class="dk-field">
             <div class="dk-top"><span>CONFIDENCE NEEDED</span><b class="dk-conf-v"></b></div>
@@ -108,6 +110,7 @@ export class Desk {
     document.removeEventListener('keydown', this.onKey);
     this.el.remove();
     this.el = null;
+    this.gg = null;
   }
 
   #setSeg(mode) {
@@ -138,6 +141,8 @@ export class Desk {
       const near = this.curve.reduce((b, pt) => (Math.abs((pt.tau ?? pt.threshold) - tau) < Math.abs((b.tau ?? b.threshold) - tau) ? pt : b));
       const bs = this.base ? ` <span class="dk-base">(persistence ${num(this.base.recall)} / ${fa(this.base)})</span>` : '';
       read.innerHTML = `At τ ${num(near.tau ?? near.threshold, 2)}: recall <b>${num(near.recall)}</b> · false alarms <b>${fa(near)}</b>${bs} <span class="dk-measured">measured, OOF</span>`;
+      this.gg ||= new PlotCard(this.el.querySelector('.dk-gg'), { name: 'operating-curve', base: 10.5 });
+      this.gg.draw('operatingCurve', [{ curve: this.curve.map((p) => ({ tau: p.tau ?? p.threshold, recall: p.recall, false_alarms: p.false_alarms ?? p.fa ?? p.n_false_alarms ?? p.false_positives })), tau, base: this.base }]);
     } else if (this.evalTried) {
       read.textContent = 'Operating curve not available (backend /api/eval).';
     }

@@ -1,0 +1,35 @@
+/* Hand-drawn SVG charts inside the dark console: no card chrome, only a small export button. */
+.gg-card { position: relative; min-width: 0; margin-top: 6px; }
+.gg-plot { line-height: 0; min-height: 40px; }
+.gg-plot svg { display: block; width: 100%; height: auto; overflow: visible; }
+.gg-plot svg text { font-variant-numeric: tabular-nums; }
+.gg-err { padding: 10px 0; font-size: 12px; line-height: 1.4; color: var(--bad-text, #ff8d98); }
+
+.gg-tools { position: absolute; top: 0; right: 0; z-index: 2; display: flex; align-items: center; gap: 4px; }
+.gg-card .gg-exp, .gg-card .gg-menu button {
+  all: unset; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+  height: 20px; min-width: 20px; padding: 0 5px; border-radius: 4px; color: var(--dim, #5f6f86);
+  font: 600 10.5px/1 var(--font-mono, monospace); letter-spacing: 0.04em;
+}
+.gg-card .gg-exp { opacity: 0.7; }
+.gg-card:hover .gg-exp { opacity: 1; }
+.gg-card .gg-exp:hover, .gg-card .gg-menu button:hover { color: var(--text, #e8eef6); background: var(--surface-3, #152031); }
+.gg-menu { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--line-2, rgba(140,170,210,0.18)); border-radius: 5px; background: var(--surface-solid, #0a1019); }
+.gg-menu[hidden] { display: none; }
+
+/* inspector: room for the charts; the old canvas legend is gone (each chart carries its own) */
+.pop-machine.insp { width: min(440px, calc(100vw - 2 * var(--gutter, 16px))); }
+.insp .gg-host { display: block; margin-top: 14px; }
+/* each chart carries its own title, subtitle and caption: hide the old section header and caption around it */
+.insp .in-sec:has(+ .gg-host), .insp .gg-host + .in-cap { display: none; }
+
+/* dashboard statistics tab */
+.gg-stats { display: flex; flex-direction: column; gap: 12px; }
+.gg-stats-note { margin: 0; font-size: 13px; color: var(--muted, #8796ab); line-height: 1.45; }
+.gg-stats-note b { color: var(--text-2, #c3cedb); }
+.gg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(500px, 1fr)); gap: 18px 22px; align-items: start; }
+.gg-grid > div { min-width: 0; padding: 12px 14px 10px; border: 1px solid var(--line, rgba(140,170,210,0.10)); border-radius: var(--radius, 6px); background: rgba(255, 255, 255, 0.012); }
+.gg-grid .gg-card { margin-top: 0; }
+
+.dk-gg .gg-card { margin-top: 10px; }
+.gg-verdicts { margin-top: 8px; }

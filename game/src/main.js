@@ -80,18 +80,25 @@ async function start() {
 
   // W1/W2: when the focal event turns CRITICAL, fly from the whole sky down to the conjunction
   on('alarm', (key) => { if (key === S.focus) setTimeout(() => world.focusFocal?.({ dist: 0.9, dur: 1.6 }), 250); });
-  on('focal', () => { if (S.focus && !world.userMoved) setTimeout(() => world.focusFocal?.({ dist: 1.6, dur: 1.8 }), 1200); });
+  on('focal', () => { if (S.focus && !world.userMoved) setTimeout(() => world.focusFocal?.({ dist: 2.0, dur: 1.8 }), 1200); });
   on('inspect', (k) => { if (k && k !== S.focus) director.setFocus(k, { fly: true }); });
 
   // Approach: as the focal event enters TCA − 20 min, ease the warp to 1× and dolly in (time dilation)
   const dilated = new Set();
+  let restore = null; // {key, tcaMs, speed}: put the warp back once the TCA has passed (else a long run crawls at 1x)
+  on('scenario', () => { dilated.clear(); restore = null; });
   setInterval(() => {
+    if (restore && !S.clock.paused) {
+      const now = simNow();
+      if (S.clock.speed !== 1) restore = null; // the analyst changed speed: leave it alone
+      else if (now > restore.tcaMs + 3 * 60e3) { api('POST', '/sim/speed', { speed: restore.speed }).catch(() => {}); hud.float(`TCA PASSED · BACK TO ${restore.speed}×`, 'info', 'tca'); restore = null; }
+    }
     const e = S.focus && S.events.get(S.focus);
     if (!e || e.tcaMs == null || S.clock.paused || dilated.has(e.key)) return;
     const left = e.tcaMs - simNow();
     if (left > 0 && left < 20 * 60e3) {
       dilated.add(e.key);
-      if (S.clock.speed > 1) api('POST', '/sim/speed', { speed: 1 }).catch(() => {});
+      if (S.clock.speed > 1) { restore = { key: e.key, tcaMs: e.tcaMs, speed: S.clock.speed }; api('POST', '/sim/speed', { speed: 1 }).catch(() => {}); }
       hud.float('TIME DILATION · 1× · TCA APPROACH', 'info', 'tca');
       world.focusFocal?.({ dist: 0.35, dur: 2.0 });
     }

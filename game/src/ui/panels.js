@@ -1,6 +1,7 @@
 // Inspector (right), agent popover (left), approval card (modal), live-sky list.
 import { S, on, emit, ev, tierOf, latestRisk, latestCdm, simNow, fmtPc, fmtPcShort, fmtMiss, fmtPct, fmtDur, fmtTminus, fmtSim, esc, h, ACTION_LABEL, ACTION_SHORT } from '../store.js';
-import { EncounterPlane, RiskChart, planeParams } from './charts.js';
+import { planeParams } from './charts.js';
+import { GgEncounter, GgRisk, GgRtn } from './gg/inspector.js';
 import { newIdemKey } from '../net.js';
 
 const TIER_CLS = { SAFE: 'good', ELEVATED: 'warn', CRITICAL: 'bad', PLANNED: 'info', UNKNOWN: '' };
@@ -14,17 +15,19 @@ export class Inspector {
       <div class="mp">
         <div class="mp-head"><div class="mp-titles"><div class="mp-name"></div><div class="mp-tags"></div></div><button class="pop-x" title="Close (Esc)">✕</button></div>
         <div class="in-sec"><span class="ap-sub">Encounter plane</span><span class="in-tag">PHYSICS · from CDM covariance</span></div>
-        <canvas class="in-enc"></canvas>
+        <div class="in-enc gg-host"></div>
         <div class="in-cap">Encounter plane — from CDM covariance (physics). Not reconstructed. Ellipses 1/2/3σ of the combined covariance.</div>
         <div class="in-sec"><span class="ap-sub">Risk evolution</span><span class="in-tag">time to TCA →</span></div>
-        <canvas class="in-risk"></canvas>
-        <div class="in-legend"><span><i class="lg-line"></i>Pc (physics)</span><span><i class="lg-ring"></i>ESA reported</span><span><i class="lg-fan"></i>forecast fan</span><span><i class="lg-mcp"></i>commitment window</span></div>
+        <div class="in-risk gg-host"></div>
+        <div class="in-sec"><span class="ap-sub">Relative position</span><span class="in-tag">RTN · from CDM</span></div>
+        <div class="in-rtn gg-host"></div>
         <div class="in-vitals"></div>
         <div class="in-recon"></div>
         <div class="mp-caption">This is what the system reads: released CDMs only; future CDMs are never sent to the browser.</div>
       </div></div>`));
-    this.enc = new EncounterPlane(this.el.querySelector('.in-enc'));
-    this.risk = new RiskChart(this.el.querySelector('.in-risk'));
+    this.enc = new GgEncounter(this.el.querySelector('.in-enc'));
+    this.risk = new GgRisk(this.el.querySelector('.in-risk'));
+    this.rtn = new GgRtn(this.el.querySelector('.in-rtn'));
     this.el.querySelector('.pop-x').addEventListener('click', () => this.close());
     on('inspect', (k) => this.open(k));
     on('focus', (k) => { if (!this.el.hidden) this.show(k); });
@@ -55,7 +58,7 @@ export class Inspector {
     const encs = e.geometry?.encounter || e.geometry?.encounter_plane || [];
     const enc = Array.isArray(encs) ? encs.find((x) => x.cdm_index === i) || encs[i] : null;
     const pp = r || c ? planeParams(enc, r, c) : null;
-    this.enc.set(pp, t);
+    this.enc.set(pp, t, this.key);
     if (this.key === S.focus) { try { this.world.setCovariance?.(pp); } catch { /* world optional */ } }
     this.#chart();
     const f = e.forecast;
@@ -65,10 +68,10 @@ export class Inspector {
       ['Miss distance', fmtMiss(c?.miss_m), c?.ttca_d != null ? `at T−${(+c.ttca_d).toFixed(2)} d` : ''],
       ['Relative speed', c?.rel_speed_ms != null ? `${(c.rel_speed_ms / 1000).toFixed(2)} km/s` : '—', ''],
       ['Chaser', e.chaser_type || c?.c_object_type || '—', e.mission != null ? `mission ${e.mission}` : ''],
-      [c?.ttca_d != null && c.ttca_d < 2 ? 'Forecast made at T−2 d' : 'Chance this ends CRITICAL', f ? (f.valid === false ? 'n/a inside 2 d' : f.p_critical != null ? fmtPct(f.p_critical) : 'n/a') : 'n/a inside 2 d', [f?.p_source, f?.model].filter(Boolean).join(' · ') || (f?.baseline ? `persistence ${esc(f.baseline.persistence_tier || '')}${f.baseline.p_critical_empirical != null ? ' · ' + fmtPct(f.baseline.p_critical_empirical) : ''}` : 'STATISTICS')],
     ];
     const flags = [...(c?.flags || [])];
     this.el.querySelector('.in-vitals').innerHTML = rows.map(([k, v, s]) => `<div><span>${esc(k)}</span><b>${esc(v)}</b><small>${esc(s)}</small></div>`).join('')
+      + forecastBlock(e, c)
       + (r?.tier?.reasons?.length ? `<ul class="in-reasons">${r.tier.reasons.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '')
       + (flags.length ? `<div class="in-flags">${flags.map((x) => `<span class="chip warn">${esc(x)}</span>`).join(' ')}</div>` : '');
     const res = e.geometry?.residuals || e.geometry || {};
@@ -83,7 +86,8 @@ export class Inspector {
       pts.push({ ttca: c.ttca_d ?? (e.tcaMs && c.at_sim ? (e.tcaMs - Date.parse(c.at_sim)) / 86400e3 : 0), log10: r?.pc?.log10, reported: r?.reported_log10, miss_m: c.miss_m, status: r?.pc?.status });
     });
     const nowTtca = e.tcaMs != null ? (e.tcaMs - simNow()) / 86400e3 : null;
-    this.risk.set({ points: pts, nowTtca, futures: e.futures, tier: tierOf(e) });
+    this.risk.set({ points: pts, nowTtca, futures: e.futures, tier: tierOf(e), key: this.key });
+    this.rtn.set(e);
   }
 }
 
@@ -155,8 +159,41 @@ function routedTxt(r) {
   return names.length ? ` · routed: ${esc(names.slice(0, 3).join(', '))}${names.length > 3 ? ' +' + (names.length - 3) : ''}` : '';
 }
 function costLine(f) {
-  const t = f?.alert_threshold ?? f?.threshold ?? f?.tau, R = f?.cost_ratio;
-  return t != null && R != null ? `<div class="ap-src">alert threshold t = ${(+t).toFixed(3)} · cost ratio R = ${esc(R)} (missed critical = R false alarms)</div>` : '';
+  const t = f?.alert_threshold ?? f?.threshold ?? f?.tau, R = f?.cost_ratio_R ?? f?.cost_ratio;
+  if (t == null && R == null) return '';
+  const parts = [t != null ? `alert threshold t = ${(+t).toFixed(3)}` : null, R != null ? `cost ratio R = ${esc(+R % 1 ? (+R).toFixed(1) : R)} (a missed critical costs R false alarms)` : null].filter(Boolean);
+  const al = f?.alert == null ? '' : f.alert ? ' · <b class="warntxt">ALERT</b> (p ≥ t)' : ' · below t';
+  return `<div class="ap-src fc-cost">${parts.join(', ')}${al}</div>`;
+}
+/** Honest provenance of a forecast value: model name + where the number comes from (out-of-fold for train events). */
+export function fcSource(f) {
+  if (!f) return '';
+  if (f.valid === false) return f.reason || 'not applicable inside 2 d: physics on the latest CDM governs';
+  if (f.fallback || f.model === 'persistence-empirical') {
+    const b = f.baseline;
+    return `persistence-empirical${b?.persistence_tier ? ` (last tier ${b.persistence_tier})` : ''}${f.note ? ' · ' + f.note : ''}`;
+  }
+  let ps = String(f.p_source || '');
+  const src = String(f.model || '').split(':')[0];
+  if (src && ps.startsWith(src)) ps = ps.slice(src.length).replace(/^\s*\((.*)\)\s*$/, '$1').trim(); // 'forecaster_bakeoff (x)' -> 'x'
+  const oof = /oof|out-of-fold/i.test(ps) && !/out-of-fold/i.test(ps) ? ' · out-of-fold' : '';
+  const mission = /mission/i.test(ps) ? ' (by mission)' : '';
+  return [f.model, ps ? ps + oof + mission : null].filter(Boolean).join(' · ');
+}
+/** Inspector: the served forecast with its source, the T−2 d value and the tier_forecaster OOF value when they differ. */
+function forecastBlock(e, c) {
+  const f = e.forecast, m = e.meta || {}, t2 = m.forecast_t2;
+  const late = c?.ttca_d != null && c.ttca_d < 2;
+  let head, val;
+  if (f && f.valid !== false && f.p_critical != null) { head = 'Chance this ends CRITICAL'; val = fmtPct(f.p_critical); }
+  else if (t2?.p_critical != null) { head = 'Forecast made at T−2 d'; val = fmtPct(t2.p_critical); }
+  else { head = 'Chance this ends CRITICAL'; val = late ? 'n/a inside 2 d' : 'n/a'; }
+  const src = f && f.valid !== false ? fcSource(f) : t2 ? [t2.model, t2.source === 'oof' || /^train:/.test(e.key) ? 'out-of-fold' : null].filter(Boolean).join(' · ') : late ? 'not applicable inside 2 d: physics governs' : '';
+  const extra = [];
+  if (t2?.p_critical != null && f && f.valid !== false && f.p_critical != null && Math.abs(t2.p_critical - f.p_critical) > 1e-6) extra.push(`served at T−2 d: ${fmtPct(t2.p_critical)}${t2.model ? ' (' + esc(t2.model) + ')' : ''}`);
+  if (m.p_critical_oof != null && (t2?.p_critical == null || Math.abs(m.p_critical_oof - t2.p_critical) > 1e-6)) extra.push(`tier_forecaster out-of-fold: ${fmtPct(m.p_critical_oof)}`);
+  return `<div class="in-fc"><span>${esc(head)} <em class="chip-mini st">STATISTICS</em></span><b>${esc(val)}</b>
+    <small>${esc(src)}</small>${costLine(f || t2)}${extra.length ? `<small class="fc-x">${extra.join(' · ')}</small>` : ''}</div>`;
 }
 
 /** Decision bars (agent purple) vs faint cost-rule bar. Never on a Pc axis. */
@@ -220,14 +257,15 @@ export class ApprovalCard {
         <div><span>Pc <em class="chip-mini">PHYSICS</em></span><b class="tc-${t}">${fmtPc(r?.pc?.log10, r?.pc)}</b></div>
         <div><span>Miss</span><b>${fmtMiss(c?.miss_m)}</b></div>
         <div><span>Sub-tiers</span><b>Pc ${esc(r?.tier?.pc_tier || '—')} · miss ${esc(r?.tier?.miss_tier || '—')}</b></div>
-        <div><span>Forecast <em class="chip-mini st">STATISTICS</em></span><b>${f && f.valid !== false && f.p_critical != null ? (c?.ttca_d != null && c.ttca_d < 2 ? `at T−2 d: ${fmtPct(f.p_critical)}` : `${fmtPct(f.p_critical)} ends CRITICAL`) : 'n/a inside 2 d'}</b></div>
+        <div><span>Forecast <em class="chip-mini st">STATISTICS</em></span><b>${f && f.valid !== false && f.p_critical != null ? (c?.ttca_d != null && c.ttca_d < 2 ? `at T−2 d: ${fmtPct(f.p_critical)}` : `${fmtPct(f.p_critical)} ends CRITICAL`) : e.meta?.forecast_t2?.p_critical != null ? `at T−2 d: ${fmtPct(e.meta.forecast_t2.p_critical)}` : 'n/a inside 2 d'}</b></div>
       </div>
+      <div class="ap-src fc-src">Forecast source: ${esc(f && f.valid !== false ? fcSource(f) : e.meta?.forecast_t2?.model ? e.meta.forecast_t2.model + (/^train:/.test(e.key) ? ' · out-of-fold' : '') : 'none (inside 2 d, physics governs)')}</div>
+      ${costLine(f && f.valid !== false ? f : e.meta?.forecast_t2)}
       <div class="ap-sub">Why it asks you</div>
       <ul class="ap-m-reasons">${(a.reasons || e.verdict?.reasons || []).map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
       <div class="ap-m-wait"></div>
       <textarea class="ap-note" rows="2" placeholder="Note for the ledger (optional)"></textarea>
       <div class="ap-m-btns">${order.map((o) => `<button class="${btnCls[o]}" data-act="${o}">${esc(ACTION_LABEL[o] || o)}</button>`).join('')}<button class="ghost rej" data-act="REJECT" title="Reject the suggestion (logged)">Reject</button></div>
-      ${costLine(f)}
       </div><div class="ap-col">
       ${decisionBlock(e)}
       ${e.explanation ? `<div class="ap-sub">Explanation <span class="chip ${e.explanation.verified ? 'good' : ''}">${esc(e.explanation.source)}${e.explanation.verified ? ' · verified' : ''}</span></div><div class="ap-say">${esc(e.explanation.text)}</div>` : ''}

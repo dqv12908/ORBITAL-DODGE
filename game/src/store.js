@@ -60,7 +60,7 @@ export function fmtPc(log10, { status } = {}) {
 }
 export const fmtPcShort = (l) => (l == null || !Number.isFinite(l) ? '—' : l < -10 ? '<1e-10' : (10 ** l).toExponential(1));
 export const fmtMiss = (m) => (m == null ? '—' : m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${Math.round(m)} m`);
-export const fmtPct = (p) => (p == null ? '—' : `${Math.round(p * 100)}%`);
+export const fmtPct = (p) => (p == null ? '—' : p > 0 && p < 0.001 ? '<0.1%' : p < 0.095 && p > 0 ? `${(p * 100).toFixed(1)}%` : `${Math.round(p * 100)}%`);
 export const pad = (n) => String(n).padStart(2, '0');
 export function fmtSim(ms, withDate = true) {
   const d = new Date(ms);

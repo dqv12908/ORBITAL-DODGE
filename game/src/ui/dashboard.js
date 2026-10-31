@@ -1,9 +1,11 @@
 // Ops dashboard (reference layout): 24 h tiles, insights, tabs Next 24 h · Alerts · Decisions · Refusals · Evaluation · Ledger.
 // Every number comes from the server (GET /dashboard, /eval, /ledger) or from server events already in the store.
 import { S, on, emit, tierOf, latestRisk, latestCdm, fmtPc, fmtMiss, fmtPct, fmtSim, fmtDur, esc, ACTION_SHORT, simNow } from '../store.js';
+import { mountStats } from './gg/stats.js';
+import { verdictBar } from './gg/plots.js';
 
 const TABS = [
-  ['next', 'Next 24 h'], ['alerts', 'Alerts'], ['decisions', 'Decisions'], ['refusals', 'Refusals'], ['eval', 'Evaluation'], ['ledger', 'Ledger'],
+  ['next', 'Next 24 h'], ['alerts', 'Alerts'], ['decisions', 'Decisions'], ['refusals', 'Refusals'], ['eval', 'Evaluation'], ['stats', 'Statistics'], ['ledger', 'Ledger'],
 ];
 const TIER_VAR = { SAFE: 'var(--good)', ELEVATED: 'var(--warn)', CRITICAL: 'var(--bad)', PLANNED: 'var(--info)' };
 const ms = (s) => (s ? Date.parse(s) : null);
@@ -177,8 +179,7 @@ export class Dashboard {
       <div class="dsh-card"><span class="dsh-card-l">Awaiting you</span><span class="dsh-card-v" style="color:${T.awaiting ? 'var(--warn)' : 'var(--text)'}">${esc(T.awaiting)}</span><small>approvals open</small></div>
       <div class="dsh-card"><span class="dsh-card-l">Forecast scoreboard</span><span class="dsh-card-v">${esc(T.score)}</span><small>${esc(T.scoreCap)}</small></div>
       <div class="dsh-card dsh-card-wide"><span class="dsh-card-l">Verdicts</span>
-        <div class="dsh-split"><i class="s-auto" style="width:${w(sp.AUTO)}"></i><i class="s-mgr" style="width:${w(sp.ESCALATE)}"></i><i class="s-blk" style="width:${w(sp.BLOCK)}"></i></div>
-        <div class="dsh-legend"><span><i class="s-auto"></i>AUTO <b>${sp.AUTO || 0}</b></span><span><i class="s-mgr"></i>ESCALATE <b>${sp.ESCALATE || 0}</b></span><span><i class="s-blk"></i>BLOCK <b>${sp.BLOCK || 0}</b></span></div></div>`;
+        <div class="gg-plot gg-verdicts">${verdictBar(sp, { width: 300, base: 12 })}</div></div>`;
     const ins = arr(this.data?.insights);
     this.el.querySelector('.dsh-insights').innerHTML = ins.map((i) => {
       const text = typeof i === 'string' ? i : i.text || i.msg || '';
@@ -188,7 +189,8 @@ export class Dashboard {
     const counts = { next: this.#rows('next24h').length, alerts: this.#rows('alerts').length, decisions: this.#rows('decisions').length, refusals: this.#rows('refusals').length,
       eval: null, ledger: S.ledger?.n || (Array.isArray(this.ledgerData) ? this.ledgerData.length : null) };
     this.el.querySelector('.dsh-tabs').innerHTML = TABS.map(([id, label]) => `<button type="button" class="dsh-tab${this.tab === id ? ' on' : ''}" data-tab="${id}">${label}${counts[id] != null ? `<span class="dsh-count">${counts[id]}</span>` : ''}</button>`).join('');
-    this.el.querySelector('.dsh-pane').innerHTML = this.#pane();
+    const pane = this.el.querySelector('.dsh-pane');
+    if (this.tab === 'stats') mountStats(pane, { api: this.api, dash: this.data }); else pane.innerHTML = this.#pane();
   }
 
   #table(head, rows, rowFn, cls = () => '') {

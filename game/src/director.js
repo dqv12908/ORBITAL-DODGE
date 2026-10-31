@@ -111,16 +111,17 @@ export class Director {
       if (c.verdict) e.verdict = c.verdict;
       if (c.explanation) e.explanation = c.explanation;
     }
-    if (h.summary) { e.summary = { ...e.summary, ...h.summary }; e.summaryTier = h.summary.tier ?? e.summaryTier; e.mission = h.summary.mission_id ?? e.mission; }
-    if (h.meta) { e.mission = h.meta.mission_id ?? e.mission; e.chaser_type = h.meta.c_object_type ?? h.meta.chaser_type ?? e.chaser_type; }
+    if (h.summary) { e.summary = { ...e.summary, ...h.summary }; e.summaryTier = h.summary.tier ?? h.summary.latest?.tier ?? e.summaryTier; e.mission = h.summary.mission_id ?? e.mission; }
+    if (h.meta) { e.meta = { ...e.meta, ...h.meta }; e.mission = h.meta.mission_id ?? e.mission; e.chaser_type = h.meta.c_object_type ?? h.meta.chaser_type ?? e.chaser_type; }
     for (const a of h.approvals || []) {
       if (a.status && a.status !== 'pending') continue;
       const ap = { ...a, event_key: e.key };
       S.approvals.set(a.approval_id, ap); e.approval = ap;
     }
+    // full assessment objects only: pc_series rows carry scalar `tier`/`log10_pc` and must not clobber the tier object
     risks.forEach((r, k) => {
       const i = r.cdm_index ?? cdms[k]?.cdm_index ?? k;
-      if (r.pc || r.tier) e.risks[i] = { ...e.risks[i], ...r };
+      if ((r.pc && typeof r.pc === 'object') || (r.tier && typeof r.tier === 'object')) e.risks[i] = { ...e.risks[i], ...r };
     });
     if (h.forecast) e.forecast = h.forecast;
     if (h.decision || (h.decisions && h.decisions.length)) e.decision = h.decision || h.decisions.at(-1);

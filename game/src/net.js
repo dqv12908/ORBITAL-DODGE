@@ -81,6 +81,10 @@ export function connectEvents(handler, { onGap, onConn } = {}) {
     es.close(); es = null; last = performance.now();
     open();
   }, 2000);
+  // A page kept in the back/forward cache (or a reloaded tab) would keep its stream open and, with the browser's
+  // 6-connections-per-host HTTP/1.1 limit, starve the live page's stream. Release it on pagehide, reopen on pageshow.
+  window.addEventListener('pagehide', () => { es?.close(); es = null; });
+  window.addEventListener('pageshow', (e) => { if (e.persisted && !closed && !es) { last = performance.now(); open(); } });
   open();
   return { close() { closed = true; clearInterval(wd); es?.close(); } };
 }

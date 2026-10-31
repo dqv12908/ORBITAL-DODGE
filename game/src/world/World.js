@@ -17,8 +17,11 @@ import { createPopulation } from './population.js';
 import { TIER_COLOR, ringTexture, glowTexture } from './palette.js';
 import { gmst, sunEci, eciToScene, normElements, scenePos, period, latLonToScene, RE_KM } from '../orbit.js';
 
-const FOV = 32;
-const HOME_DIST = 7.2;
+// Long-lens camera: a narrow FOV seen from further back keeps the Earth a true sphere (no wide-angle bulge or
+// stretched limb). DIST_K scales every framing distance so apparent sizes match the old 32° framing.
+const FOV = 24;
+const DIST_K = Math.tan(THREE.MathUtils.degToRad(16)) / Math.tan(THREE.MathUtils.degToRad(FOV / 2));
+const HOME_DIST = 7.2 * DIST_K;
 const ease = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
 const V = (a) => new THREE.Vector3(a[0], a[1], a[2]);
 
@@ -47,7 +50,7 @@ export class World {
     this.camera.position.set(0, 1.6, HOME_DIST);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     Object.assign(this.controls, { enableDamping: true, dampingFactor: 0.08, rotateSpeed: 0.45, zoomSpeed: 0.9, panSpeed: 0.8,
-      minDistance: 1.12, maxDistance: 30, enablePan: false, autoRotate: true, autoRotateSpeed: 0.25 });
+      minDistance: 1.25, maxDistance: 40, enablePan: false, autoRotate: true, autoRotateSpeed: 0.25 });
     this.userMoved = false;
     this.controls.addEventListener('start', () => { this.userMoved = true; this.fly = null; this.controls.autoRotate = false; });
 
@@ -61,7 +64,7 @@ export class World {
     // post: bloom on the Sun, city lights and alerts only (high threshold)
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(scene, this.camera));
-    this.bloom = new UnrealBloomPass(new THREE.Vector2(512, 512), 0.5, 0.4, 1.0);
+    this.bloom = new UnrealBloomPass(new THREE.Vector2(512, 512), 0.32, 0.3, 1.05); // subtle: Sun, city lights, alerts
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
     this.inertial = new THREE.Group(); // ECI-fixed things (orbits, focal pair, markers)
@@ -84,6 +87,7 @@ export class World {
     this.ready = this.#init();
     this.#bindPick();
     window.addEventListener('resize', () => this.#resize());
+    try { new ResizeObserver(() => this.#resize()).observe(el); } catch { /* old browsers: window resize only */ }
     this.#resize();
     this.renderer.setAnimationLoop(() => this.#tick());
   }
@@ -110,6 +114,9 @@ export class World {
 
   #resize() {
     const w = this.el.clientWidth || window.innerWidth, h = this.el.clientHeight || window.innerHeight;
+    if (!w || !h) return;
+    if (this._size && this._size[0] === w && this._size[1] === h && this._size[2] === this.pixelRatio) return;
+    this._size = [w, h, this.pixelRatio];
     this.renderer.setSize(w, h, false);
     this.composer?.setPixelRatio(this.pixelRatio);
     this.composer?.setSize(w, h);
@@ -137,6 +144,7 @@ export class World {
   }
   /** Frame a conjunction point: camera above P, off to the side, Earth limb in view. */
   flyToPoint(p, { dist = 1.1, dur = 1.6 } = {}) {
+    dist *= DIST_K;
     const P = p.clone();
     const up = P.clone().normalize();
     // look from the sunlit side when we can (cinematic, readable)
@@ -390,7 +398,7 @@ export class World {
         f.deb.rotation.x += dt * 0.7; f.deb.rotation.y += dt * 0.45; f.deb.rotation.z += dt * 0.2;
         // keep the tiny models legible at any zoom (not to scale, labelled)
         const camD = this.camera.position.distanceTo(f.sat.position);
-        const sc = THREE.MathUtils.clamp(camD * 0.012, 0.0025, 0.02);
+        const sc = THREE.MathUtils.clamp(camD * 0.012 / DIST_K, 0.0025, 0.02);
         f.sat.scale.setScalar(sc); f.deb.scale.setScalar(sc * 0.8);
         const pulse = 0.5 + 0.5 * Math.sin(t * 4);
         const near = Math.abs(dts) < 900 ? 1.35 : 1;

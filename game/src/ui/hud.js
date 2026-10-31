@@ -129,7 +129,8 @@ export class Hud {
       const r = latestRisk(e), c = latestCdm(e), t = r?.tier?.tier || e.summaryTier;
       const miss = c?.miss_m ?? e.summary?.latest_miss_m;
       if (e.tcaMs != null && e.tcaMs > now && e.tcaMs - now < 86400e3 && miss != null && miss < 1000) k1++;
-      if (t === 'CRITICAL') { crit++; if (r?.tier?.pc_tier && r.tier.pc_tier !== 'CRITICAL') critMiss++; }
+      const pcTier = r?.tier?.pc_tier ?? e.summary?.latest?.pc_tier;
+      if (t === 'CRITICAL') { crit++; if (pcTier && pcTier !== 'CRITICAL') critMiss++; }
       if (t === 'ELEVATED') elev++;
       if (r?.pc?.status === 'COV_UNKNOWN' || (c?.flags || []).some((f) => /COV/.test(f))) ref++;
     }
@@ -140,7 +141,14 @@ export class Hud {
       if (sub != null) el.title = sub;
       el.closest('.tb-kpi').classList.toggle('is-hot', v > 0);
     };
-    set('k-1km', k1); set('k-crit', crit, `${critMiss} critical by miss distance only`); set('k-elev', elev); set('k-ref', ref); set('k-await', S.approvals.size);
+    set('k-1km', k1); set('k-crit', crit, `${critMiss} critical by miss distance only`);
+    { // sub-tiers: how many CRITICALs are miss-only (Pc tier lower) — the W3 flip to CARA_PC removes exactly these
+      const kc = this.tb.querySelector('.k-crit .tb-k');
+      let sub = kc.querySelector('.tb-sub');
+      if (!sub) { sub = document.createElement('small'); sub.className = 'tb-sub'; kc.appendChild(sub); }
+      const txt = critMiss ? ` · ${critMiss} miss-only` : '';
+      if (sub.textContent !== txt) sub.textContent = txt;
+    } set('k-elev', elev); set('k-ref', ref); set('k-await', S.approvals.size);
     this.tb.querySelector('.tb-badge').hidden = !S.approvals.size;
   }
 

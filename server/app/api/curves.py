@@ -40,7 +40,14 @@ _CACHE: dict = {}
 # ─────────────────────────────────────────────────────────────── loading
 def _source(repo: Path):
     """First available OOF prediction file, as (name, path, column picker)."""
-    cands = [
+    cands = []
+    org = repo / "registry" / "forecaster_organizer"
+    try:
+        cur = (org / "CURRENT").read_text().strip()
+        cands.append(("forecaster_organizer", org / cur / "predictions.parquet"))
+    except Exception:
+        pass
+    cands += [
         ("forecaster_cost", repo / "registry" / "forecaster_cost" / "1.0.0" / "predictions.parquet"),
         ("forecaster_bakeoff", repo / "registry" / "forecaster_bakeoff" / "predictions.parquet"),
         ("tier_forecaster", repo / "registry" / "tier_forecaster" / "1.0.0" / "oof.parquet"),
@@ -64,6 +71,10 @@ def _load(repo: Path, processed: Path):
         col = "p_critical_event" if "p_critical_event" in d else "p_critical_mission"
         d = d.assign(p=d[col])
         note = f"{col} (OOF by event)"
+    elif name == "forecaster_organizer":
+        d = d[d["split"].astype(str) == "train"]
+        d = d.assign(p=d["p_critical"])
+        note = "p_critical; train rows out-of-fold by held-out mission"
     else:
         if "split" in d:
             oof = d["split"].astype(str).str.contains("oof|outer|test_fold|nested", regex=True) & \
@@ -77,6 +88,9 @@ def _load(repo: Path, processed: Path):
     ev = pd.read_parquet(processed / "events.parquet",
                          columns=["event_key", "split", "final_tier", "persistence_tier", "final_miss_m", "final_ttca"])
     tr = ev[ev["split"] == "train"]
+    served_thr = None
+    if "threshold" in d:
+        served_thr = float(d["threshold"].median())
     m = d.merge(tr[["event_key", "final_tier", "persistence_tier"]], on="event_key", how="inner")
     m = m[m["final_tier"].notna()]
     model = None
@@ -86,7 +100,7 @@ def _load(repo: Path, processed: Path):
         model = card.get("served_model") or card.get("name")
     except Exception:
         pass
-    return name, p, note, model, m, tr
+    return name, p, note, model, m, tr, served_thr
 
 
 def _key(repo: Path, processed: Path):
@@ -140,7 +154,7 @@ def _kde(x, grid):
 
 
 def _compute(repo: Path, processed: Path) -> dict:
-    name, path, note, model, m, tr = _load(repo, processed)
+    name, path, note, model, m, tr, served_thr = _load(repo, processed)
     y = (m["final_tier"] == "CRITICAL").to_numpy().astype(int)
     s = m["p"].to_numpy().astype(float)
     n, npos = len(y), int(y.sum())
@@ -191,6 +205,11 @@ def _compute(repo: Path, processed: Path) -> dict:
     ok = [c for c in cost if c["recall"] >= RECALL_FLOOR]
     best_any = min(cost, key=lambda c: c["cost"]) if cost else None
     chosen = min(ok, key=lambda c: c["cost"]) if ok else best_any
+    if served_thr is not None:  # the served model's own alert threshold (median of its per-event thresholds)
+        a = s >= served_thr
+        tp_, fp_ = int((a & (y == 1)).sum()), int((a & (y == 0)).sum())
+        chosen = {"threshold": served_thr, "cost": R_COST * (npos - tp_) + fp_, "missed": npos - tp_, "false_alarms": fp_,
+                  "recall": tp_ / max(npos, 1), "source": "served model threshold (median per-event)"}
     floor_max_t = max((c["threshold"] for c in ok), default=None)
 
     # density of P(critical) on log10 axis, by true tier

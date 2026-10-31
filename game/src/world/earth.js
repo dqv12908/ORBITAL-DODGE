@@ -56,11 +56,18 @@ export async function createEarth(renderer) {
         // warm light near the terminator
         vec3 warm = mix(vec3(1.0, 0.55, 0.3), vec3(1.0), smoothstep(0.0, 0.35, mu));
         vec3 col = albedo * diff * sunCol * warm;
-        // ocean specular (spec map: white = water)
+        // ocean sun glint: roughness from the specular map (water ~0.32, land ~0.9), energy-normalised
+        // Blinn-Phong with Schlick Fresnel (water F0 ~0.02). Soft, physically small; never a white blob.
         float ocean = texture2D(uSpec, vUv).r;
         vec3 H = normalize(L + V);
-        float sp = pow(max(dot(N, H), 0.0), 60.0) * ocean * 1.1 + pow(max(dot(N, H), 0.0), 8.0) * ocean * 0.08;
-        col += sunCol * warm * sp * dayMix;
+        float rough = mix(0.9, 0.32, ocean);
+        float a2 = rough * rough;
+        float shin = clamp(2.0 / (a2 * a2) - 2.0, 1.0, 400.0);
+        float NdH = max(dot(N, H), 0.0), NdL = max(dot(N, L), 0.0);
+        float F = 0.02 + 0.98 * pow(1.0 - max(dot(V, H), 0.0), 5.0);
+        float sp = F * (shin + 8.0) / 25.13 * pow(NdH, shin) * NdL;
+        sp = min(sp, 0.55) * mix(0.15, 1.0, ocean);
+        col += sunCol * warm * sp * dayMix * 0.8;
         // cloud shadow (approx: sample clouds slightly offset toward the sun)
         vec2 cuv = vec2(fract(vUv.x - uCloudRot), vUv.y);
         float cl = texture2D(uClouds, cuv + vec2(0.0015, 0.0)).a;
@@ -123,8 +130,12 @@ export async function createEarth(renderer) {
         void main() {
           vec3 N = normalize(vN);
           vec3 V = normalize(cameraPosition - vPosW);
-          float rim = 1.0 - abs(dot(N, V));
-          float a = pow(rim, 5.0) * 2.2;
+          // brightness from the view ray's closest approach to the Earth's centre: densest at the limb,
+          // fading outward (a plain back-face rim term peaks at the shell's OUTER edge -> a detached second limb)
+          vec3 rd = normalize(vPosW - cameraPosition);
+          float b = length(cameraPosition + rd * dot(-cameraPosition, rd));
+          float hh = clamp((b - 1.0) / 0.035, 0.0, 1.0);
+          float a = exp(-hh * 4.5) * (1.0 - hh) * 1.1;
           float mu = dot(N, normalize(uSun));
           vec3 blue = vec3(0.30, 0.58, 1.0);
           vec3 warm = vec3(1.0, 0.52, 0.25);
@@ -203,7 +214,7 @@ export function createSky() {
   x.fillStyle = grd; x.fillRect(0, 0, 256, 256);
   const st = new THREE.CanvasTexture(c); st.colorSpace = THREE.SRGBColorSpace;
   const sun = new THREE.Sprite(new THREE.SpriteMaterial({ map: st, color: new THREE.Color(6, 5.6, 5), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
-  sun.scale.setScalar(14);
+  sun.scale.setScalar(11); // apparent size kept with the 24° long-lens camera
   g.add(sun);
   return { group: g, sun, stars };
 }
